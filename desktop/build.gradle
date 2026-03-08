@@ -1,0 +1,22 @@
+plugins {
+    id "application"
+}
+
+dependencies {
+    implementation project(":core")
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-platform:${gdxVersion}:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-freetype-platform:${gdxVersion}:natives-desktop"
+}
+
+application {
+    mainClass = "com.pixelrpg.game.desktop.DesktopLauncher"
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir "../core/assets"
+        }
+    }
+}

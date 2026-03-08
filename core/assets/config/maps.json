@@ -1,0 +1,19 @@
+{
+  "defaultMap": "village",
+  "maps": [
+    {
+      "id": "village",
+      "path": "maps/village_finite.tmx",
+      "collisionLayers": ["WALL"],
+      "spawnLayers": ["SPAWN-Village", "SpawnPoint", "ENTRANCE-Dungeon"],
+      "padding": 160.0
+    },
+    {
+      "id": "research-lab-floor-1",
+      "path": "maps/Research-Lab-Floor-1_finite.tmx",
+      "collisionLayers": ["WALL-COLLISION", "WALL"],
+      "spawnLayers": ["EXIT-Research-Lab"],
+      "padding": 160.0
+    }
+  ]
+}

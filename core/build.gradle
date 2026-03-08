@@ -1,0 +1,59 @@
+plugins {
+    id "java"
+}
+
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-freetype:${gdxVersion}"
+}
+
+import groovy.json.JsonSlurper
+
+def mapCatalogFile = file("${project.rootDir}/core/assets/config/maps.json")
+
+tasks.register("validateMapCatalog") {
+    group = "verification"
+    description = "Validates map catalog IDs/default and map file paths."
+    inputs.file(mapCatalogFile)
+
+    doLast {
+        if (!mapCatalogFile.exists()) {
+            throw new GradleException("Missing map catalog: ${mapCatalogFile}")
+        }
+
+        def json = new JsonSlurper().parse(mapCatalogFile)
+        def maps = (json.maps ?: [])
+        if (maps.isEmpty()) {
+            throw new GradleException("maps.json must contain at least one map entry")
+        }
+
+        def ids = [] as Set
+        maps.each { map ->
+            def id = (map.id ?: "").toString().trim()
+            def path = (map.path ?: "").toString().trim()
+            if (!id) {
+                throw new GradleException("Map entry has empty id")
+            }
+            if (!path) {
+                throw new GradleException("Map '${id}' has empty path")
+            }
+            if (!ids.add(id)) {
+                throw new GradleException("Duplicate map id in maps.json: ${id}")
+            }
+
+            def mapFile = file("${project.rootDir}/core/assets/${path}")
+            if (!mapFile.exists()) {
+                throw new GradleException("Map '${id}' points to missing file: ${mapFile}")
+            }
+        }
+
+        def defaultMap = (json.defaultMap ?: maps[0].id).toString().trim()
+        if (!ids.contains(defaultMap)) {
+            throw new GradleException("defaultMap '${defaultMap}' is not present in maps[]")
+        }
+    }
+}
+
+tasks.named("classes").configure {
+    dependsOn(tasks.named("validateMapCatalog"))
+}
