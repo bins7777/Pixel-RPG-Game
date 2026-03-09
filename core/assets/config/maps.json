@@ -14,6 +14,13 @@
       "collisionLayers": ["WALL-COLLISION", "WALL"],
       "spawnLayers": ["EXIT-Research-Lab"],
       "padding": 160.0
+    },
+    {
+      "id": "research-lab-floor-2",
+      "path": "maps/Research-Lab-Floor-2_finite.tmx",
+      "collisionLayers": ["WALL-COLLISION", "WALL"],
+      "spawnLayers": ["EXIT-Research-Lab-Floor-2"],
+      "padding": 160.0
     }
   ]
 }

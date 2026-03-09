@@ -304,9 +304,20 @@ public class TiledMap {
 
     private Point2D.Float loadSpawnPoint(Element mapElement) {
         NodeList groups = mapElement.getElementsByTagName("objectgroup");
+        String[] preferredLayerNames = {"SPAWN-Village", "SpawnPoint"};
+        for (String layerName : preferredLayerNames) {
+            Point2D.Float spawn = loadSpawnFromLayer(groups, layerName);
+            if (spawn != null) {
+                return spawn;
+            }
+        }
+        return null;
+    }
+
+    private Point2D.Float loadSpawnFromLayer(NodeList groups, String layerName) {
         for (int i = 0; i < groups.getLength(); i++) {
             Element group = (Element) groups.item(i);
-            if (!"SpawnPoint".equalsIgnoreCase(group.getAttribute("name"))) {
+            if (!layerName.equalsIgnoreCase(group.getAttribute("name"))) {
                 continue;
             }
             NodeList objects = group.getElementsByTagName("object");
@@ -314,11 +325,13 @@ public class TiledMap {
                 continue;
             }
             Element obj = (Element) objects.item(0);
+            float groupOffsetX = group.hasAttribute("offsetx") ? Float.parseFloat(group.getAttribute("offsetx")) : 0f;
+            float groupOffsetY = group.hasAttribute("offsety") ? Float.parseFloat(group.getAttribute("offsety")) : 0f;
             float x = Float.parseFloat(obj.getAttribute("x"));
             float y = Float.parseFloat(obj.getAttribute("y"));
             float w = obj.hasAttribute("width") ? Float.parseFloat(obj.getAttribute("width")) : 0f;
             float h = obj.hasAttribute("height") ? Float.parseFloat(obj.getAttribute("height")) : 0f;
-            return new Point2D.Float(x + w / 2f, y + h / 2f);
+            return new Point2D.Float(x + w / 2f + groupOffsetX, y + h / 2f + groupOffsetY);
         }
         return null;
     }

@@ -20,10 +20,9 @@ public class DesktopLauncher {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle(title);
         var displayMode = Lwjgl3ApplicationConfiguration.getDisplayMode();
-        config.setWindowedMode(displayMode.width, displayMode.height);
-        config.setDecorated(false); // borderless fullscreen window
+        config.setFullscreenMode(displayMode);
+        config.setDecorated(false); // fullscreen-only, no title bar
         config.setResizable(false);
-        config.setMaximized(true);
         config.useVsync(vsync);
         config.setForegroundFPS(foregroundFps);
         // Reserve stencil bits for LightAreas masking during night rendering.

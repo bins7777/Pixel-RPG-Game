@@ -50,8 +50,11 @@ public class GameScreen extends ScreenAdapter {
     private static final String MAP_CATALOG_PATH = "config/maps.json";
     private static final String MAP_ID_VILLAGE = "village";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_1 = "research-lab-floor-1";
+    private static final String MAP_ID_RESEARCH_LAB_FLOOR_2 = "research-lab-floor-2";
     private static final String FOREGROUND_LAYER_MARKER = "FRONT OF CHARACTR";
     private static final String FOREGROUND_LAYER_MARKER_ALT = "FRONT OF CHARACTER";
+    private static final String DEPTH_SPLIT_GROUP_LAYER_NAME = "Table (Infront and Behind of character)";
+    private static final String DEPTH_SPLIT_MARKER_LAYER_NAME = "BelowFront_AboveBehind";
     private static final String TORCH_ANIMATION_GROUP_NAME = "Torch Animation";
     private static final String TORCH_FRAME_PREFIX = "Torch ";
     private static final float TORCH_FRAME_DURATION_SECONDS = 0.1f;
@@ -136,6 +139,14 @@ public class GameScreen extends ScreenAdapter {
     private static final float DAY_NIGHT_SPEED_MIN = 0.25f;
     private static final float DAY_NIGHT_SPEED_MAX = 4f;
     private static final float DAY_NIGHT_SPEED_STEP = 0.25f;
+    private static final float MAP_TRANSITION_FADE_OUT_SECONDS = 1.2f;
+    private static final float MAP_TRANSITION_FADE_IN_SECONDS = 1.2f;
+
+    private enum MapTransitionPhase {
+        NONE,
+        FADING_OUT,
+        FADING_IN
+    }
     private OrthographicCamera camera;
     private OrthographicCamera uiCamera;
     private SpriteBatch batch;
@@ -173,6 +184,12 @@ public class GameScreen extends ScreenAdapter {
     private final Polygon playerCollisionPolygon = new Polygon();
     private final float[] playerCollisionVertices = new float[8];
     private DayNightCycleManager dayNightCycle;
+    private MapTransitionPhase mapTransitionPhase = MapTransitionPhase.NONE;
+    private float mapTransitionTimer = 0f;
+    private String pendingTransitionMapId;
+    private String pendingTransitionSpawnLayer;
+    private int depthSplitGroupLayerIndex = -1;
+    private MapLayer depthSplitMarkerLayer;
 
     @Override
     public void show() {
@@ -209,9 +226,14 @@ public class GameScreen extends ScreenAdapter {
     public void render(float delta) {
         player.stateTime += delta;
         updateDayNightCycle(delta);
-        updateAttack(delta);
-        updateDash(delta);
-        handleInput(delta);
+        updateMapTransition(delta);
+        if (isMapTransitionActive()) {
+            player.moving = false;
+        } else {
+            updateAttack(delta);
+            updateDash(delta);
+            handleInput(delta);
+        }
         updateTorchAnimation(delta);
         updateNpcAnimation(delta);
         hudRenderer.update(delta);
@@ -225,20 +247,23 @@ public class GameScreen extends ScreenAdapter {
         camera.update();
         world.mapRenderer.setView(camera);
         float worldSaturation = lerp(1f, NIGHT_WORLD_SATURATION, nightBlend);
-        renderMapWithSaturation(world.backgroundLayerIndices, worldSaturation);
-        drawLightAreaColorRestore(nightBlend, world.backgroundLayerIndices);
+        int[] backgroundRenderLayers = activeBackgroundRenderLayers();
+        int[] foregroundRenderLayers = activeForegroundRenderLayers();
+        renderMapWithSaturation(backgroundRenderLayers, worldSaturation);
+        drawLightAreaColorRestore(nightBlend, backgroundRenderLayers);
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         drawPlayer(lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend));
         batch.end();
 
-        renderMapWithSaturation(world.foregroundLayerIndices, worldSaturation);
-        drawLightAreaColorRestore(nightBlend, world.foregroundLayerIndices);
+        renderMapWithSaturation(foregroundRenderLayers, worldSaturation);
+        drawLightAreaColorRestore(nightBlend, foregroundRenderLayers);
 
         drawDayNightOverlay();
         drawVignette();
         hudRenderer.draw(batch, player.currentHealth, player.maxHealth, player.currentMana, player.maxMana, player.playerLevel);
+        drawMapTransitionOverlay();
     }
 
     @Override
@@ -350,6 +375,8 @@ public class GameScreen extends ScreenAdapter {
         world.npcAnimationTimer = 0f;
         world.backgroundLayerIndices = new int[0];
         world.foregroundLayerIndices = new int[0];
+        depthSplitGroupLayerIndex = -1;
+        depthSplitMarkerLayer = null;
     }
 
     private void reloadCurrentMap() {
@@ -422,6 +449,150 @@ public class GameScreen extends ScreenAdapter {
 
         world.backgroundLayerIndices = background.toArray();
         world.foregroundLayerIndices = foreground.toArray();
+        configureDepthSplitLayer();
+    }
+
+    private void configureDepthSplitLayer() {
+        depthSplitGroupLayerIndex = -1;
+        depthSplitMarkerLayer = null;
+        if (world.map == null) {
+            return;
+        }
+
+        MapLayer groupLayer = findLayerByName(DEPTH_SPLIT_GROUP_LAYER_NAME);
+        if (groupLayer == null) {
+            return;
+        }
+        int topLevelIndex = world.map.getLayers().getIndex(groupLayer);
+        if (topLevelIndex < 0) {
+            return;
+        }
+
+        MapLayer markerLayer = findLayerByName(DEPTH_SPLIT_MARKER_LAYER_NAME);
+        if (markerLayer == null) {
+            return;
+        }
+
+        depthSplitGroupLayerIndex = topLevelIndex;
+        depthSplitMarkerLayer = markerLayer;
+    }
+
+    private int[] activeBackgroundRenderLayers() {
+        return applyDepthSplitLayer(world.backgroundLayerIndices, false);
+    }
+
+    private int[] activeForegroundRenderLayers() {
+        return applyDepthSplitLayer(world.foregroundLayerIndices, true);
+    }
+
+    private int[] applyDepthSplitLayer(int[] baseLayers, boolean foregroundPass) {
+        if (baseLayers == null) {
+            return null;
+        }
+        if (depthSplitGroupLayerIndex < 0 || depthSplitMarkerLayer == null) {
+            return baseLayers;
+        }
+
+        boolean renderDepthSplitInFront = isPlayerAboveDepthSplitMarker();
+        boolean shouldContain = foregroundPass ? renderDepthSplitInFront : !renderDepthSplitInFront;
+        boolean contains = containsLayerIndex(baseLayers, depthSplitGroupLayerIndex);
+        if (contains == shouldContain) {
+            return baseLayers;
+        }
+        return shouldContain
+                ? insertLayerIndexSorted(baseLayers, depthSplitGroupLayerIndex)
+                : removeLayerIndex(baseLayers, depthSplitGroupLayerIndex);
+    }
+
+    private boolean isPlayerAboveDepthSplitMarker() {
+        if (depthSplitMarkerLayer == null) {
+            return false;
+        }
+
+        float playerCenterX = player.bounds.x + player.bounds.width / 2f;
+        Float markerY = findDepthSplitMarkerY(playerCenterX);
+        if (markerY == null) {
+            return false;
+        }
+
+        // Compare with feet position so the split point tracks table occlusion naturally.
+        return player.bounds.y > markerY;
+    }
+
+    private Float findDepthSplitMarkerY(float worldX) {
+        float nearestDistanceX = Float.MAX_VALUE;
+        Float nearestY = null;
+        for (MapObject object : depthSplitMarkerLayer.getObjects()) {
+            Rectangle bounds = objectBounds(depthSplitMarkerLayer, object);
+            if (bounds == null) {
+                continue;
+            }
+            float distanceX = horizontalDistanceToRange(worldX, bounds.x, bounds.x + bounds.width);
+            if (distanceX < nearestDistanceX) {
+                nearestDistanceX = distanceX;
+                nearestY = bounds.y + bounds.height / 2f;
+            }
+        }
+        return nearestY;
+    }
+
+    private float horizontalDistanceToRange(float x, float minX, float maxX) {
+        if (x < minX) {
+            return minX - x;
+        }
+        if (x > maxX) {
+            return x - maxX;
+        }
+        return 0f;
+    }
+
+    private boolean containsLayerIndex(int[] layers, int target) {
+        for (int layer : layers) {
+            if (layer == target) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int[] removeLayerIndex(int[] layers, int target) {
+        int count = 0;
+        for (int layer : layers) {
+            if (layer != target) {
+                count++;
+            }
+        }
+        if (count == layers.length) {
+            return layers;
+        }
+        int[] result = new int[count];
+        int out = 0;
+        for (int layer : layers) {
+            if (layer != target) {
+                result[out++] = layer;
+            }
+        }
+        return result;
+    }
+
+    private int[] insertLayerIndexSorted(int[] layers, int target) {
+        if (containsLayerIndex(layers, target)) {
+            return layers;
+        }
+        int[] result = new int[layers.length + 1];
+        int out = 0;
+        boolean inserted = false;
+        for (int layer : layers) {
+            if (!inserted && target < layer) {
+                result[out++] = target;
+                inserted = true;
+            }
+            result[out++] = layer;
+        }
+        if (!inserted) {
+            result[out] = target;
+        }
+        return result;
     }
 
     private void configureTorchAnimation() {
@@ -715,17 +886,10 @@ public class GameScreen extends ScreenAdapter {
                 }
             }
         }
-        if (layer != null && layer.getObjects().getCount() > 0) {
-            MapObject obj = layer.getObjects().get(0);
-            if (obj instanceof RectangleMapObject rectObj) {
-                Rectangle r = rectObj.getRectangle();
-                spawn.set(r.x + r.width / 2f, r.y + r.height / 2f);
-            } else {
-                Float x = obj.getProperties().get("x", Float.class);
-                Float y = obj.getProperties().get("y", Float.class);
-                if (x != null && y != null) {
-                    spawn.set(x, y);
-                }
+        if (layer != null) {
+            Vector2 layerSpawn = extractLayerSpawn(layer);
+            if (layerSpawn != null) {
+                spawn.set(layerSpawn);
             }
         }
 
@@ -1022,7 +1186,17 @@ public class GameScreen extends ScreenAdapter {
                         MAP_ID_RESEARCH_LAB_FLOOR_1,
                         "EXIT-Research-Lab",
                         MAP_ID_VILLAGE,
-                        "ENTRANCE-Research-Lab");
+                        "ENTRANCE-Research-Lab")
+                || tryMapTransition(
+                        MAP_ID_RESEARCH_LAB_FLOOR_1,
+                        "ENTRANCE-Research-Lab-Floor-2",
+                        MAP_ID_RESEARCH_LAB_FLOOR_2,
+                        "EXIT-Research-Lab-Floor-2")
+                || tryMapTransition(
+                        MAP_ID_RESEARCH_LAB_FLOOR_2,
+                        "EXIT-Research-Lab-Floor-2",
+                        MAP_ID_RESEARCH_LAB_FLOOR_1,
+                        "ENTRANCE-Research-Lab-Floor-2");
     }
 
     private boolean tryMapTransition(String fromMapId, String triggerLayerName, String toMapId, String targetSpawnLayer) {
@@ -1032,8 +1206,93 @@ public class GameScreen extends ScreenAdapter {
         if (!isPlayerWithinObjectLayer(triggerLayerName)) {
             return false;
         }
-        loadMap(toMapId, targetSpawnLayer);
+        startMapTransition(toMapId, targetSpawnLayer);
         return true;
+    }
+
+    private void startMapTransition(String toMapId, String targetSpawnLayer) {
+        if (toMapId == null || toMapId.isBlank()) {
+            return;
+        }
+        if (isMapTransitionActive()) {
+            return;
+        }
+        pendingTransitionMapId = toMapId;
+        pendingTransitionSpawnLayer = targetSpawnLayer;
+        mapTransitionPhase = MapTransitionPhase.FADING_OUT;
+        mapTransitionTimer = 0f;
+    }
+
+    private boolean isMapTransitionActive() {
+        return mapTransitionPhase != MapTransitionPhase.NONE;
+    }
+
+    private void updateMapTransition(float delta) {
+        if (mapTransitionPhase == MapTransitionPhase.NONE) {
+            return;
+        }
+
+        mapTransitionTimer += Math.max(0f, delta);
+
+        if (mapTransitionPhase == MapTransitionPhase.FADING_OUT) {
+            if (mapTransitionTimer < MAP_TRANSITION_FADE_OUT_SECONDS) {
+                return;
+            }
+
+            String toMapId = pendingTransitionMapId;
+            String targetSpawnLayer = pendingTransitionSpawnLayer;
+            pendingTransitionMapId = null;
+            pendingTransitionSpawnLayer = null;
+
+            if (toMapId != null) {
+                loadMap(toMapId, targetSpawnLayer);
+                centerCameraOnPlayer();
+            }
+
+            mapTransitionPhase = MapTransitionPhase.FADING_IN;
+            mapTransitionTimer = 0f;
+            return;
+        }
+
+        if (mapTransitionTimer >= MAP_TRANSITION_FADE_IN_SECONDS) {
+            mapTransitionPhase = MapTransitionPhase.NONE;
+            mapTransitionTimer = 0f;
+        }
+    }
+
+    private void drawMapTransitionOverlay() {
+        if (dayNightOverlayTex == null || uiCamera == null) {
+            return;
+        }
+        float alpha = mapTransitionAlpha();
+        if (alpha <= 0.001f) {
+            return;
+        }
+
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(null);
+        batch.setColor(0f, 0f, 0f, alpha);
+        batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.end();
+    }
+
+    private float mapTransitionAlpha() {
+        if (mapTransitionPhase == MapTransitionPhase.FADING_OUT) {
+            if (MAP_TRANSITION_FADE_OUT_SECONDS <= 0f) {
+                return 1f;
+            }
+            return clamp01(mapTransitionTimer / MAP_TRANSITION_FADE_OUT_SECONDS);
+        }
+        if (mapTransitionPhase == MapTransitionPhase.FADING_IN) {
+            if (MAP_TRANSITION_FADE_IN_SECONDS <= 0f) {
+                return 0f;
+            }
+            return clamp01(1f - (mapTransitionTimer / MAP_TRANSITION_FADE_IN_SECONDS));
+        }
+        return 0f;
     }
 
     private boolean isPlayerWithinObjectLayer(String layerName) {
@@ -1042,29 +1301,68 @@ public class GameScreen extends ScreenAdapter {
             return false;
         }
         for (MapObject object : layer.getObjects()) {
-            if (doesPlayerOverlap(object)) {
+            if (doesPlayerOverlap(layer, object)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean doesPlayerOverlap(MapObject object) {
+    private boolean doesPlayerOverlap(MapLayer layer, MapObject object) {
+        Rectangle bounds = objectBounds(layer, object);
+        if (bounds == null) {
+            return false;
+        }
+        if (bounds.width <= 0f && bounds.height <= 0f) {
+            return player.bounds.contains(bounds.x, bounds.y);
+        }
+        return Intersector.overlaps(player.bounds, bounds);
+    }
+
+    private Rectangle objectBounds(MapLayer layer, MapObject object) {
+        float offsetX = layer != null ? layer.getRenderOffsetX() : 0f;
+        float offsetY = layer != null ? layer.getRenderOffsetY() : 0f;
         if (object instanceof RectangleMapObject rectObj) {
-            return Intersector.overlaps(player.bounds, rectObj.getRectangle());
+            Rectangle rect = rectObj.getRectangle();
+            return new Rectangle(rect.x + offsetX, rect.y + offsetY, rect.width, rect.height);
         }
         if (object instanceof PolygonMapObject polyObj) {
-            return Intersector.overlaps(player.bounds, polyObj.getPolygon().getBoundingRectangle());
+            Rectangle bounds = polyObj.getPolygon().getBoundingRectangle();
+            return new Rectangle(bounds.x + offsetX, bounds.y + offsetY, bounds.width, bounds.height);
         }
         if (object instanceof EllipseMapObject ellipseObj) {
             Ellipse ellipse = ellipseObj.getEllipse();
-            return Intersector.overlaps(player.bounds, new Rectangle(ellipse.x, ellipse.y, ellipse.width, ellipse.height));
+            return new Rectangle(ellipse.x + offsetX, ellipse.y + offsetY, ellipse.width, ellipse.height);
         }
 
         MapProperties properties = object.getProperties();
         Float x = properties.get("x", Float.class);
         Float y = properties.get("y", Float.class);
-        return x != null && y != null && player.bounds.contains(x, y);
+        if (x == null || y == null) {
+            return null;
+        }
+        return new Rectangle(x + offsetX, y + offsetY, 0f, 0f);
+    }
+
+    private Vector2 extractLayerSpawn(MapLayer layer) {
+        if (layer == null || layer.getObjects().getCount() == 0) {
+            return null;
+        }
+
+        float offsetX = layer.getRenderOffsetX();
+        float offsetY = layer.getRenderOffsetY();
+        MapObject obj = layer.getObjects().get(0);
+        if (obj instanceof RectangleMapObject rectObj) {
+            Rectangle r = rectObj.getRectangle();
+            return new Vector2(r.x + r.width / 2f + offsetX, r.y + r.height / 2f + offsetY);
+        }
+
+        Float x = obj.getProperties().get("x", Float.class);
+        Float y = obj.getProperties().get("y", Float.class);
+        if (x != null && y != null) {
+            return new Vector2(x + offsetX, y + offsetY);
+        }
+        return null;
     }
 
     private void startDashFromLastMove() {

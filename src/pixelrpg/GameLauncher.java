@@ -53,6 +53,8 @@ public class GameLauncher {
         }
 
         Path directMap = firstExisting(checkedPaths,
+                Paths.get("DSA GAME", "village.tmx"),
+                Paths.get("core", "assets", "maps", "village.tmx"),
                 Paths.get("DSA GAME", "Easy.tmx"),
                 Paths.get("Files Ready(delete after editing)", "Easy.tmx"),
                 Paths.get("Easy.tmx"));
@@ -63,6 +65,8 @@ public class GameLauncher {
         Path probeRoot = Paths.get("").toAbsolutePath().normalize();
         for (int i = 0; i < 6 && probeRoot != null; i++) {
             Path found = firstExisting(checkedPaths,
+                    probeRoot.resolve(Paths.get("DSA GAME", "village.tmx")),
+                    probeRoot.resolve(Paths.get("core", "assets", "maps", "village.tmx")),
                     probeRoot.resolve(Paths.get("DSA GAME", "Easy.tmx")),
                     probeRoot.resolve(Paths.get("Files Ready(delete after editing)", "Easy.tmx")),
                     probeRoot.resolve("Easy.tmx"));
