@@ -21,6 +21,20 @@
       "collisionLayers": ["WALL-COLLISION", "WALL"],
       "spawnLayers": ["EXIT-Research-Lab-Floor-2"],
       "padding": 160.0
+    },
+    {
+      "id": "inn",
+      "path": "maps/inn_finite.tmx",
+      "collisionLayers": ["WALLS", "WALL-COLLISION", "WALL"],
+      "spawnLayers": ["EXIT-Inn", "ENTRANCE-Inn-Room"],
+      "padding": 160.0
+    },
+    {
+      "id": "inn-room",
+      "path": "maps/Inn-Room_finite.tmx",
+      "collisionLayers": ["WALLS", "WALL-COLLISION", "WALL"],
+      "spawnLayers": ["EXIT-Inn-Room"],
+      "padding": 160.0
     }
   ]
 }

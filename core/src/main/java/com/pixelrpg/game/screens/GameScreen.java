@@ -6,12 +6,14 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.maps.MapGroupLayer;
 import com.badlogic.gdx.maps.MapLayer;
@@ -51,6 +53,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String MAP_ID_VILLAGE = "village";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_1 = "research-lab-floor-1";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_2 = "research-lab-floor-2";
+    private static final String MAP_ID_INN = "inn";
+    private static final String MAP_ID_INN_ROOM = "inn-room";
     private static final String FOREGROUND_LAYER_MARKER = "FRONT OF CHARACTR";
     private static final String FOREGROUND_LAYER_MARKER_ALT = "FRONT OF CHARACTER";
     private static final String DEPTH_SPLIT_GROUP_LAYER_NAME = "Table (Infront and Behind of character)";
@@ -76,7 +80,7 @@ public class GameScreen extends ScreenAdapter {
     private static final float PLAYER_SCALE_MULTIPLIER = 1.25f;
     private static final float PLAYER_DRAW_SCALE_X = 0.7f;
     private static final float PLAYER_DRAW_SCALE_Y = 1.5f;
-    private static final float DEFAULT_ZOOM = 0.28f; // fixed zoom level (closer)
+    private static final float DEFAULT_ZOOM = 0.336f; // fixed zoom level (20% zoomed out)
     private static final float DEFAULT_MAP_PADDING = 160f;
     private static final int IDLE_FRAMES = 12;
     private static final int RUN_FRAMES = 8;
@@ -134,13 +138,28 @@ public class GameScreen extends ScreenAdapter {
     private static final float NIGHT_TINT_B = 0f;
     private static final float NIGHT_TINT_MAX_ALPHA = 0.64f;
     private static final float NIGHT_WORLD_SATURATION = 0f; // full black & white at night
-    private static final float NIGHT_CHARACTER_SATURATION = 0f; // full black & white at night
+    private static final float NIGHT_CHARACTER_SATURATION = 2.2f; // stronger player-only color at night
+    private static final int PLAYER_AURA_TEXTURE_SIZE = 128;
+    private static final float PLAYER_AURA_RADIUS_X = 56f;
+    private static final float PLAYER_AURA_RADIUS_Y = 48f;
+    private static final float PLAYER_AURA_CENTER_Y_FACTOR = 0.58f;
+    private static final float PLAYER_AURA_COLOR_R = 1f;
+    private static final float PLAYER_AURA_COLOR_G = 0.78f;
+    private static final float PLAYER_AURA_COLOR_B = 0.35f;
+    private static final float PLAYER_AURA_MAX_ALPHA = 0.9f;
+    private static final float PLAYER_COLOR_RESTORE_RADIUS_X = 36f;
+    private static final float PLAYER_COLOR_RESTORE_RADIUS_Y = 30f;
+    private static final float PLAYER_COLOR_RESTORE_CENTER_Y_FACTOR = 0.45f;
+    private static final float LIGHT_TYPE_RECT = 0f;
+    private static final float LIGHT_TYPE_ELLIPSE = 1f;
+    private static final float LIGHT_TYPE_SOFT_ELLIPSE = 2f;
     private static final int MAX_LIGHT_AREAS = 16;
     private static final float DAY_NIGHT_SPEED_MIN = 0.25f;
     private static final float DAY_NIGHT_SPEED_MAX = 4f;
     private static final float DAY_NIGHT_SPEED_STEP = 0.25f;
     private static final float MAP_TRANSITION_FADE_OUT_SECONDS = 1.2f;
     private static final float MAP_TRANSITION_FADE_IN_SECONDS = 1.2f;
+    private static final float QUEST_BLUR_TRANSITION_SECONDS = 1.0f;
 
     private enum MapTransitionPhase {
         NONE,
@@ -160,6 +179,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture dashAttackTex;
     private Texture vignetteTex;
     private Texture dayNightOverlayTex;
+    private Texture playerAuraTex;
     private HudRenderer hudRenderer;
     private Texture jumpUpAttackTex;
     private Texture jumpDownAttackTex;
@@ -169,6 +189,12 @@ public class GameScreen extends ScreenAdapter {
     private Sound attackSpecialSfx;
     private ShaderProgram saturationShader;
     private ShaderProgram lightAreaMaskShader;
+    private ShaderProgram screenBlurShader;
+    private FrameBuffer questBlurFrameBuffer;
+    private TextureRegion questBlurFrameRegion;
+    private int questBlurBufferWidth = 0;
+    private int questBlurBufferHeight = 0;
+    private float questBlurProgress = 0f;
     private Animation<TextureRegion> idleAnim;
     private Animation<TextureRegion> runAnim;
     private Animation<TextureRegion> attack1Anim;
@@ -213,9 +239,12 @@ public class GameScreen extends ScreenAdapter {
         shadowRegion = createShadowRegion();
         saturationShader = ShaderFactory.createSaturationShader("PixelRpgGame");
         lightAreaMaskShader = ShaderFactory.createLightAreaMaskShader("PixelRpgGame", MAX_LIGHT_AREAS);
+        screenBlurShader = ShaderFactory.createScreenBlurShader("PixelRpgGame");
+        recreateQuestBlurFrameBuffer(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
         loadAnimations();
         vignetteTex = createVignetteTexture(VIGNETTE_SIZE, VIGNETTE_INNER, VIGNETTE_OUTER, VIGNETTE_MAX_ALPHA);
         dayNightOverlayTex = createSolidTexture(1f, 1f, 1f, 1f);
+        playerAuraTex = createPlayerAuraTexture(PLAYER_AURA_TEXTURE_SIZE);
 
         loadMapCatalog();
         loadMap();
@@ -237,6 +266,7 @@ public class GameScreen extends ScreenAdapter {
         updateTorchAnimation(delta);
         updateNpcAnimation(delta);
         hudRenderer.update(delta);
+        updateQuestBlur(delta);
         clampCamera();
 
         if (world.mapRenderer == null) {
@@ -244,24 +274,10 @@ public class GameScreen extends ScreenAdapter {
         }
 
         float nightBlend = currentNightBlend();
-        camera.update();
-        world.mapRenderer.setView(camera);
         float worldSaturation = lerp(1f, NIGHT_WORLD_SATURATION, nightBlend);
         int[] backgroundRenderLayers = activeBackgroundRenderLayers();
         int[] foregroundRenderLayers = activeForegroundRenderLayers();
-        renderMapWithSaturation(backgroundRenderLayers, worldSaturation);
-        drawLightAreaColorRestore(nightBlend, backgroundRenderLayers);
-
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
-        drawPlayer(lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend));
-        batch.end();
-
-        renderMapWithSaturation(foregroundRenderLayers, worldSaturation);
-        drawLightAreaColorRestore(nightBlend, foregroundRenderLayers);
-
-        drawDayNightOverlay();
-        drawVignette();
+        renderWorldWithOptionalQuestBlur(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
         hudRenderer.draw(batch, player.currentHealth, player.maxHealth, player.currentMana, player.maxMana, player.playerLevel);
         drawMapTransitionOverlay();
     }
@@ -270,6 +286,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height); // keep Y-up consistent
         camera.zoom = DEFAULT_ZOOM;
+        recreateQuestBlurFrameBuffer(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
         if (hudRenderer != null) {
             hudRenderer.resize(width, height);
         }
@@ -288,6 +305,7 @@ public class GameScreen extends ScreenAdapter {
         if (dashAttackTex != null) dashAttackTex.dispose();
         if (vignetteTex != null) vignetteTex.dispose();
         if (dayNightOverlayTex != null) dayNightOverlayTex.dispose();
+        if (playerAuraTex != null) playerAuraTex.dispose();
         if (jumpUpAttackTex != null) jumpUpAttackTex.dispose();
         if (jumpDownAttackTex != null) jumpDownAttackTex.dispose();
         if (idleUpAttackTex != null) idleUpAttackTex.dispose();
@@ -296,6 +314,8 @@ public class GameScreen extends ScreenAdapter {
         if (attackSpecialSfx != null) attackSpecialSfx.dispose();
         if (saturationShader != null) saturationShader.dispose();
         if (lightAreaMaskShader != null) lightAreaMaskShader.dispose();
+        if (screenBlurShader != null) screenBlurShader.dispose();
+        disposeQuestBlurFrameBuffer();
         if (hudRenderer != null) hudRenderer.dispose();
     }
 
@@ -1065,6 +1085,9 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSLASH)) {
             setDayNightSpeed(1f);
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M) && hudRenderer != null) {
+            hudRenderer.toggleMainMenu();
+        }
 
         boolean leftPressed = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         boolean upPressed = Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP);
@@ -1187,6 +1210,26 @@ public class GameScreen extends ScreenAdapter {
                         "EXIT-Research-Lab",
                         MAP_ID_VILLAGE,
                         "ENTRANCE-Research-Lab")
+                || tryMapTransition(
+                        MAP_ID_VILLAGE,
+                        "ENTRANCE-Inn",
+                        MAP_ID_INN,
+                        "EXIT-Inn")
+                || tryMapTransition(
+                        MAP_ID_INN,
+                        "EXIT-Inn",
+                        MAP_ID_VILLAGE,
+                        "ENTRANCE-Inn")
+                || tryMapTransition(
+                        MAP_ID_INN,
+                        "ENTRANCE-Inn-Room",
+                        MAP_ID_INN_ROOM,
+                        "EXIT-Inn-Room")
+                || tryMapTransition(
+                        MAP_ID_INN_ROOM,
+                        "EXIT-Inn-Room",
+                        MAP_ID_INN,
+                        "ENTRANCE-Inn-Room")
                 || tryMapTransition(
                         MAP_ID_RESEARCH_LAB_FLOOR_1,
                         "ENTRANCE-Research-Lab-Floor-2",
@@ -1601,6 +1644,29 @@ public class GameScreen extends ScreenAdapter {
         return texture;
     }
 
+    private Texture createPlayerAuraTexture(int size) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pm.setBlending(Pixmap.Blending.None);
+        int center = size / 2;
+        float maxDist = center;
+
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = x + 0.5f - center;
+                float dy = y + 0.5f - center;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy) / maxDist;
+                float alpha = (1f - smoothStep(dist)) * PLAYER_AURA_MAX_ALPHA;
+                pm.setColor(1f, 1f, 1f, alpha);
+                pm.drawPixel(x, y);
+            }
+        }
+
+        Texture texture = new Texture(pm);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pm.dispose();
+        return texture;
+    }
+
     private void drawVignette() {
         if (vignetteTex == null || uiCamera == null) {
             return;
@@ -1618,6 +1684,130 @@ public class GameScreen extends ScreenAdapter {
         batch.draw(vignetteTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
         batch.setColor(1f, 1f, 1f, 1f);
         batch.end();
+    }
+
+    private void drawPlayerColorAura(float nightBlend) {
+        if (playerAuraTex == null || nightBlend <= 0.001f) {
+            return;
+        }
+
+        float alpha = clamp01(nightBlend);
+        if (alpha <= 0.001f) {
+            return;
+        }
+
+        float centerX = player.bounds.x + player.bounds.width * 0.5f;
+        float centerY = player.bounds.y + player.bounds.height * PLAYER_AURA_CENTER_Y_FACTOR;
+        float drawW = PLAYER_AURA_RADIUS_X * 2f;
+        float drawH = PLAYER_AURA_RADIUS_Y * 2f;
+
+        batch.setShader(null);
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        batch.setColor(PLAYER_AURA_COLOR_R, PLAYER_AURA_COLOR_G, PLAYER_AURA_COLOR_B, alpha);
+        batch.draw(playerAuraTex, centerX - drawW * 0.5f, centerY - drawH * 0.5f, drawW, drawH);
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    private void updateQuestBlur(float delta) {
+        boolean mainMenuVisible = hudRenderer != null && hudRenderer.isMainMenuVisible();
+        if (!mainMenuVisible) {
+            questBlurProgress = 0f;
+            return;
+        }
+        if (QUEST_BLUR_TRANSITION_SECONDS <= 0f) {
+            questBlurProgress = 1f;
+            return;
+        }
+
+        float step = Math.max(0f, delta) / QUEST_BLUR_TRANSITION_SECONDS;
+        questBlurProgress = Math.min(1f, questBlurProgress + step);
+    }
+
+    private void renderWorldWithOptionalQuestBlur(float nightBlend, float worldSaturation,
+                                                  int[] backgroundRenderLayers, int[] foregroundRenderLayers) {
+        if (questBlurProgress <= 0.001f || screenBlurShader == null) {
+            renderWorldScene(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
+            return;
+        }
+
+        ensureQuestBlurFrameBufferUpToDate();
+        if (questBlurFrameBuffer == null || questBlurFrameRegion == null) {
+            renderWorldScene(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
+            return;
+        }
+
+        questBlurFrameBuffer.begin();
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        renderWorldScene(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
+        questBlurFrameBuffer.end();
+
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(screenBlurShader);
+        float texelX = questBlurBufferWidth > 0 ? 1f / questBlurBufferWidth : 0f;
+        float texelY = questBlurBufferHeight > 0 ? 1f / questBlurBufferHeight : 0f;
+        screenBlurShader.setUniformf("u_texelSize", texelX, texelY);
+        screenBlurShader.setUniformf("u_blurAmount", questBlurProgress);
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(questBlurFrameRegion, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
+        batch.setShader(null);
+        batch.end();
+    }
+
+    private void renderWorldScene(float nightBlend, float worldSaturation,
+                                  int[] backgroundRenderLayers, int[] foregroundRenderLayers) {
+        camera.update();
+        world.mapRenderer.setView(camera);
+        renderMapWithSaturation(backgroundRenderLayers, worldSaturation);
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        drawPlayer(lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend));
+        batch.end();
+
+        renderMapWithSaturation(foregroundRenderLayers, worldSaturation);
+        drawDayNightOverlay();
+        drawVignette();
+    }
+
+    private void ensureQuestBlurFrameBufferUpToDate() {
+        int width = Gdx.graphics.getBackBufferWidth();
+        int height = Gdx.graphics.getBackBufferHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        if (questBlurFrameBuffer == null || width != questBlurBufferWidth || height != questBlurBufferHeight) {
+            recreateQuestBlurFrameBuffer(width, height);
+        }
+    }
+
+    private void recreateQuestBlurFrameBuffer(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        disposeQuestBlurFrameBuffer();
+        questBlurFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, false);
+        Texture colorTexture = questBlurFrameBuffer.getColorBufferTexture();
+        colorTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        questBlurFrameRegion = new TextureRegion(colorTexture);
+        questBlurFrameRegion.flip(false, true);
+        questBlurBufferWidth = width;
+        questBlurBufferHeight = height;
+    }
+
+    private void disposeQuestBlurFrameBuffer() {
+        if (questBlurFrameBuffer != null) {
+            questBlurFrameBuffer.dispose();
+            questBlurFrameBuffer = null;
+        }
+        questBlurFrameRegion = null;
+        questBlurBufferWidth = 0;
+        questBlurBufferHeight = 0;
     }
 
     private void renderMapWithSaturation(float saturation) {
@@ -1648,7 +1838,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void drawLightAreaColorRestore(float nightBlend, int[] layerIndices) {
-        if (nightBlend <= 0.001f || lightAreaMaskShader == null || !hasLightAreas()) {
+        if (nightBlend <= 0.001f || lightAreaMaskShader == null || !hasColorRestoreAreas()) {
             return;
         }
         if (layerIndices != null && layerIndices.length == 0) {
@@ -1672,18 +1862,27 @@ public class GameScreen extends ScreenAdapter {
         return world.lightAreaRects.size > 0 || world.lightAreaEllipses.size > 0 || world.lightAreaPolygons.size > 0;
     }
 
+    private boolean hasPlayerColorRestoreArea() {
+        return player.bounds.width > 0f && player.bounds.height > 0f;
+    }
+
+    private boolean hasColorRestoreAreas() {
+        return hasLightAreas() || hasPlayerColorRestoreArea();
+    }
+
     private void applyLightAreaUniforms(ShaderProgram shader) {
         int count = 0;
+        count = applyPlayerColorRestoreUniform(shader, count);
         for (Rectangle rect : world.lightAreaRects) {
             if (count >= MAX_LIGHT_AREAS) break;
             shader.setUniformf("u_lightAreas[" + count + "]", rect.x, rect.y, rect.width, rect.height);
-            shader.setUniformf("u_lightTypes[" + count + "]", 0f);
+            shader.setUniformf("u_lightTypes[" + count + "]", LIGHT_TYPE_RECT);
             count++;
         }
         for (Ellipse ellipse : world.lightAreaEllipses) {
             if (count >= MAX_LIGHT_AREAS) break;
             shader.setUniformf("u_lightAreas[" + count + "]", ellipse.x, ellipse.y, ellipse.width, ellipse.height);
-            shader.setUniformf("u_lightTypes[" + count + "]", 1f);
+            shader.setUniformf("u_lightTypes[" + count + "]", LIGHT_TYPE_ELLIPSE);
             count++;
         }
         for (float[] vertices : world.lightAreaPolygons) {
@@ -1693,14 +1892,31 @@ public class GameScreen extends ScreenAdapter {
                 continue;
             }
             shader.setUniformf("u_lightAreas[" + count + "]", bounds.x, bounds.y, bounds.width, bounds.height);
-            shader.setUniformf("u_lightTypes[" + count + "]", 0f);
+            shader.setUniformf("u_lightTypes[" + count + "]", LIGHT_TYPE_RECT);
             count++;
         }
         for (int i = count; i < MAX_LIGHT_AREAS; i++) {
             shader.setUniformf("u_lightAreas[" + i + "]", 0f, 0f, 0f, 0f);
-            shader.setUniformf("u_lightTypes[" + i + "]", 0f);
+            shader.setUniformf("u_lightTypes[" + i + "]", LIGHT_TYPE_RECT);
         }
         shader.setUniformf("u_lightAreaCount", (float) count);
+    }
+
+    private int applyPlayerColorRestoreUniform(ShaderProgram shader, int count) {
+        if (count >= MAX_LIGHT_AREAS || !hasPlayerColorRestoreArea()) {
+            return count;
+        }
+        float centerX = player.bounds.x + player.bounds.width * 0.5f;
+        float centerY = player.bounds.y + player.bounds.height * PLAYER_COLOR_RESTORE_CENTER_Y_FACTOR;
+        float width = PLAYER_COLOR_RESTORE_RADIUS_X * 2f;
+        float height = PLAYER_COLOR_RESTORE_RADIUS_Y * 2f;
+        shader.setUniformf("u_lightAreas[" + count + "]",
+                centerX - width * 0.5f,
+                centerY - height * 0.5f,
+                width,
+                height);
+        shader.setUniformf("u_lightTypes[" + count + "]", LIGHT_TYPE_SOFT_ELLIPSE);
+        return count + 1;
     }
 
     private Rectangle polygonBounds(float[] vertices) {
