@@ -14,15 +14,17 @@ public class DesktopLauncher {
         Properties props = loadProperties();
 
         String title = props.getProperty("title", "Pixel RPG (LibGDX)");
+        int width = parseInt(props.getProperty("width"), 1280);
+        int height = parseInt(props.getProperty("height"), 720);
+        boolean resizable = parseBoolean(props.getProperty("resizable"), true);
         boolean vsync = parseBoolean(props.getProperty("vsync"), true);
         int foregroundFps = parseInt(props.getProperty("foregroundFps"), 60);
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle(title);
-        var displayMode = Lwjgl3ApplicationConfiguration.getDisplayMode();
-        config.setFullscreenMode(displayMode);
-        config.setDecorated(false); // fullscreen-only, no title bar
-        config.setResizable(false);
+        config.setWindowedMode(width, height);
+        config.setDecorated(true);
+        config.setResizable(resizable);
         config.useVsync(vsync);
         config.setForegroundFPS(foregroundFps);
         // Reserve stencil bits for LightAreas masking during night rendering.

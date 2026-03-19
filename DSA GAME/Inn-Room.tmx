@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="26" nextobjectid="10">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="26" nextobjectid="21">
  <tileset firstgid="1" source="../../DSA GAME/TILE SETS/Fantasy_Walls.tsx"/>
  <tileset firstgid="257" source="../../DSA GAME/TILE SETS/Fantasy_Floors.tsx"/>
  <tileset firstgid="323" source="../../DSA GAME/TILE SETS/Fantasy_Autotiles.tsx"/>
@@ -1263,6 +1263,16 @@
   <object id="7" x="8" y="226" width="427.333" height="62.6667"/>
   <object id="8" x="44" y="210" width="146.667" height="56.6667"/>
   <object id="9" x="242" y="209.333" width="191.333" height="64.6667"/>
+  <object id="10" x="111.5" y="0.75" width="32" height="39.25"/>
+  <object id="11" x="142.25" y="1.75" width="17.75" height="18.25"/>
+  <object id="12" x="158.5" y="-6" width="33.5" height="47"/>
+  <object id="14" x="240" y="2.25" width="31" height="40"/>
+  <object id="15" x="189.5" y="-4.75" width="49.5" height="25.25"/>
+  <object id="16" x="94.75" y="-1" width="19" height="21.25"/>
+  <object id="17" x="268.75" y="3" width="22.75" height="18.25"/>
+  <object id="18" x="288" y="4.5" width="32.25" height="37.5"/>
+  <object id="19" x="306.75" y="39.75" width="13.25" height="7.5"/>
+  <object id="20" x="318.75" y="4.75" width="21.5" height="14.75"/>
  </objectgroup>
  <objectgroup id="24" name="EXIT-Inn-Room">
   <object id="1" x="190.667" y="209.667" width="50.6667" height="20.3333"/>

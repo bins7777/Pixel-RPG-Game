@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * Draws the fixed HUD and top spawn notification panel.
@@ -65,6 +66,20 @@ public class HudRenderer {
     private static final int MAIN_MENU_BODY_FONT_SIZE = 15;
     private static final String[] MAIN_MENU_TABS = {"Quests", "Map", "Skills", "Stats", "Save"};
     private static final int ACTIVE_MAIN_MENU_TAB_INDEX = 0;
+    private static final float CHAT_PANEL_WIDTH = 360f;
+    private static final float CHAT_PANEL_HEIGHT = 172f;
+    private static final float CHAT_PANEL_LEFT_MARGIN = 18f;
+    private static final float CHAT_PANEL_BOTTOM_MARGIN = 18f;
+    private static final float CHAT_PADDING = 10f;
+    private static final float CHAT_BORDER_THICKNESS = 2f;
+    private static final float CHAT_MESSAGE_LINE_HEIGHT = 20f;
+    private static final int CHAT_VISIBLE_MESSAGES = 5;
+    private static final int CHAT_MAX_MESSAGES = 40;
+    private static final int CHAT_MAX_INPUT_LENGTH = 96;
+    private static final float CHAT_INPUT_HEIGHT = 30f;
+    private static final float CHAT_PANEL_ALPHA = 0.76f;
+    private static final float CHAT_INPUT_ALPHA = 0.58f;
+    private static final float CHAT_CURSOR_BLINK_SECONDS = 0.5f;
 
     private final OrthographicCamera uiCamera;
     private BitmapFont uiFont;
@@ -96,6 +111,11 @@ public class HudRenderer {
 
     private float villageSpawnNotificationTimer = 0f;
     private boolean mainMenuVisible = false;
+    private final Array<String> chatMessages = new Array<>();
+    private final StringBuilder chatDraft = new StringBuilder();
+    private boolean chatOpen = false;
+    private boolean chatCursorVisible = false;
+    private float chatCursorTimer = 0f;
 
     public HudRenderer(OrthographicCamera uiCamera) {
         this.uiCamera = uiCamera;
@@ -170,6 +190,56 @@ public class HudRenderer {
         return mainMenuVisible;
     }
 
+    public void openChat() {
+        chatOpen = true;
+        chatCursorVisible = true;
+        chatCursorTimer = 0f;
+    }
+
+    public void closeChat(boolean clearDraft) {
+        chatOpen = false;
+        if (clearDraft) {
+            chatDraft.setLength(0);
+        }
+        chatCursorVisible = false;
+        chatCursorTimer = 0f;
+    }
+
+    public boolean isChatOpen() {
+        return chatOpen;
+    }
+
+    public void appendChatCharacter(char character) {
+        if (!chatOpen || Character.isISOControl(character) || chatDraft.length() >= CHAT_MAX_INPUT_LENGTH) {
+            return;
+        }
+        chatDraft.append(character);
+        chatCursorVisible = true;
+        chatCursorTimer = 0f;
+    }
+
+    public void removeLastChatCharacter() {
+        if (!chatOpen || chatDraft.length() == 0) {
+            return;
+        }
+        chatDraft.setLength(chatDraft.length() - 1);
+        chatCursorVisible = true;
+        chatCursorTimer = 0f;
+    }
+
+    public String submitChatDraft() {
+        String message = chatDraft.toString().trim();
+        chatDraft.setLength(0);
+        if (message.isEmpty()) {
+            return null;
+        }
+        chatMessages.add("You: " + message);
+        if (chatMessages.size > CHAT_MAX_MESSAGES) {
+            chatMessages.removeRange(0, chatMessages.size - CHAT_MAX_MESSAGES - 1);
+        }
+        return message;
+    }
+
     // Backward compatibility for existing call sites.
     public void toggleQuestTab() {
         toggleMainMenu();
@@ -180,10 +250,19 @@ public class HudRenderer {
     }
 
     public void update(float delta) {
-        if (villageSpawnNotificationTimer <= 0f) {
+        if (villageSpawnNotificationTimer > 0f) {
+            villageSpawnNotificationTimer = Math.max(0f, villageSpawnNotificationTimer - delta);
+        }
+        if (!chatOpen) {
+            chatCursorVisible = false;
+            chatCursorTimer = 0f;
             return;
         }
-        villageSpawnNotificationTimer = Math.max(0f, villageSpawnNotificationTimer - delta);
+        chatCursorTimer += Math.max(0f, delta);
+        if (chatCursorTimer >= CHAT_CURSOR_BLINK_SECONDS) {
+            chatCursorTimer = 0f;
+            chatCursorVisible = !chatCursorVisible;
+        }
     }
 
     public void draw(SpriteBatch batch, float currentHealth, float maxHealth, float currentMana, float maxMana, int playerLevel) {
@@ -328,6 +407,7 @@ public class HudRenderer {
             uiFont.getData().setScale(baseUiFontScaleX, baseUiFontScaleY);
         }
         drawMainMenu(batch, playerLevel);
+        drawChat(batch);
         batch.end();
     }
 
@@ -559,6 +639,59 @@ public class HudRenderer {
         }
     }
 
+    private void drawChat(SpriteBatch batch) {
+        if (!chatOpen || uiCamera == null || uiBlackBarTex == null || uiLayout == null) {
+            return;
+        }
+
+        BitmapFont chatFont = uiMainMenuBodyFont != null ? uiMainMenuBodyFont : uiFont;
+        if (chatFont == null) {
+            return;
+        }
+
+        float panelWidth = Math.min(CHAT_PANEL_WIDTH, uiCamera.viewportWidth - CHAT_PANEL_LEFT_MARGIN * 2f);
+        float panelHeight = Math.min(CHAT_PANEL_HEIGHT, uiCamera.viewportHeight - CHAT_PANEL_BOTTOM_MARGIN * 2f);
+        float panelX = CHAT_PANEL_LEFT_MARGIN;
+        float panelY = CHAT_PANEL_BOTTOM_MARGIN;
+        float border = CHAT_BORDER_THICKNESS;
+        float inputWidth = panelWidth - CHAT_PADDING * 2f;
+        float inputX = panelX + CHAT_PADDING;
+        float inputY = panelY + CHAT_PADDING;
+
+        batch.setColor(0f, 0f, 0f, CHAT_PANEL_ALPHA);
+        batch.draw(uiBlackBarTex, panelX, panelY, panelWidth, panelHeight);
+        batch.setColor(1f, 1f, 1f, 0.95f);
+        batch.draw(uiBlackBarTex, panelX, panelY, panelWidth, border);
+        batch.draw(uiBlackBarTex, panelX, panelY + panelHeight - border, panelWidth, border);
+        batch.draw(uiBlackBarTex, panelX, panelY, border, panelHeight);
+        batch.draw(uiBlackBarTex, panelX + panelWidth - border, panelY, border, panelHeight);
+
+        float titleY = panelY + panelHeight - CHAT_PADDING;
+        drawMenuText(batch, chatFont, "Chat", panelX + CHAT_PADDING, titleY, 0.91f, 0.91f, 0.91f, 1f);
+
+        float hintY = inputY + CHAT_INPUT_HEIGHT + 20f;
+        drawMenuText(batch, chatFont, "Enter send | Esc close", inputX, hintY, 0.63f, 0.63f, 0.63f, 1f);
+
+        float lineY = titleY - 26f;
+        int start = Math.max(0, chatMessages.size - CHAT_VISIBLE_MESSAGES);
+        for (int i = start; i < chatMessages.size; i++) {
+            String message = fitText(chatFont, chatMessages.get(i), inputWidth);
+            drawMenuText(batch, chatFont, message, inputX, lineY, 0.78f, 0.78f, 0.78f, 1f);
+            lineY -= CHAT_MESSAGE_LINE_HEIGHT;
+        }
+
+        batch.setColor(0f, 0f, 0f, CHAT_INPUT_ALPHA);
+        batch.draw(uiBlackBarTex, inputX, inputY, inputWidth, CHAT_INPUT_HEIGHT);
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        String input = "> " + chatDraft;
+        if (chatCursorVisible) {
+            input += "_";
+        }
+        input = fitText(chatFont, input, inputWidth - 10f);
+        drawMenuText(batch, chatFont, input, inputX + 5f, inputY + CHAT_INPUT_HEIGHT - 8f, 0.94f, 0.94f, 0.94f, 1f);
+    }
+
     private float villageSpawnNotificationAlpha() {
         float fadeSeconds = Math.min(VILLAGE_SPAWN_NOTIFICATION_FADE_SECONDS,
                 VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS * 0.5f);
@@ -602,6 +735,25 @@ public class HudRenderer {
         font.setColor(r, g, b, a);
         font.draw(batch, text, x, y);
         font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private String fitText(BitmapFont font, String text, float maxWidth) {
+        if (text == null || text.isEmpty() || maxWidth <= 0f || uiLayout == null) {
+            return "";
+        }
+        uiLayout.setText(font, text);
+        if (uiLayout.width <= maxWidth) {
+            return text;
+        }
+        String ellipsis = "...";
+        for (int len = text.length() - 1; len > 0; len--) {
+            String candidate = text.substring(0, len) + ellipsis;
+            uiLayout.setText(font, candidate);
+            if (uiLayout.width <= maxWidth) {
+                return candidate;
+            }
+        }
+        return ellipsis;
     }
 
     private Texture loadOptionalTexture(String path) {

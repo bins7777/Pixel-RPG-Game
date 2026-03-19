@@ -35,6 +35,13 @@
       "collisionLayers": ["WALLS", "WALL-COLLISION", "WALL"],
       "spawnLayers": ["EXIT-Inn-Room"],
       "padding": 160.0
+    },
+    {
+      "id": "demon-castle",
+      "path": "maps/Demon-Castle_finite.tmx",
+      "collisionLayers": ["WALL-COLLISION", "WALLS", "WALL"],
+      "spawnLayers": ["Spawn", "SpawnPoint"],
+      "padding": 160.0
     }
   ]
 }

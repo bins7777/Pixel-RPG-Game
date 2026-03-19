@@ -5,6 +5,9 @@ import java.util.Locale;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -55,8 +58,10 @@ public class GameScreen extends ScreenAdapter {
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_2 = "research-lab-floor-2";
     private static final String MAP_ID_INN = "inn";
     private static final String MAP_ID_INN_ROOM = "inn-room";
+    private static final String MAP_ID_DEMON_CASTLE = "demon-castle";
     private static final String FOREGROUND_LAYER_MARKER = "FRONT OF CHARACTR";
     private static final String FOREGROUND_LAYER_MARKER_ALT = "FRONT OF CHARACTER";
+    private static final String FOREGROUND_ALWAYS_MARKER = "ALWAYS-INFRONT";
     private static final String DEPTH_SPLIT_GROUP_LAYER_NAME = "Table (Infront and Behind of character)";
     private static final String DEPTH_SPLIT_MARKER_LAYER_NAME = "BelowFront_AboveBehind";
     private static final String TORCH_ANIMATION_GROUP_NAME = "Torch Animation";
@@ -160,6 +165,13 @@ public class GameScreen extends ScreenAdapter {
     private static final float MAP_TRANSITION_FADE_OUT_SECONDS = 1.2f;
     private static final float MAP_TRANSITION_FADE_IN_SECONDS = 1.2f;
     private static final float QUEST_BLUR_TRANSITION_SECONDS = 1.0f;
+    private static final String BAT_SLEEP_TEXTURE_PATH = "images/bat/Bat-Sleep.png";
+    private static final int BAT_SLEEP_FRAMES = 3;
+    private static final int BAT_FRAME_SIZE = 64;
+    private static final float BAT_SLEEP_FRAME_DURATION = 0.18f;
+    private static final float BAT_SLEEP_DRAW_SCALE = 0.5f;
+    private static final float BAT_SPAWN_FORWARD_OFFSET = 20f;
+    private static final float BAT_SPAWN_GROUND_OFFSET = -1f;
 
     private enum MapTransitionPhase {
         NONE,
@@ -184,6 +196,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture jumpUpAttackTex;
     private Texture jumpDownAttackTex;
     private Texture idleUpAttackTex;
+    private Texture batSleepTex;
     private Sound attack1Sfx;
     private Sound attack3Sfx;
     private Sound attackSpecialSfx;
@@ -203,6 +216,7 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> jumpUpAttackAnim;
     private Animation<TextureRegion> jumpDownAttackAnim;
     private Animation<TextureRegion> idleUpAttackAnim;
+    private Animation<TextureRegion> batSleepAnim;
     private Animation<TextureRegion> activeAttackAnim;
     private final WorldState world = new WorldState();
     private final PlayerState player = new PlayerState();
@@ -216,6 +230,31 @@ public class GameScreen extends ScreenAdapter {
     private String pendingTransitionSpawnLayer;
     private int depthSplitGroupLayerIndex = -1;
     private MapLayer depthSplitMarkerLayer;
+    private InputProcessor previousInputProcessor;
+    private InputProcessor activeInputProcessor;
+    private final Vector2 batSleepPosition = new Vector2();
+    private boolean batSpawned = false;
+    private float batSleepStateTime = 0f;
+    private final InputAdapter chatInputAdapter = new InputAdapter() {
+        @Override
+        public boolean keyTyped(char character) {
+            if (hudRenderer == null || !hudRenderer.isChatOpen()) {
+                return false;
+            }
+            if (character == '\b') {
+                hudRenderer.removeLastChatCharacter();
+                return true;
+            }
+            if (character == '\r' || character == '\n') {
+                return true;
+            }
+            if (Character.isISOControl(character)) {
+                return true;
+            }
+            hudRenderer.appendChatCharacter(character);
+            return true;
+        }
+    };
 
     @Override
     public void show() {
@@ -249,11 +288,15 @@ public class GameScreen extends ScreenAdapter {
         loadMapCatalog();
         loadMap();
         centerCameraOnPlayer();
+        installInputProcessor();
     }
 
     @Override
     public void render(float delta) {
         player.stateTime += delta;
+        if (batSpawned) {
+            batSleepStateTime += delta;
+        }
         updateDayNightCycle(delta);
         updateMapTransition(delta);
         if (isMapTransitionActive()) {
@@ -293,7 +336,13 @@ public class GameScreen extends ScreenAdapter {
     }
 
     @Override
+    public void hide() {
+        restoreInputProcessor();
+    }
+
+    @Override
     public void dispose() {
+        restoreInputProcessor();
         unloadMap();
         if (batch != null) batch.dispose();
         if (playerRegion != null && playerRegion.getTexture() != null) playerRegion.getTexture().dispose();
@@ -309,6 +358,7 @@ public class GameScreen extends ScreenAdapter {
         if (jumpUpAttackTex != null) jumpUpAttackTex.dispose();
         if (jumpDownAttackTex != null) jumpDownAttackTex.dispose();
         if (idleUpAttackTex != null) idleUpAttackTex.dispose();
+        if (batSleepTex != null) batSleepTex.dispose();
         if (attack1Sfx != null) attack1Sfx.dispose();
         if (attack3Sfx != null) attack3Sfx.dispose();
         if (attackSpecialSfx != null) attackSpecialSfx.dispose();
@@ -317,6 +367,27 @@ public class GameScreen extends ScreenAdapter {
         if (screenBlurShader != null) screenBlurShader.dispose();
         disposeQuestBlurFrameBuffer();
         if (hudRenderer != null) hudRenderer.dispose();
+    }
+
+    private void installInputProcessor() {
+        previousInputProcessor = Gdx.input.getInputProcessor();
+        if (previousInputProcessor == null) {
+            activeInputProcessor = chatInputAdapter;
+        } else {
+            InputMultiplexer multiplexer = new InputMultiplexer();
+            multiplexer.addProcessor(chatInputAdapter);
+            multiplexer.addProcessor(previousInputProcessor);
+            activeInputProcessor = multiplexer;
+        }
+        Gdx.input.setInputProcessor(activeInputProcessor);
+    }
+
+    private void restoreInputProcessor() {
+        if (Gdx.input.getInputProcessor() == activeInputProcessor) {
+            Gdx.input.setInputProcessor(previousInputProcessor);
+        }
+        previousInputProcessor = null;
+        activeInputProcessor = null;
     }
 
     private void loadMapCatalog() {
@@ -371,6 +442,7 @@ public class GameScreen extends ScreenAdapter {
         configureNpcAnimation();
         extractBoundsFromChunks();
         placePlayerAtSpawn(preferredSpawnLayer);
+        clearSpawnedBat();
     }
 
     private void unloadMap() {
@@ -397,6 +469,7 @@ public class GameScreen extends ScreenAdapter {
         world.foregroundLayerIndices = new int[0];
         depthSplitGroupLayerIndex = -1;
         depthSplitMarkerLayer = null;
+        clearSpawnedBat();
     }
 
     private void reloadCurrentMap() {
@@ -743,7 +816,9 @@ public class GameScreen extends ScreenAdapter {
             return false;
         }
         String upperName = layerName.toUpperCase(Locale.ROOT);
-        return upperName.contains(FOREGROUND_LAYER_MARKER) || upperName.contains(FOREGROUND_LAYER_MARKER_ALT);
+        return upperName.contains(FOREGROUND_LAYER_MARKER)
+                || upperName.contains(FOREGROUND_LAYER_MARKER_ALT)
+                || upperName.contains(FOREGROUND_ALWAYS_MARKER);
     }
 
     private void collectCollisionLayersByName(MapLayers layers, String targetName) {
@@ -1060,6 +1135,24 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void handleInput(float delta) {
+        if (hudRenderer != null && hudRenderer.isChatOpen()) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                String submittedMessage = hudRenderer.submitChatDraft();
+                hudRenderer.closeChat(false);
+                handleChatCommand(submittedMessage);
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                hudRenderer.closeChat(true);
+            }
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && hudRenderer != null) {
+            hudRenderer.openChat();
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.F5)) {
             reloadCurrentMap();
             centerCameraOnPlayer();
@@ -1197,6 +1290,76 @@ public class GameScreen extends ScreenAdapter {
         }
         // zoom locked
         centerCameraOnPlayer();
+    }
+
+    private void handleChatCommand(String submittedMessage) {
+        if (submittedMessage == null || submittedMessage.isBlank() || world.mapCatalog == null) {
+            return;
+        }
+        String normalized = submittedMessage.trim();
+        if (normalized.length() >= 2
+                && ((normalized.startsWith("\"") && normalized.endsWith("\""))
+                || (normalized.startsWith("'") && normalized.endsWith("'")))) {
+            normalized = normalized.substring(1, normalized.length() - 1).trim();
+        }
+        if (normalized.isEmpty()) {
+            return;
+        }
+
+        String[] tokens = normalized.split("\\s+");
+        if (tokens.length < 2) {
+            return;
+        }
+
+        String command = tokens[0].toLowerCase(Locale.ROOT);
+        if ("/to".equals(command)) {
+            String destination = tokens[1].toLowerCase(Locale.ROOT);
+            if ("castle".equals(destination)) {
+                teleportToMap(MAP_ID_DEMON_CASTLE, "Spawn");
+            } else if ("village".equals(destination)) {
+                teleportToMap(MAP_ID_VILLAGE, null);
+            }
+            return;
+        }
+
+        if ("/spawn".equals(command) && "bat".equalsIgnoreCase(tokens[1])) {
+            spawnBatInFrontOfPlayer();
+        }
+    }
+
+    private void teleportToMap(String mapId, String preferredSpawnLayer) {
+        if (mapId == null || mapId.isBlank() || world.mapCatalog == null) {
+            return;
+        }
+        if (world.mapCatalog.getById(mapId) == null) {
+            Gdx.app.error("PixelRpgGame",
+                    "Chat teleport failed: unknown map id '" + mapId + "'.");
+            return;
+        }
+        loadMap(mapId, preferredSpawnLayer);
+        centerCameraOnPlayer();
+    }
+
+    private void spawnBatInFrontOfPlayer() {
+        if (batSleepAnim == null) {
+            return;
+        }
+        float directionX = player.facingLeft ? -1f : 1f;
+        if (player.lastMoveX < 0f) {
+            directionX = -1f;
+        } else if (player.lastMoveX > 0f) {
+            directionX = 1f;
+        }
+        float spawnX = player.bounds.x + player.bounds.width * 0.5f + directionX * BAT_SPAWN_FORWARD_OFFSET;
+        float spawnY = player.bounds.y + BAT_SPAWN_GROUND_OFFSET;
+        batSleepPosition.set(spawnX, spawnY);
+        batSleepStateTime = 0f;
+        batSpawned = true;
+    }
+
+    private void clearSpawnedBat() {
+        batSpawned = false;
+        batSleepStateTime = 0f;
     }
 
     private boolean tryHandleMapInteraction() {
@@ -1588,6 +1751,24 @@ public class GameScreen extends ScreenAdapter {
         idleUpAttackAnim = buildAnimation(idleUpAttackTex, IDLE_UP_ATTACK_FRAMES,
                 (int) SPRITE_FRAME_WIDTH, (int) SPRITE_FRAME_HEIGHT, ATTACK_FRAME_DURATION, 0, 1);
         idleUpAttackAnim.setPlayMode(Animation.PlayMode.NORMAL);
+        loadBatAssets();
+    }
+
+    private void loadBatAssets() {
+        try {
+            batSleepTex = new Texture(Gdx.files.internal(BAT_SLEEP_TEXTURE_PATH));
+            batSleepTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            batSleepAnim = buildRawAnimation(
+                    batSleepTex,
+                    BAT_SLEEP_FRAMES,
+                    BAT_FRAME_SIZE,
+                    BAT_FRAME_SIZE,
+                    BAT_SLEEP_FRAME_DURATION);
+        } catch (RuntimeException error) {
+            batSleepAnim = null;
+            batSpawned = false;
+            Gdx.app.error("PixelRpgGame", "Failed to load bat sleep texture from '" + BAT_SLEEP_TEXTURE_PATH + "'.", error);
+        }
     }
 
     private TextureRegion createPlayerRegion() {
@@ -1767,7 +1948,9 @@ public class GameScreen extends ScreenAdapter {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        drawPlayer(lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend));
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+        drawPlayer(characterSaturation);
+        drawSpawnedBat(characterSaturation);
         batch.end();
 
         renderMapWithSaturation(foregroundRenderLayers, worldSaturation);
@@ -1970,6 +2153,20 @@ public class GameScreen extends ScreenAdapter {
         return buildAnimation(sheet, frames, frameWidth, frameHeight, frameDuration, 0, 1);
     }
 
+    private Animation<TextureRegion> buildRawAnimation(Texture sheet, int frames, int frameWidth, int frameHeight, float frameDuration) {
+        TextureRegion[][] split = TextureRegion.split(sheet, frameWidth, frameHeight);
+        Array<TextureRegion> list = new Array<>(frames);
+        for (TextureRegion[] row : split) {
+            for (TextureRegion region : row) {
+                list.add(new TextureRegion(region));
+                if (list.size >= frames) {
+                    return new Animation<>(frameDuration, list, Animation.PlayMode.LOOP);
+                }
+            }
+        }
+        return new Animation<>(frameDuration, list, Animation.PlayMode.LOOP);
+    }
+
     private Animation<TextureRegion> buildAnimation(Texture sheet, int frames, int frameWidth, int frameHeight,
                                                     float frameDuration, int startIndex, int frameStep) {
         TextureRegion[][] split = TextureRegion.split(sheet, frameWidth, frameHeight);
@@ -2053,6 +2250,26 @@ public class GameScreen extends ScreenAdapter {
         batch.draw(frame, drawX, drawY, originX, originY,
                 drawW, drawH,
                 scaleX * flipX, scaleY, 0f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private void drawSpawnedBat(float saturation) {
+        if (!batSpawned || batSleepAnim == null) {
+            return;
+        }
+        TextureRegion frame = batSleepAnim.getKeyFrame(batSleepStateTime, true);
+        float drawW = frame.getRegionWidth() * BAT_SLEEP_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * BAT_SLEEP_DRAW_SCALE;
+        float drawX = batSleepPosition.x - drawW * 0.5f;
+        float drawY = batSleepPosition.y;
+
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        batch.draw(frame, drawX, drawY, drawW, drawH);
         if (saturationShader != null) {
             batch.setShader(null);
         }
