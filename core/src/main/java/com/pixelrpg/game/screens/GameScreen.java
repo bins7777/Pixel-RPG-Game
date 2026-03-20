@@ -70,6 +70,19 @@ public class GameScreen extends ScreenAdapter {
     private static final String NPC_ANIMATION_GROUP_NAME = "NPC Animation";
     private static final String NPC_FRAME_PREFIX = "Scientist ";
     private static final float NPC_FRAME_DURATION_SECONDS = 0.12f;
+    private static final String ENTRANCE_DOOR_ANIMATION_GROUP_NAME = "DOOR-Entrance-Animation";
+    private static final String ENTRANCE_DOOR_FRONT_ANIMATION_GROUP_NAME = "DOOR-Entrance-Animation-Front ALWAYS-INFRONT";
+    private static final String ENTRANCE_DOOR_TRIGGER_LAYER_NAME = "Entrance-Door-AutoOpen-Close";
+    private static final String DOOR_FRAME_PREFIX = "DOOR-";
+    private static final float ENTRANCE_DOOR_FRAME_DURATION_SECONDS = 0.1f;
+    private static final float ENTRANCE_DOOR_ENTRY_CROSS_MARGIN = 4f;
+    private static final String ROOM1_DOOR_ANIMATION_GROUP_NAME = "DOOR-Room-1-Animation";
+    private static final String ROOM1_DOOR_FRONT_ANIMATION_GROUP_NAME = "DOOR-Room-1-Animation-Front ALWAYS-INFRONT";
+    private static final String ROOM1_DOOR_TRIGGER_LAYER_NAME = "Door-Close-Room-1";
+    private static final String ROOM1_GROUP_LAYER_NAME = "Room-1";
+    private static final String ROOM1_BATS_SPAWN_LAYER_NAME = "Bats-Spawn";
+    private static final float ROOM1_DOOR_FRAME_DURATION_SECONDS = 0.1f;
+    private static final float ROOM1_DOOR_TRIGGER_PAUSE_SECONDS = 0.2f;
     private static final float PLAYER_SIZE = 16f; // sprite base size
     private static final float HITBOX_WIDTH = 10f;
     private static final float HITBOX_HEIGHT = 14f;
@@ -232,9 +245,29 @@ public class GameScreen extends ScreenAdapter {
     private MapLayer depthSplitMarkerLayer;
     private InputProcessor previousInputProcessor;
     private InputProcessor activeInputProcessor;
-    private final Vector2 batSleepPosition = new Vector2();
-    private boolean batSpawned = false;
+    private final Array<Vector2> batSleepPositions = new Array<>();
     private float batSleepStateTime = 0f;
+    private final Array<MapLayer> entranceDoorAnimationFrames = new Array<>();
+    private final Array<MapLayer> entranceDoorFrontAnimationFrames = new Array<>();
+    private MapLayer entranceDoorTriggerLayer;
+    private final Rectangle entranceDoorTriggerBounds = new Rectangle();
+    private final Rectangle entranceDoorClosedCollisionBounds = new Rectangle();
+    private int entranceDoorAnimationFrameIndex = 0;
+    private float entranceDoorAnimationTimer = 0f;
+    private int entranceDoorAnimationDirection = 0;
+    private int entranceDoorEntrySide = 0;
+    private boolean entranceDoorAnimationPlaying = false;
+    private boolean entranceDoorAwaitingEntryCross = false;
+    private boolean entranceDoorLockedClosed = false;
+    private boolean entranceDoorCollisionEnabled = false;
+    private final Array<MapLayer> room1DoorAnimationFrames = new Array<>();
+    private final Array<MapLayer> room1DoorFrontAnimationFrames = new Array<>();
+    private MapLayer room1DoorTriggerLayer;
+    private int room1DoorAnimationFrameIndex = 0;
+    private float room1DoorAnimationTimer = 0f;
+    private float room1DoorPauseTimer = 0f;
+    private boolean room1DoorClosing = false;
+    private boolean room1DoorClosed = false;
     private final InputAdapter chatInputAdapter = new InputAdapter() {
         @Override
         public boolean keyTyped(char character) {
@@ -294,12 +327,14 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         player.stateTime += delta;
-        if (batSpawned) {
+        if (batSleepPositions.size > 0) {
             batSleepStateTime += delta;
         }
         updateDayNightCycle(delta);
         updateMapTransition(delta);
-        if (isMapTransitionActive()) {
+        updateEntranceDoorAnimation(delta);
+        updateRoom1DoorAnimation(delta);
+        if (isMapTransitionActive() || isEntranceDoorInputBlocked() || isRoom1DoorInputBlocked()) {
             player.moving = false;
         } else {
             updateAttack(delta);
@@ -440,9 +475,11 @@ public class GameScreen extends ScreenAdapter {
         extractRenderLayerOrder();
         configureTorchAnimation();
         configureNpcAnimation();
+        configureEntranceDoorAnimation();
+        configureRoom1DoorAnimation();
         extractBoundsFromChunks();
         placePlayerAtSpawn(preferredSpawnLayer);
-        clearSpawnedBat();
+        configureRoom1BatSpawns();
     }
 
     private void unloadMap() {
@@ -465,6 +502,27 @@ public class GameScreen extends ScreenAdapter {
         world.npcAnimationFrames.clear();
         world.npcAnimationFrameIndex = 0;
         world.npcAnimationTimer = 0f;
+        entranceDoorAnimationFrames.clear();
+        entranceDoorFrontAnimationFrames.clear();
+        entranceDoorTriggerLayer = null;
+        entranceDoorTriggerBounds.set(0f, 0f, 0f, 0f);
+        entranceDoorClosedCollisionBounds.set(0f, 0f, 0f, 0f);
+        entranceDoorAnimationFrameIndex = 0;
+        entranceDoorAnimationTimer = 0f;
+        entranceDoorAnimationDirection = 0;
+        entranceDoorEntrySide = 0;
+        entranceDoorAnimationPlaying = false;
+        entranceDoorAwaitingEntryCross = false;
+        entranceDoorLockedClosed = false;
+        entranceDoorCollisionEnabled = false;
+        room1DoorAnimationFrames.clear();
+        room1DoorFrontAnimationFrames.clear();
+        room1DoorTriggerLayer = null;
+        room1DoorAnimationFrameIndex = 0;
+        room1DoorAnimationTimer = 0f;
+        room1DoorPauseTimer = 0f;
+        room1DoorClosing = false;
+        room1DoorClosed = false;
         world.backgroundLayerIndices = new int[0];
         world.foregroundLayerIndices = new int[0];
         depthSplitGroupLayerIndex = -1;
@@ -762,6 +820,401 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private boolean isEntranceDoorInputBlocked() {
+        return entranceDoorAnimationPlaying && entranceDoorAnimationDirection > 0;
+    }
+
+    private boolean isRoom1DoorInputBlocked() {
+        return room1DoorPauseTimer > 0f || room1DoorClosing;
+    }
+
+    private void configureEntranceDoorAnimation() {
+        entranceDoorAnimationFrames.clear();
+        entranceDoorFrontAnimationFrames.clear();
+        entranceDoorTriggerLayer = null;
+        entranceDoorTriggerBounds.set(0f, 0f, 0f, 0f);
+        entranceDoorClosedCollisionBounds.set(0f, 0f, 0f, 0f);
+        entranceDoorAnimationFrameIndex = 0;
+        entranceDoorAnimationTimer = 0f;
+        entranceDoorAnimationDirection = 0;
+        entranceDoorEntrySide = 0;
+        entranceDoorAnimationPlaying = false;
+        entranceDoorAwaitingEntryCross = false;
+        entranceDoorLockedClosed = false;
+        entranceDoorCollisionEnabled = false;
+
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+
+        entranceDoorTriggerLayer = findLayerByName(ENTRANCE_DOOR_TRIGGER_LAYER_NAME);
+        Rectangle triggerBounds = objectLayerBounds(entranceDoorTriggerLayer);
+        if (triggerBounds != null) {
+            entranceDoorTriggerBounds.set(triggerBounds);
+            entranceDoorClosedCollisionBounds.set(triggerBounds);
+        }
+
+        appendDoorFramesFromGroup(findLayerByName(ENTRANCE_DOOR_ANIMATION_GROUP_NAME), entranceDoorAnimationFrames);
+        appendDoorFramesFromGroup(findLayerByName(ENTRANCE_DOOR_FRONT_ANIMATION_GROUP_NAME), entranceDoorFrontAnimationFrames);
+
+        if (entranceDoorFrameCount() > 0) {
+            entranceDoorAnimationFrameIndex = 0;
+            setEntranceDoorFrameVisible(entranceDoorAnimationFrameIndex);
+        }
+    }
+
+    private void updateEntranceDoorAnimation(float delta) {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId) || entranceDoorFrameCount() == 0) {
+            return;
+        }
+
+        if (!entranceDoorAnimationPlaying && !entranceDoorLockedClosed) {
+            if (!entranceDoorAwaitingEntryCross && isPlayerWithinObjectLayer(entranceDoorTriggerLayer)) {
+                startEntranceDoorOpening();
+            } else if (entranceDoorAwaitingEntryCross && hasPlayerEnteredThroughEntranceDoor()) {
+                startEntranceDoorClosing();
+            }
+        }
+
+        if (!entranceDoorAnimationPlaying) {
+            return;
+        }
+
+        entranceDoorAnimationTimer += Math.max(0f, delta);
+        while (entranceDoorAnimationTimer >= ENTRANCE_DOOR_FRAME_DURATION_SECONDS) {
+            entranceDoorAnimationTimer -= ENTRANCE_DOOR_FRAME_DURATION_SECONDS;
+            int frameCount = entranceDoorFrameCount();
+            int nextIndex = entranceDoorAnimationFrameIndex + entranceDoorAnimationDirection;
+            if (nextIndex < 0 || nextIndex >= frameCount) {
+                entranceDoorAnimationPlaying = false;
+                entranceDoorAnimationTimer = 0f;
+                if (entranceDoorAnimationDirection > 0) {
+                    entranceDoorAwaitingEntryCross = true;
+                    entranceDoorAnimationFrameIndex = frameCount - 1;
+                } else {
+                    entranceDoorAwaitingEntryCross = false;
+                    entranceDoorLockedClosed = true;
+                    entranceDoorCollisionEnabled = entranceDoorClosedCollisionBounds.width > 0f
+                            && entranceDoorClosedCollisionBounds.height > 0f;
+                    entranceDoorAnimationFrameIndex = 0;
+                }
+                break;
+            }
+
+            entranceDoorAnimationFrameIndex = nextIndex;
+            setEntranceDoorFrameVisible(entranceDoorAnimationFrameIndex);
+        }
+    }
+
+    private void startEntranceDoorOpening() {
+        if (entranceDoorFrameCount() == 0) {
+            return;
+        }
+
+        entranceDoorAnimationPlaying = true;
+        entranceDoorAnimationDirection = 1;
+        entranceDoorAnimationFrameIndex = 0;
+        entranceDoorAnimationTimer = 0f;
+        entranceDoorCollisionEnabled = false;
+        entranceDoorLockedClosed = false;
+        entranceDoorAwaitingEntryCross = false;
+        entranceDoorEntrySide = inferEntranceDoorEntrySide();
+        setEntranceDoorFrameVisible(entranceDoorAnimationFrameIndex);
+        stopPlayerForDoorAction();
+    }
+
+    private void startEntranceDoorClosing() {
+        int frameCount = entranceDoorFrameCount();
+        if (frameCount == 0) {
+            return;
+        }
+
+        entranceDoorAnimationPlaying = true;
+        entranceDoorAnimationDirection = -1;
+        entranceDoorAnimationTimer = 0f;
+        entranceDoorCollisionEnabled = false;
+        entranceDoorAnimationFrameIndex = Math.min(
+                Math.max(entranceDoorAnimationFrameIndex, 0),
+                frameCount - 1);
+        setEntranceDoorFrameVisible(entranceDoorAnimationFrameIndex);
+    }
+
+    private void configureRoom1DoorAnimation() {
+        room1DoorAnimationFrames.clear();
+        room1DoorFrontAnimationFrames.clear();
+        room1DoorTriggerLayer = null;
+        room1DoorAnimationFrameIndex = 0;
+        room1DoorAnimationTimer = 0f;
+        room1DoorPauseTimer = 0f;
+        room1DoorClosing = false;
+        room1DoorClosed = false;
+
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+
+        room1DoorTriggerLayer = findLayerByName(ROOM1_DOOR_TRIGGER_LAYER_NAME);
+        appendDoorFramesFromGroup(findLayerByName(ROOM1_DOOR_ANIMATION_GROUP_NAME), room1DoorAnimationFrames);
+        appendDoorFramesFromGroup(findLayerByName(ROOM1_DOOR_FRONT_ANIMATION_GROUP_NAME), room1DoorFrontAnimationFrames);
+        if (room1DoorFrameCount() == 0) {
+            return;
+        }
+
+        int visibleIndex = findVisibleDoorFrameIndex(room1DoorAnimationFrames);
+        if (visibleIndex < 0) {
+            visibleIndex = findVisibleDoorFrameIndex(room1DoorFrontAnimationFrames);
+        }
+        room1DoorAnimationFrameIndex = visibleIndex >= 0
+                ? visibleIndex
+                : room1DoorFrameCount() - 1;
+        setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
+        room1DoorClosed = room1DoorAnimationFrameIndex == 0;
+    }
+
+    private void configureRoom1BatSpawns() {
+        clearSpawnedBat();
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId) || batSleepAnim == null) {
+            return;
+        }
+
+        MapLayer spawnLayer = findLayerInGroup(ROOM1_GROUP_LAYER_NAME, ROOM1_BATS_SPAWN_LAYER_NAME);
+        if (spawnLayer == null) {
+            return;
+        }
+
+        for (MapObject object : spawnLayer.getObjects()) {
+            Vector2 spawn = extractObjectSpawn(spawnLayer, object);
+            if (spawn != null) {
+                batSleepPositions.add(spawn);
+            }
+        }
+
+        if (batSleepPositions.size == 0) {
+            Vector2 layerSpawn = extractLayerSpawn(spawnLayer);
+            if (layerSpawn != null) {
+                batSleepPositions.add(layerSpawn);
+            }
+        }
+    }
+
+    private void updateRoom1DoorAnimation(float delta) {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                || room1DoorFrameCount() == 0
+                || room1DoorClosed) {
+            return;
+        }
+
+        if (!room1DoorClosing && room1DoorPauseTimer <= 0f && isPlayerWithinObjectLayer(room1DoorTriggerLayer)) {
+            stopPlayerForDoorAction();
+            room1DoorPauseTimer = ROOM1_DOOR_TRIGGER_PAUSE_SECONDS;
+        }
+
+        if (room1DoorPauseTimer > 0f) {
+            room1DoorPauseTimer = Math.max(0f, room1DoorPauseTimer - Math.max(0f, delta));
+            if (room1DoorPauseTimer > 0f) {
+                return;
+            }
+            startRoom1DoorClosing();
+        }
+
+        if (!room1DoorClosing) {
+            return;
+        }
+
+        room1DoorAnimationTimer += Math.max(0f, delta);
+        while (room1DoorAnimationTimer >= ROOM1_DOOR_FRAME_DURATION_SECONDS) {
+            room1DoorAnimationTimer -= ROOM1_DOOR_FRAME_DURATION_SECONDS;
+            int nextIndex = room1DoorAnimationFrameIndex - 1;
+            if (nextIndex < 0) {
+                room1DoorAnimationFrameIndex = 0;
+                setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
+                room1DoorClosing = false;
+                room1DoorClosed = true;
+                room1DoorAnimationTimer = 0f;
+                break;
+            }
+            room1DoorAnimationFrameIndex = nextIndex;
+            setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
+            if (room1DoorAnimationFrameIndex == 0) {
+                room1DoorClosing = false;
+                room1DoorClosed = true;
+                room1DoorAnimationTimer = 0f;
+                break;
+            }
+        }
+    }
+
+    private void startRoom1DoorClosing() {
+        int frameCount = room1DoorFrameCount();
+        if (frameCount == 0 || room1DoorClosed) {
+            return;
+        }
+        room1DoorClosing = true;
+        room1DoorAnimationTimer = 0f;
+        room1DoorAnimationFrameIndex = Math.min(
+                Math.max(room1DoorAnimationFrameIndex, 0),
+                frameCount - 1);
+        setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
+    }
+
+    private int room1DoorFrameCount() {
+        return Math.max(room1DoorAnimationFrames.size, room1DoorFrontAnimationFrames.size);
+    }
+
+    private void setRoom1DoorFrameVisible(int frameIndex) {
+        setDoorFrameArrayVisible(room1DoorAnimationFrames, frameIndex);
+        setDoorFrameArrayVisible(room1DoorFrontAnimationFrames, frameIndex);
+    }
+
+    private int entranceDoorFrameCount() {
+        return Math.max(entranceDoorAnimationFrames.size, entranceDoorFrontAnimationFrames.size);
+    }
+
+    private void setEntranceDoorFrameVisible(int frameIndex) {
+        setDoorFrameArrayVisible(entranceDoorAnimationFrames, frameIndex);
+        setDoorFrameArrayVisible(entranceDoorFrontAnimationFrames, frameIndex);
+    }
+
+    private void setDoorFrameArrayVisible(Array<MapLayer> frames, int frameIndex) {
+        for (int i = 0; i < frames.size; i++) {
+            frames.get(i).setVisible(i == frameIndex);
+        }
+    }
+
+    private int findVisibleDoorFrameIndex(Array<MapLayer> frames) {
+        for (int i = 0; i < frames.size; i++) {
+            if (frames.get(i).isVisible()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void stopPlayerForDoorAction() {
+        player.attacking = false;
+        player.attackTimer = 0f;
+        player.dashing = false;
+        player.dashTimer = 0f;
+        player.dashAttackActive = false;
+        player.dashAttackMoveDuration = 0f;
+        player.dashAttackFollowupQueued = false;
+        player.moving = false;
+        activeAttackAnim = null;
+    }
+
+    private void appendDoorFramesFromGroup(MapLayer layer, Array<MapLayer> outFrames) {
+        if (!(layer instanceof MapGroupLayer doorGroup)) {
+            return;
+        }
+
+        MapLayer[] orderedFrames = new MapLayer[16];
+        int maxFrame = 0;
+        for (MapLayer frameLayer : doorGroup.getLayers()) {
+            int frameNumber = parseDoorFrameNumber(frameLayer.getName());
+            if (frameNumber <= 0 || frameNumber > orderedFrames.length) {
+                continue;
+            }
+            orderedFrames[frameNumber - 1] = frameLayer;
+            if (frameNumber > maxFrame) {
+                maxFrame = frameNumber;
+            }
+        }
+
+        for (int i = 0; i < maxFrame; i++) {
+            MapLayer frameLayer = orderedFrames[i];
+            if (frameLayer != null) {
+                outFrames.add(frameLayer);
+            }
+        }
+    }
+
+    private boolean hasPlayerEnteredThroughEntranceDoor() {
+        if (entranceDoorTriggerBounds.width <= 0f || entranceDoorTriggerBounds.height <= 0f) {
+            return !isPlayerWithinObjectLayer(entranceDoorTriggerLayer);
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width / 2f;
+        float left = entranceDoorTriggerBounds.x;
+        float right = left + entranceDoorTriggerBounds.width;
+        if (entranceDoorEntrySide < 0) {
+            return playerCenterX > right + ENTRANCE_DOOR_ENTRY_CROSS_MARGIN;
+        }
+        if (entranceDoorEntrySide > 0) {
+            return playerCenterX < left - ENTRANCE_DOOR_ENTRY_CROSS_MARGIN;
+        }
+        return !isPlayerWithinObjectLayer(entranceDoorTriggerLayer);
+    }
+
+    private int inferEntranceDoorEntrySide() {
+        if (entranceDoorTriggerBounds.width <= 0f || entranceDoorTriggerBounds.height <= 0f) {
+            if (player.lastMoveX < 0f) {
+                return 1;
+            }
+            return -1;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width / 2f;
+        float triggerCenterX = entranceDoorTriggerBounds.x + entranceDoorTriggerBounds.width / 2f;
+        if (playerCenterX < triggerCenterX) {
+            return -1;
+        }
+        if (playerCenterX > triggerCenterX) {
+            return 1;
+        }
+        if (player.lastMoveX < 0f) {
+            return 1;
+        }
+        return -1;
+    }
+
+    private Rectangle objectLayerBounds(MapLayer layer) {
+        if (layer == null || layer.getObjects().getCount() == 0) {
+            return null;
+        }
+        Rectangle bounds = null;
+        float minX = 0f;
+        float minY = 0f;
+        float maxX = 0f;
+        float maxY = 0f;
+        for (MapObject object : layer.getObjects()) {
+            Rectangle rect = objectBounds(layer, object);
+            if (rect == null || rect.width <= 0f || rect.height <= 0f) {
+                continue;
+            }
+            if (bounds == null) {
+                bounds = new Rectangle(rect);
+                minX = rect.x;
+                minY = rect.y;
+                maxX = rect.x + rect.width;
+                maxY = rect.y + rect.height;
+                continue;
+            }
+            minX = Math.min(minX, rect.x);
+            minY = Math.min(minY, rect.y);
+            maxX = Math.max(maxX, rect.x + rect.width);
+            maxY = Math.max(maxY, rect.y + rect.height);
+        }
+        if (bounds == null) {
+            return null;
+        }
+        bounds.set(minX, minY, maxX - minX, maxY - minY);
+        return bounds;
+    }
+
+    private int parseDoorFrameNumber(String layerName) {
+        if (layerName == null) {
+            return -1;
+        }
+        String trimmed = layerName.trim();
+        if (!trimmed.regionMatches(true, 0, DOOR_FRAME_PREFIX, 0, DOOR_FRAME_PREFIX.length())) {
+            return -1;
+        }
+        String framePart = trimmed.substring(DOOR_FRAME_PREFIX.length()).trim();
+        try {
+            return Integer.parseInt(framePart);
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
+    }
+
     private int parseTorchFrameNumber(String layerName) {
         if (layerName == null) {
             return -1;
@@ -845,6 +1298,14 @@ public class GameScreen extends ScreenAdapter {
 
     private MapLayer findLayerByName(String name) {
         return findLayerByName(world.map.getLayers(), name);
+    }
+
+    private MapLayer findLayerInGroup(String groupLayerName, String layerName) {
+        MapLayer groupLayer = findLayerByName(groupLayerName);
+        if (!(groupLayer instanceof MapGroupLayer group)) {
+            return null;
+        }
+        return findLayerByName(group.getLayers(), layerName);
     }
 
     private MapLayer findLayerByName(MapLayers layers, String name) {
@@ -1352,13 +1813,13 @@ public class GameScreen extends ScreenAdapter {
         }
         float spawnX = player.bounds.x + player.bounds.width * 0.5f + directionX * BAT_SPAWN_FORWARD_OFFSET;
         float spawnY = player.bounds.y + BAT_SPAWN_GROUND_OFFSET;
-        batSleepPosition.set(spawnX, spawnY);
+        clearSpawnedBat();
+        batSleepPositions.add(new Vector2(spawnX, spawnY));
         batSleepStateTime = 0f;
-        batSpawned = true;
     }
 
     private void clearSpawnedBat() {
-        batSpawned = false;
+        batSleepPositions.clear();
         batSleepStateTime = 0f;
     }
 
@@ -1503,6 +1964,10 @@ public class GameScreen extends ScreenAdapter {
 
     private boolean isPlayerWithinObjectLayer(String layerName) {
         MapLayer layer = findLayerByName(layerName);
+        return isPlayerWithinObjectLayer(layer);
+    }
+
+    private boolean isPlayerWithinObjectLayer(MapLayer layer) {
         if (layer == null) {
             return false;
         }
@@ -1571,6 +2036,16 @@ public class GameScreen extends ScreenAdapter {
         return null;
     }
 
+    private Vector2 extractObjectSpawn(MapLayer layer, MapObject object) {
+        Rectangle bounds = objectBounds(layer, object);
+        if (bounds == null) {
+            return null;
+        }
+        float x = bounds.x + bounds.width * 0.5f;
+        float y = bounds.y + bounds.height * 0.5f;
+        return new Vector2(x, y);
+    }
+
     private void startDashFromLastMove() {
         player.dashAttackActive = false;
         player.dashAttackMoveDuration = 0f;
@@ -1634,6 +2109,13 @@ public class GameScreen extends ScreenAdapter {
             if (Intersector.overlaps(rect, wall)) {
                 return true;
             }
+        }
+
+        if (entranceDoorCollisionEnabled
+                && entranceDoorClosedCollisionBounds.width > 0f
+                && entranceDoorClosedCollisionBounds.height > 0f
+                && Intersector.overlaps(rect, entranceDoorClosedCollisionBounds)) {
+            return true;
         }
 
         if (world.wallPolygons.size > 0) {
@@ -1766,7 +2248,7 @@ public class GameScreen extends ScreenAdapter {
                     BAT_SLEEP_FRAME_DURATION);
         } catch (RuntimeException error) {
             batSleepAnim = null;
-            batSpawned = false;
+            clearSpawnedBat();
             Gdx.app.error("PixelRpgGame", "Failed to load bat sleep texture from '" + BAT_SLEEP_TEXTURE_PATH + "'.", error);
         }
     }
@@ -2256,20 +2738,23 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void drawSpawnedBat(float saturation) {
-        if (!batSpawned || batSleepAnim == null) {
+        if (batSleepPositions.size == 0 || batSleepAnim == null) {
             return;
         }
         TextureRegion frame = batSleepAnim.getKeyFrame(batSleepStateTime, true);
         float drawW = frame.getRegionWidth() * BAT_SLEEP_DRAW_SCALE;
         float drawH = frame.getRegionHeight() * BAT_SLEEP_DRAW_SCALE;
-        float drawX = batSleepPosition.x - drawW * 0.5f;
-        float drawY = batSleepPosition.y;
 
         if (saturationShader != null) {
             batch.setShader(saturationShader);
             saturationShader.setUniformf("u_saturation", saturation);
         }
-        batch.draw(frame, drawX, drawY, drawW, drawH);
+        for (int i = 0; i < batSleepPositions.size; i++) {
+            Vector2 batPosition = batSleepPositions.get(i);
+            float drawX = batPosition.x - drawW * 0.5f;
+            float drawY = batPosition.y;
+            batch.draw(frame, drawX, drawY, drawW, drawH);
+        }
         if (saturationShader != null) {
             batch.setShader(null);
         }
