@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="541" nextobjectid="361">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="543" nextobjectid="362">
  <tileset firstgid="1" source="TILE SETS/other tiles.tsx"/>
  <tileset firstgid="2049" source="TILE SETS/Waterfall_Animation_Body.tsx"/>
  <tileset firstgid="2058" source="TILE SETS/fence.tsx"/>
@@ -38983,7 +38983,12 @@
    </layer>
   </group>
  </group>
- <objectgroup id="525" name="WALL" visible="0">
+ <group id="541" name="Quest-2">
+  <objectgroup id="542" name="Quest-2">
+   <object id="361" x="1719" y="128" width="340" height="304"/>
+  </objectgroup>
+ </group>
+ <objectgroup id="525" name="WALL">
   <object id="1" x="-1326.13" y="-535.379" width="189.333" height="29.3333"/>
   <object id="2" x="-1332.8" y="-603.629" width="201" height="69.25"/>
   <object id="3" x="-1086.47" y="-465.046" width="77.3333" height="33.3333"/>
@@ -39399,24 +39404,24 @@
   </object>
   <object id="346" x="-1794.47" y="-471.379" width="38" height="219.333"/>
  </objectgroup>
- <objectgroup id="526" name="ENTRANCE-Dungeon" visible="0">
+ <objectgroup id="526" name="ENTRANCE-Dungeon">
   <object id="347" x="2375.09" y="-211.818" width="75.4545" height="31.2727"/>
  </objectgroup>
- <objectgroup id="527" name="LightAreas" visible="0">
+ <objectgroup id="527" name="LightAreas">
   <object id="353" x="-94" y="-340" width="528" height="300">
    <ellipse/>
   </object>
  </objectgroup>
- <objectgroup id="528" name="SPAWN-Village" visible="0" offsetx="-526" offsety="11">
+ <objectgroup id="528" name="SPAWN-Village" offsetx="-526" offsety="11">
   <object id="355" x="592.5" y="-120.5" width="29" height="17"/>
  </objectgroup>
- <objectgroup id="529" name="ENTRANCE-Research-Lab" visible="0">
+ <objectgroup id="529" name="ENTRANCE-Research-Lab">
   <object id="357" x="61.75" y="-184.25" width="34.75" height="43.75"/>
  </objectgroup>
- <objectgroup id="530" name="ENTRANCE-Cafe" visible="0">
+ <objectgroup id="530" name="ENTRANCE-Cafe">
   <object id="359" x="-308" y="-340.667" width="23.3333" height="38.6667"/>
  </objectgroup>
- <objectgroup id="531" name="ENTRANCE-Inn" visible="0">
+ <objectgroup id="531" name="ENTRANCE-Inn">
   <object id="360" x="-539.667" y="-549" width="34.3333" height="43.3333"/>
  </objectgroup>
 </map>

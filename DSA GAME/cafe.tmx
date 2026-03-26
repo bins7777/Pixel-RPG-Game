@@ -1351,7 +1351,7 @@
 </chunk>
   </data>
  </layer>
- <objectgroup id="19" name="Object Layer 1" visible="0">
+ <objectgroup id="19" name="Object Layer 1">
   <object id="1" x="0.333333" y="100.333" width="126.667" height="78.4545"/>
   <object id="2" x="-1.24242" y="160.667" width="47.5758" height="32.6667"/>
   <object id="3" x="47" y="172.667" width="14.6667" height="19.75"/>

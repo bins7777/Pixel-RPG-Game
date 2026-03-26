@@ -41,7 +41,10 @@ tasks.register("validateMapCatalog") {
                 throw new GradleException("Duplicate map id in maps.json: ${id}")
             }
 
-            def mapFile = file("${project.rootDir}/core/assets/${path}")
+            File configuredPath = new File(path)
+            def mapFile = configuredPath.isAbsolute()
+                    ? configuredPath
+                    : file("${project.rootDir}/core/assets/${path}")
             if (!mapFile.exists()) {
                 throw new GradleException("Map '${id}' points to missing file: ${mapFile}")
             }

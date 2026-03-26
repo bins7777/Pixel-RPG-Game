@@ -42,6 +42,13 @@
       "collisionLayers": ["WALL-COLLISION", "WALLS", "WALL"],
       "spawnLayers": ["Spawn", "SpawnPoint"],
       "padding": 160.0
+    },
+    {
+      "id": "boss-arena-phase-2",
+      "path": "maps/Boss-Arena-Phase-2.tmx",
+      "collisionLayers": ["WALL-COLLISION"],
+      "spawnLayers": ["SPAWN", "Spawn", "SpawnPoint"],
+      "padding": 160.0
     }
   ]
 }

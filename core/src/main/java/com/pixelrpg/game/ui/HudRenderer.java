@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.Array;
  */
 public class HudRenderer {
     private static final String VILLAGE_SPAWN_NOTIFICATION_TITLE = "Notification";
-    private static final String VILLAGE_SPAWN_NOTIFICATION_MESSAGE = "Welcome to Hagi Village.";
+    private static final String VILLAGE_SPAWN_NOTIFICATION_MESSAGE = "Welcome to the Village.";
     private static final float VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS = 6f;
     private static final float VILLAGE_SPAWN_NOTIFICATION_FADE_SECONDS = 1f;
     private static final float VILLAGE_SPAWN_NOTIFICATION_TOP_MARGIN = 16f;
@@ -61,7 +61,7 @@ public class HudRenderer {
     private static final float MAIN_MENU_MAX_WIDTH_RATIO = 0.88f;
     private static final float MAIN_MENU_MAX_HEIGHT_RATIO = 0.80f;
     private static final float MAIN_MENU_SCALE = 0.80f;
-    private static final int MAIN_MENU_TITLE_FONT_SIZE = 19;
+    private static final int MAIN_MENU_TITLE_FONT_SIZE = 16;
     private static final int MAIN_MENU_TAB_FONT_SIZE = 18;
     private static final int MAIN_MENU_BODY_FONT_SIZE = 15;
     private static final String[] MAIN_MENU_TABS = {"Quests", "Map", "Skills", "Stats", "Save"};
