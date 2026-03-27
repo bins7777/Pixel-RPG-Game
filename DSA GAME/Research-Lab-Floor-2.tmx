@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="27" nextobjectid="31">
- <tileset firstgid="1" source="../../DSA GAME/TILE SETS/Fantasy_Floors.tsx"/>
- <tileset firstgid="67" source="../../DSA GAME/TILE SETS/Fantasy_Walls_B.tsx"/>
- <tileset firstgid="323" source="../../DSA GAME/TILE SETS/all_spritesheets.tsx"/>
- <tileset firstgid="3635" source="../../DSA GAME/TILE SETS/Fantasy_Autotiles.tsx"/>
- <tileset firstgid="3905" source="../../DSA GAME/TILE SETS/other tiles.tsx"/>
+ <tileset firstgid="1" source="TILE SETS/Fantasy_Floors.tsx"/>
+ <tileset firstgid="67" source="TILE SETS/Fantasy_Walls_B.tsx"/>
+ <tileset firstgid="323" source="TILE SETS/all_spritesheets.tsx"/>
+ <tileset firstgid="3635" source="TILE SETS/Fantasy_Autotiles.tsx"/>
+ <tileset firstgid="3905" source="TILE SETS/other tiles.tsx"/>
  <layer id="2" name="wall" width="30" height="30">
   <data encoding="csv">
    <chunk x="-16" y="-16" width="16" height="16">
@@ -1605,7 +1605,7 @@
  <objectgroup id="20" name="EXIT-Research-Lab-Floor-2">
   <object id="1" x="-160" y="-62.6667" width="31" height="45.6667"/>
  </objectgroup>
- <objectgroup id="21" name="WALL-COLLISION">
+ <objectgroup id="21" name="WALL-COLLISION" visible="0">
   <object id="2" x="-268.5" y="-143.5" width="90.5" height="276.5"/>
   <object id="4" x="-240.5" y="97.5" width="461.5" height="61.5"/>
   <object id="5" x="177" y="-138.5" width="140.5" height="266.5"/>

@@ -1,5 +1,6 @@
 package com.pixelrpg.game.screens;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -58,6 +59,7 @@ import com.pixelrpg.game.world.WorldState;
  */
 public class GameScreen extends ScreenAdapter {
     private static final String MAP_CATALOG_PATH = "config/maps.json";
+    private static final String PROJECT_ROOT_ABSOLUTE_PATH = resolveProjectRootAbsolutePath();
     private static final String MAP_ID_VILLAGE = "village";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_1 = "research-lab-floor-1";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_2 = "research-lab-floor-2";
@@ -86,6 +88,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String ROOM1_DOOR_FRONT_ANIMATION_GROUP_NAME = "DOOR-Room-1-Animation-Front ALWAYS-INFRONT";
     private static final String ROOM1_DOOR_TRIGGER_LAYER_NAME = "Door-Close-Room-1";
     private static final String ROOM1_DOOR_CLOSED_COLLISION_LAYER_NAME = "WALL-COLLISION-IF-CLOSED";
+    private static final String ROOM3_DOOR_ANIMATION_GROUP_NAME = "DOOR-Room-3-Animation";
+    private static final String ROOM3_DOOR_TRIGGER_LAYER_NAME = "Door-Close(open-after-room-clear)";
     private static final String FIRST_BOSS_DOOR_ANIMATION_GROUP_NAME = "DOOR-FirstBoss-Double-Animation-1";
     private static final String FIRST_BOSS_DOOR_FRONT_ANIMATION_GROUP_NAME = "DOOR-FirstBoss-Front-Double-Animation-1 ALWAYS-INFRONT";
     private static final String FIRST_BOSS_DOOR_FRONT_ANIMATION_GROUP_NAME_ALT = "DOOR-FirstBoss-Front-Double-Animation-1";
@@ -109,6 +113,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String ROOM1_BATS_SPAWN_LAYER_NAME = "Bats-Spawn";
     private static final float ROOM1_DOOR_FRAME_DURATION_SECONDS = 0.1f;
     private static final float ROOM1_DOOR_TRIGGER_PAUSE_SECONDS = 0.2f;
+    private static final float ROOM3_DOOR_FRAME_DURATION_SECONDS = 0.1f;
+    private static final float ROOM3_DOOR_TRIGGER_PAUSE_SECONDS = 0.2f;
     private static final float FIRST_BOSS_DOOR_FRAME_DURATION_SECONDS = 0.1f;
     private static final float FIRST_BOSS_DOOR_TRIGGER_PAUSE_SECONDS = 0.2f;
     private static final float BOSS_1_DEFEAT_DOOR_FRAME_DURATION_SECONDS = 0.1f;
@@ -318,31 +324,31 @@ public class GameScreen extends ScreenAdapter {
     private static final float EVIL_WIZARD_SAFE_CIRCLE_B = 1f;
     private static final float EVIL_WIZARD_SAFE_CIRCLE_HOLE_STRIP_HEIGHT = 4f;
     private static final String GOLEM_1_IDLE_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_idle.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_idle.png";
     private static final String GOLEM_1_WALK_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_walk.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_walk.png";
     private static final String GOLEM_1_ATTACK_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_attack.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_attack.png";
     private static final String GOLEM_1_HURT_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_hurt.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_hurt.png";
     private static final String GOLEM_1_DIE_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_die.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_1_die.png";
     private static final String GOLEM_1_EXPLOSION_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_explosion.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_explosion.png";
     private static final String BOSS_ARENA_PHASE_2_DEMON_IDLE_FRAMES_DIR_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/01_demon_idle";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/01_demon_idle";
     private static final String BOSS_ARENA_PHASE_2_DEMON_WALK_FRAMES_DIR_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/02_demon_walk";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/02_demon_walk";
     private static final String BOSS_ARENA_PHASE_2_DEMON_ATTACK_FRAMES_DIR_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/03_demon_cleave";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/03_demon_cleave";
     private static final String BOSS_ARENA_PHASE_2_DEMON_HURT_FRAMES_DIR_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/04_demon_take_hit";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/04_demon_take_hit";
     private static final String BOSS_ARENA_PHASE_2_DEMON_IDLE_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/spritesheets/demon_slime_FREE_v1.0_288x160_spritesheet.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/spritesheets/demon_slime_FREE_v1.0_288x160_spritesheet.png";
     private static final String CHEST_IDLE_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ORIGINAL ASSETS/The dungeon (2)/The dungeon/Chest/Skull_chest_idle.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ORIGINAL ASSETS/The dungeon (2)/The dungeon/Chest/Skull_chest_idle.png";
     private static final String CHEST_OPEN_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ORIGINAL ASSETS/The dungeon (2)/The dungeon/Chest/Skull_chest_open.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ORIGINAL ASSETS/The dungeon (2)/The dungeon/Chest/Skull_chest_open.png";
     private static final float CHEST_IDLE_FRAME_DURATION = 0.12f;
     private static final float CHEST_OPEN_FRAME_DURATION = 0.12f;
     private static final float CHEST_OPEN_TRIGGER_RANGE_TILES = 5f;
@@ -434,15 +440,28 @@ public class GameScreen extends ScreenAdapter {
     private static final float PLAYER_ATTACK_DASH_RIGHT_B = 0.92f;
     private static final String PLAYER_HIT_TEXTURE_INTERNAL_PATH = "images/huntress/14 - hit.png";
     private static final String PLAYER_HIT_TEXTURE_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/SHADOW Series - The Blind Huntress/Sprite Sheet/14 - hit.png";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/SHADOW Series - The Blind Huntress/Sprite Sheet/14 - hit.png";
     private static final String EVIL_WIZARD_ATTACK1_SFX_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard1.mp3";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard1.mp3";
     private static final String EVIL_WIZARD_ATTACK2_SFX_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard2.mp3";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard2.mp3";
     private static final String EVIL_WIZARD_PRE_EXPLOSION_SFX_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard-explosion.mp3";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard-explosion.mp3";
     private static final String GOLEM_1_EXPLOSION_SFX_ABSOLUTE_PATH =
-            "C:/Users/user/Desktop/PixelRPG-Game/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_explosion.mp3";
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Golem_1/Orange/White_Swoosh_VFX/Golem_explosion.mp3";
+
+    private static String resolveProjectRootAbsolutePath() {
+        File current = new File(System.getProperty("user.dir", ".")).getAbsoluteFile();
+        for (int depth = 0; depth < 6 && current != null; depth++) {
+            File settingsGradle = new File(current, "settings.gradle");
+            File coreModule = new File(current, "core");
+            if (settingsGradle.isFile() && coreModule.isDirectory()) {
+                return current.getAbsolutePath().replace('\\', '/');
+            }
+            current = current.getParentFile();
+        }
+        return new File(System.getProperty("user.dir", ".")).getAbsolutePath().replace('\\', '/');
+    }
 
     private enum MapTransitionPhase {
         NONE,
@@ -713,6 +732,20 @@ public class GameScreen extends ScreenAdapter {
     private boolean room1DoorCollisionEnabled = false;
     private boolean room1DoorAutoOpenPending = false;
     private boolean room1DoorBattleCompleted = false;
+    private final Array<MapLayer> room3DoorAnimationFrames = new Array<>();
+    private MapLayer room3DoorTriggerLayer;
+    private final Rectangle room3DoorTriggerBounds = new Rectangle();
+    private final Rectangle room3DoorClosedCollisionBounds = new Rectangle();
+    private final Array<Rectangle> room3DoorTriggerZoneBounds = new Array<>();
+    private int room3DoorAnimationFrameIndex = 0;
+    private float room3DoorAnimationTimer = 0f;
+    private float room3DoorPauseTimer = 0f;
+    private boolean room3DoorClosing = false;
+    private boolean room3DoorClosed = false;
+    private boolean room3DoorCollisionEnabled = false;
+    private boolean room3DoorTriggered = false;
+    private boolean room3DoorTriggerPrimed = false;
+    private boolean wasPlayerWithinRoom3DoorTrigger = false;
     private final Array<MapLayer> firstBossDoorAnimationFrames = new Array<>();
     private final Array<MapLayer> firstBossDoorFrontAnimationFrames = new Array<>();
     private MapLayer firstBossDoorTriggerLayer;
@@ -844,6 +877,7 @@ public class GameScreen extends ScreenAdapter {
         updateMapTransition(delta);
         updateEntranceDoorAnimation(delta);
         updateRoom1DoorAnimation(delta);
+        updateRoom3DoorAnimation(delta);
         updateFirstBossDoorAnimation(delta);
         updateBoss1DefeatDoorAnimation(delta);
         updateBossFightZoneDarkMode(delta);
@@ -852,6 +886,7 @@ public class GameScreen extends ScreenAdapter {
         if (isMapTransitionActive()
                 || isEntranceDoorInputBlocked()
                 || isRoom1DoorInputBlocked()
+                || isRoom3DoorInputBlocked()
                 || isFirstBossDoorInputBlocked()
                 || isBoss1IntroActive()
                 || isPlayerHazardHitReactionActive()) {
@@ -1039,6 +1074,7 @@ public class GameScreen extends ScreenAdapter {
         configureNpcAnimation();
         configureEntranceDoorAnimation();
         configureRoom1DoorAnimation();
+        configureRoom3DoorAnimation();
         configureFirstBossDoorAnimation();
         configureBoss1DefeatDoorAnimation();
         configureBossFightZone();
@@ -1098,6 +1134,20 @@ public class GameScreen extends ScreenAdapter {
         room1DoorCollisionEnabled = false;
         room1DoorAutoOpenPending = false;
         room1DoorBattleCompleted = false;
+        room3DoorAnimationFrames.clear();
+        room3DoorTriggerLayer = null;
+        room3DoorTriggerBounds.set(0f, 0f, 0f, 0f);
+        room3DoorClosedCollisionBounds.set(0f, 0f, 0f, 0f);
+        room3DoorTriggerZoneBounds.clear();
+        room3DoorAnimationFrameIndex = 0;
+        room3DoorAnimationTimer = 0f;
+        room3DoorPauseTimer = 0f;
+        room3DoorClosing = false;
+        room3DoorClosed = false;
+        room3DoorCollisionEnabled = false;
+        room3DoorTriggered = false;
+        room3DoorTriggerPrimed = false;
+        wasPlayerWithinRoom3DoorTrigger = false;
         firstBossDoorAnimationFrames.clear();
         firstBossDoorFrontAnimationFrames.clear();
         firstBossDoorTriggerLayer = null;
@@ -1465,6 +1515,10 @@ public class GameScreen extends ScreenAdapter {
         return room1DoorPauseTimer > 0f || room1DoorClosing;
     }
 
+    private boolean isRoom3DoorInputBlocked() {
+        return room3DoorPauseTimer > 0f || room3DoorClosing;
+    }
+
     private boolean isFirstBossDoorInputBlocked() {
         return firstBossDoorPauseTimer > 0f || firstBossDoorClosing;
     }
@@ -1668,6 +1722,67 @@ public class GameScreen extends ScreenAdapter {
         setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
         room1DoorClosed = room1DoorAnimationFrameIndex == 0;
         room1DoorCollisionEnabled = room1DoorClosed && hasRoom1DoorCollisionBounds();
+    }
+
+    private void configureRoom3DoorAnimation() {
+        room3DoorAnimationFrames.clear();
+        room3DoorTriggerLayer = null;
+        room3DoorTriggerBounds.set(0f, 0f, 0f, 0f);
+        room3DoorClosedCollisionBounds.set(0f, 0f, 0f, 0f);
+        room3DoorTriggerZoneBounds.clear();
+        room3DoorAnimationFrameIndex = 0;
+        room3DoorAnimationTimer = 0f;
+        room3DoorPauseTimer = 0f;
+        room3DoorClosing = false;
+        room3DoorClosed = false;
+        room3DoorCollisionEnabled = false;
+        room3DoorTriggered = false;
+        room3DoorTriggerPrimed = false;
+        wasPlayerWithinRoom3DoorTrigger = false;
+
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+
+        MapLayer room3DoorGroup = findLayerByName(ROOM3_DOOR_ANIMATION_GROUP_NAME);
+        room3DoorTriggerLayer = findLayerInGroup(
+                ROOM3_DOOR_ANIMATION_GROUP_NAME,
+                ROOM3_DOOR_TRIGGER_LAYER_NAME);
+        if (room3DoorTriggerLayer == null) {
+            // In Demon-Castle_finite.tmx this trigger is authored in a sibling door group.
+            room3DoorTriggerLayer = findLayerByName(ROOM3_DOOR_TRIGGER_LAYER_NAME);
+        }
+        appendDoorFramesFromGroup(room3DoorGroup, room3DoorAnimationFrames);
+        if (room3DoorFrameCount() == 0) {
+            return;
+        }
+
+        // Build proximity zones directly from DOOR-1 tiles so multiple authored door placements trigger reliably.
+        if (room3DoorAnimationFrames.size > 0) {
+            appendTileBoundsFromLayer(room3DoorAnimationFrames.get(0), room3DoorTriggerZoneBounds);
+        }
+
+        Rectangle visualBounds = doorAnimationVisualBounds(room3DoorAnimationFrames);
+        if (visualBounds != null && visualBounds.width > 0f && visualBounds.height > 0f) {
+            room3DoorTriggerBounds.set(visualBounds);
+            room3DoorClosedCollisionBounds.set(visualBounds);
+        }
+
+        Rectangle triggerBounds = objectLayerBounds(room3DoorTriggerLayer);
+        if (triggerBounds != null && triggerBounds.width > 0f && triggerBounds.height > 0f
+                && room3DoorTriggerBounds.width <= 0f && room3DoorTriggerBounds.height <= 0f) {
+            room3DoorTriggerBounds.set(triggerBounds);
+            room3DoorClosedCollisionBounds.set(triggerBounds);
+        }
+
+        // Room-3 door starts open (DOOR-1) and closes once when the player enters trigger bounds.
+        room3DoorAnimationFrameIndex = 0;
+        setRoom3DoorFrameVisible(room3DoorAnimationFrameIndex);
+        room3DoorClosed = false;
+        room3DoorCollisionEnabled = false;
+        room3DoorTriggered = false;
+        room3DoorTriggerPrimed = false;
+        wasPlayerWithinRoom3DoorTrigger = false;
     }
 
     private void configureFirstBossDoorAnimation() {
@@ -3563,6 +3678,66 @@ public class GameScreen extends ScreenAdapter {
         setRoom1DoorFrameVisible(room1DoorAnimationFrameIndex);
     }
 
+    private void updateRoom3DoorAnimation(float delta) {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                || room3DoorFrameCount() == 0) {
+            return;
+        }
+
+        boolean playerInTrigger = isPlayerWithinRoom3DoorTrigger();
+        if (!room3DoorTriggerPrimed) {
+            // Ignore the very first sample so spawn placement does not auto-trigger the door.
+            room3DoorTriggerPrimed = true;
+            wasPlayerWithinRoom3DoorTrigger = playerInTrigger;
+        } else if (!room3DoorTriggered
+                && !room3DoorClosed
+                && !room3DoorClosing
+                && room3DoorPauseTimer <= 0f
+                && playerInTrigger
+                && !wasPlayerWithinRoom3DoorTrigger) {
+            stopPlayerForDoorAction();
+            room3DoorPauseTimer = ROOM3_DOOR_TRIGGER_PAUSE_SECONDS;
+            room3DoorTriggered = true;
+        }
+        wasPlayerWithinRoom3DoorTrigger = playerInTrigger;
+
+        if (room3DoorPauseTimer > 0f) {
+            room3DoorPauseTimer = Math.max(0f, room3DoorPauseTimer - Math.max(0f, delta));
+            if (room3DoorPauseTimer > 0f) {
+                return;
+            }
+            startRoom3DoorClosing();
+        }
+
+        if (!room3DoorClosing) {
+            return;
+        }
+
+        room3DoorAnimationTimer += Math.max(0f, delta);
+        if (room3DoorAnimationTimer < ROOM3_DOOR_FRAME_DURATION_SECONDS) {
+            return;
+        }
+        room3DoorAnimationTimer = 0f;
+
+        int frameCount = room3DoorFrameCount();
+        int nextIndex = room3DoorAnimationFrameIndex + 1;
+        if (nextIndex >= frameCount) {
+            room3DoorAnimationFrameIndex = frameCount - 1;
+            setRoom3DoorFrameVisible(room3DoorAnimationFrameIndex);
+            room3DoorClosing = false;
+            room3DoorClosed = true;
+            room3DoorCollisionEnabled = hasRoom3DoorCollisionBounds();
+            return;
+        }
+        room3DoorAnimationFrameIndex = nextIndex;
+        setRoom3DoorFrameVisible(room3DoorAnimationFrameIndex);
+        if (room3DoorAnimationFrameIndex == frameCount - 1) {
+            room3DoorClosing = false;
+            room3DoorClosed = true;
+            room3DoorCollisionEnabled = hasRoom3DoorCollisionBounds();
+        }
+    }
+
     private void updateFirstBossDoorAnimation(float delta) {
         if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
                 || firstBossDoorFrameCount() == 0) {
@@ -3915,6 +4090,19 @@ public class GameScreen extends ScreenAdapter {
         return bossFightZoneBounds.contains(centerX, centerY);
     }
 
+    private void startRoom3DoorClosing() {
+        int frameCount = room3DoorFrameCount();
+        if (frameCount == 0 || room3DoorClosed) {
+            return;
+        }
+        room3DoorClosing = true;
+        room3DoorAnimationTimer = 0f;
+        room3DoorCollisionEnabled = false;
+        // Room-3 trigger should play from DOOR-1 up to the last frame.
+        room3DoorAnimationFrameIndex = 0;
+        setRoom3DoorFrameVisible(room3DoorAnimationFrameIndex);
+    }
+
     private void startFirstBossDoorClosing() {
         int frameCount = firstBossDoorFrameCount();
         if (frameCount == 0 || firstBossDoorClosed) {
@@ -3942,6 +4130,33 @@ public class GameScreen extends ScreenAdapter {
 
     private boolean isPlayerWithinFirstBossDoorTrigger() {
         return isPlayerWithinObjectLayer(firstBossDoorTriggerLayer);
+    }
+
+    private boolean isPlayerWithinRoom3DoorTrigger() {
+        return isPlayerWithinObjectLayer(room3DoorTriggerLayer)
+                || isPlayerNearAnyRoom3DoorTriggerZone();
+    }
+
+    private boolean isPlayerNearAnyRoom3DoorTriggerZone() {
+        if (room3DoorTriggerZoneBounds.size == 0) {
+            return false;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        final float proximityX = 20f;
+        final float proximityY = 36f;
+        for (int i = 0; i < room3DoorTriggerZoneBounds.size; i++) {
+            Rectangle zone = room3DoorTriggerZoneBounds.get(i);
+            float minX = zone.x - proximityX;
+            float maxX = zone.x + zone.width + proximityX;
+            float minY = zone.y - proximityY;
+            float maxY = zone.y + zone.height + proximityY;
+            if (playerCenterX >= minX && playerCenterX <= maxX
+                    && playerCenterY >= minY && playerCenterY <= maxY) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isPlayerWithinFirstBossDoorTriggerFallback() {
@@ -4080,6 +4295,10 @@ public class GameScreen extends ScreenAdapter {
         return room1DoorClosedCollisionBounds.width > 0f && room1DoorClosedCollisionBounds.height > 0f;
     }
 
+    private boolean hasRoom3DoorCollisionBounds() {
+        return room3DoorClosedCollisionBounds.width > 0f && room3DoorClosedCollisionBounds.height > 0f;
+    }
+
     private boolean hasFirstBossDoorCollisionBounds() {
         return firstBossDoorClosedCollisionBounds.width > 0f && firstBossDoorClosedCollisionBounds.height > 0f;
     }
@@ -4090,6 +4309,10 @@ public class GameScreen extends ScreenAdapter {
 
     private int firstBossDoorFrameCount() {
         return Math.max(firstBossDoorAnimationFrames.size, firstBossDoorFrontAnimationFrames.size);
+    }
+
+    private int room3DoorFrameCount() {
+        return room3DoorAnimationFrames.size;
     }
 
     private int boss1DefeatDoorFrameCount() {
@@ -4104,6 +4327,10 @@ public class GameScreen extends ScreenAdapter {
     private void setFirstBossDoorFrameVisible(int frameIndex) {
         setDoorFrameArrayVisible(firstBossDoorAnimationFrames, frameIndex);
         setDoorFrameArrayVisible(firstBossDoorFrontAnimationFrames, frameIndex);
+    }
+
+    private void setRoom3DoorFrameVisible(int frameIndex) {
+        setDoorFrameArrayVisible(room3DoorAnimationFrames, frameIndex);
     }
 
     private void setBoss1DefeatDoorFrameVisible(int frameIndex) {
@@ -4174,6 +4401,31 @@ public class GameScreen extends ScreenAdapter {
             MapLayer frameLayer = orderedFrames[i];
             if (frameLayer != null) {
                 outFrames.add(frameLayer);
+            }
+        }
+    }
+
+    private void appendTileBoundsFromLayer(MapLayer layer, Array<Rectangle> outBounds) {
+        if (!(layer instanceof TiledMapTileLayer tileLayer)) {
+            return;
+        }
+        float tileWidth = tileLayer.getTileWidth();
+        float tileHeight = tileLayer.getTileHeight();
+        float offsetX = layerOffsetX(tileLayer);
+        float offsetY = layerOffsetY(tileLayer);
+        int width = tileLayer.getWidth();
+        int height = tileLayer.getHeight();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                TiledMapTileLayer.Cell cell = tileLayer.getCell(x, y);
+                if (cell == null || cell.getTile() == null) {
+                    continue;
+                }
+                outBounds.add(new Rectangle(
+                        offsetX + x * tileWidth,
+                        offsetY + y * tileHeight,
+                        tileWidth,
+                        tileHeight));
             }
         }
     }
@@ -5726,6 +5978,12 @@ public class GameScreen extends ScreenAdapter {
         if (room1DoorCollisionEnabled
                 && hasRoom1DoorCollisionBounds()
                 && Intersector.overlaps(rect, room1DoorClosedCollisionBounds)) {
+            return true;
+        }
+
+        if (room3DoorCollisionEnabled
+                && hasRoom3DoorCollisionBounds()
+                && Intersector.overlaps(rect, room3DoorClosedCollisionBounds)) {
             return true;
         }
 

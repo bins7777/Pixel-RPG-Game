@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="42" nextobjectid="49">
- <tileset firstgid="1" source="../../DSA GAME/TILE SETS/Fantasy_Walls_B.tsx"/>
- <tileset firstgid="257" source="../../DSA GAME/TILE SETS/Fantasy_Floors.tsx"/>
- <tileset firstgid="323" source="../../DSA GAME/TILE SETS/Fantasy_Autotiles.tsx"/>
- <tileset firstgid="593" source="../../DSA GAME/TILE SETS/other tiles.tsx"/>
- <tileset firstgid="2641" source="../../DSA GAME/TILE SETS/all_spritesheets.tsx"/>
+ <tileset firstgid="1" source="TILE SETS/Fantasy_Walls_B.tsx"/>
+ <tileset firstgid="257" source="TILE SETS/Fantasy_Floors.tsx"/>
+ <tileset firstgid="323" source="TILE SETS/Fantasy_Autotiles.tsx"/>
+ <tileset firstgid="593" source="TILE SETS/other tiles.tsx"/>
+ <tileset firstgid="2641" source="TILE SETS/all_spritesheets.tsx"/>
  <tileset firstgid="5953" source="NPC-TILE SETS/NPC-Women-Body.tsx"/>
  <tileset firstgid="7353" source="NPC-TILE SETS/NPC-Women-Clothes-Red.tsx"/>
  <tileset firstgid="8753" source="TILE SETS/NPC-Women-Hair-1.tsx"/>
@@ -1985,7 +1985,7 @@
 </chunk>
   </data>
  </layer>
- <objectgroup id="41" name="WALLS">
+ <objectgroup id="41" name="WALLS" visible="0">
   <object id="4" x="-261" y="234" width="259.5" height="90.5"/>
   <object id="5" x="-1.25" y="263.5" width="16.5" height="7"/>
   <object id="6" x="-2" y="295.5" width="17.25" height="6"/>
@@ -2037,10 +2037,10 @@
   <object id="47" x="194.667" y="86" width="39" height="498"/>
   <object id="48" x="-307" y="149.667" width="566" height="66"/>
  </objectgroup>
- <objectgroup id="33" name="EXIT-Inn">
+ <objectgroup id="33" name="EXIT-Inn" visible="0">
   <object id="1" x="-68.5" y="495.5" width="70.5" height="46.5"/>
  </objectgroup>
- <objectgroup id="34" name="ENTRANCE-Inn-Room">
+ <objectgroup id="34" name="ENTRANCE-Inn-Room" visible="0">
   <object id="2" x="145" y="187.5" width="47" height="92.5"/>
  </objectgroup>
 </map>

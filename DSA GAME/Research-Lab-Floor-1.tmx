@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="50" nextobjectid="33">
- <tileset firstgid="1" source="../../DSA GAME/TILE SETS/Fantasy_Walls_B.tsx"/>
- <tileset firstgid="257" source="../../DSA GAME/TILE SETS/Fantasy_Floors.tsx"/>
- <tileset firstgid="323" source="../../DSA GAME/TILE SETS/Fantasy_Autotiles.tsx"/>
- <tileset firstgid="593" source="../../DSA GAME/TILE SETS/other tiles.tsx"/>
- <tileset firstgid="2641" source="../../DSA GAME/TILE SETS/all_spritesheets.tsx"/>
+ <tileset firstgid="1" source="TILE SETS/Fantasy_Walls_B.tsx"/>
+ <tileset firstgid="257" source="TILE SETS/Fantasy_Floors.tsx"/>
+ <tileset firstgid="323" source="TILE SETS/Fantasy_Autotiles.tsx"/>
+ <tileset firstgid="593" source="TILE SETS/other tiles.tsx"/>
+ <tileset firstgid="2641" source="TILE SETS/all_spritesheets.tsx"/>
  <tileset firstgid="5953" source="TILE SETS/chandelier_03.tsx"/>
  <tileset firstgid="6025" source="TILE SETS/NPC_Scientist_5.tsx"/>
  <layer id="1" name="wall" width="30" height="30">
@@ -2056,7 +2056,7 @@
  <objectgroup id="44" name="EXIT-Research-Lab" visible="0">
   <object id="29" x="28.9167" y="229.667" width="21.1667" height="11.5"/>
  </objectgroup>
- <objectgroup id="43" name="WALL-COLLISION">
+ <objectgroup id="43" name="WALL-COLLISION" visible="0">
   <object id="3" x="-89.5" y="-24" width="90.5" height="280.5"/>
   <object id="5" x="9.5" y="242" width="63" height="52"/>
   <object id="6" x="-24.5" y="225" width="39" height="40"/>

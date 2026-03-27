@@ -2,7 +2,14 @@ ext {
     gdxVersion = "1.12.1"
 }
 
-allprojects {
+def localBuildRoot = new File(
+    System.getenv("LOCALAPPDATA") ?: System.getProperty("java.io.tmpdir"),
+    "pixelrpg-gradle-build"
+)
+
+allprojects { p ->
+    p.buildDir = new File(localBuildRoot, p.name)
+
     repositories {
         mavenCentral()
     }
