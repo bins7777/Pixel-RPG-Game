@@ -19,6 +19,7 @@ public class DesktopLauncher {
         boolean resizable = parseBoolean(props.getProperty("resizable"), true);
         boolean vsync = parseBoolean(props.getProperty("vsync"), true);
         int foregroundFps = parseInt(props.getProperty("foregroundFps"), 60);
+        String introVideoPath = props.getProperty("introVideoPath", "").trim();
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle(title);
@@ -29,7 +30,9 @@ public class DesktopLauncher {
         config.setForegroundFPS(foregroundFps);
         // Reserve stencil bits for LightAreas masking during night rendering.
         config.setBackBufferConfig(8, 8, 8, 8, 16, 8, 0);
-        new Lwjgl3Application(new PixelRpgGame(), config);
+        JavaFxIntroPlaybackService introPlaybackService =
+                new JavaFxIntroPlaybackService(introVideoPath, title, width, height);
+        new Lwjgl3Application(new PixelRpgGame(introPlaybackService), config);
     }
 
     private static Properties loadProperties() {

@@ -26,9 +26,9 @@ public class PlayerState {
     public float lastMoveY = 0f;
     public boolean dashAttackFollowupQueued = false;
 
-    public float currentHealth = 44250f;
-    public float maxHealth = 48500f;
-    public float currentMana = 1590f;
-    public float maxMana = 2100f;
-    public int playerLevel = 80;
+    public float currentHealth = PlayerLevelStats.maxHealthForLevel(PlayerLevelStats.MIN_LEVEL);
+    public float maxHealth = PlayerLevelStats.maxHealthForLevel(PlayerLevelStats.MIN_LEVEL);
+    public float currentMana = PlayerLevelStats.maxStaminaForLevel(PlayerLevelStats.MIN_LEVEL);
+    public float maxMana = PlayerLevelStats.maxStaminaForLevel(PlayerLevelStats.MIN_LEVEL);
+    public int playerLevel = PlayerLevelStats.MIN_LEVEL;
 }

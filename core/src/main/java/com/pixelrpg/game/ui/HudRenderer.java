@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.Array;
+import com.pixelrpg.game.entities.PlayerLevelStats;
 
 /**
  * Draws the fixed HUD and top spawn notification panel.
@@ -109,7 +110,11 @@ public class HudRenderer {
     private Texture uiMainMenuTabSelectedTex;
     private Texture uiMainMenuCloseTex;
 
-    private float villageSpawnNotificationTimer = 0f;
+    private String topNotificationTitle;
+    private String topNotificationMessage;
+    private float topNotificationTimer = 0f;
+    private float topNotificationDuration = 0f;
+    private boolean topNotificationPersistent = false;
     private boolean mainMenuVisible = false;
     private final Array<String> chatMessages = new Array<>();
     private final StringBuilder chatDraft = new StringBuilder();
@@ -175,15 +180,54 @@ public class HudRenderer {
     }
 
     public void showVillageSpawnNotification() {
-        villageSpawnNotificationTimer = VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS;
+        showNotification(
+                VILLAGE_SPAWN_NOTIFICATION_TITLE,
+                VILLAGE_SPAWN_NOTIFICATION_MESSAGE,
+                VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS);
     }
 
     public void hideVillageSpawnNotification() {
-        villageSpawnNotificationTimer = 0f;
+        clearNotification();
+    }
+
+    public void showNotification(String title, String message, float durationSeconds) {
+        topNotificationTitle = title;
+        topNotificationMessage = message;
+        topNotificationDuration = Math.max(0f, durationSeconds);
+        topNotificationTimer = topNotificationDuration;
+        topNotificationPersistent = false;
+    }
+
+    public void showPersistentNotification(String title, String message) {
+        topNotificationTitle = title;
+        topNotificationMessage = message;
+        topNotificationDuration = 0f;
+        topNotificationTimer = 0f;
+        topNotificationPersistent = true;
+    }
+
+    public void clearNotification() {
+        topNotificationTitle = null;
+        topNotificationMessage = null;
+        topNotificationTimer = 0f;
+        topNotificationDuration = 0f;
+        topNotificationPersistent = false;
+    }
+
+    public void openMainMenu() {
+        mainMenuVisible = true;
+    }
+
+    public void closeMainMenu() {
+        mainMenuVisible = false;
     }
 
     public void toggleMainMenu() {
-        mainMenuVisible = !mainMenuVisible;
+        if (mainMenuVisible) {
+            closeMainMenu();
+        } else {
+            openMainMenu();
+        }
     }
 
     public boolean isMainMenuVisible() {
@@ -191,6 +235,7 @@ public class HudRenderer {
     }
 
     public void openChat() {
+        closeMainMenu();
         chatOpen = true;
         chatCursorVisible = true;
         chatCursorTimer = 0f;
@@ -250,8 +295,8 @@ public class HudRenderer {
     }
 
     public void update(float delta) {
-        if (villageSpawnNotificationTimer > 0f) {
-            villageSpawnNotificationTimer = Math.max(0f, villageSpawnNotificationTimer - delta);
+        if (!topNotificationPersistent && topNotificationTimer > 0f) {
+            topNotificationTimer = Math.max(0f, topNotificationTimer - delta);
         }
         if (!chatOpen) {
             chatCursorVisible = false;
@@ -265,7 +310,8 @@ public class HudRenderer {
         }
     }
 
-    public void draw(SpriteBatch batch, float currentHealth, float maxHealth, float currentMana, float maxMana, int playerLevel) {
+    public void draw(SpriteBatch batch, float currentHealth, float maxHealth, float currentMana, float maxMana, int playerLevel,
+                     String menuQuestTitle, String menuQuestObjective, String currentRegionName) {
         if (uiCamera == null || uiOverlayBackTex == null || uiBarBackgroundTex == null) {
             return;
         }
@@ -387,7 +433,7 @@ public class HudRenderer {
         // Layer 8: top frame (same texture) to cap the stack.
         batch.draw(uiOverlayBackTex, overlayX, overlayDrawY, overlayDrawWidth, overlayDrawHeight);
 
-        drawVillageSpawnNotification(batch);
+        drawTopNotification(batch);
         drawLetterboxBars(batch);
         // Layer 9: HP text in front of all HUD layers.
         if (healthTextFront != null && uiFont != null && uiLayout != null) {
@@ -406,7 +452,8 @@ public class HudRenderer {
             uiFont.setColor(1f, 1f, 1f, 1f);
             uiFont.getData().setScale(baseUiFontScaleX, baseUiFontScaleY);
         }
-        drawMainMenu(batch, playerLevel);
+        drawMainMenu(batch, currentHealth, maxHealth, currentMana, maxMana, playerLevel,
+                menuQuestTitle, menuQuestObjective, currentRegionName);
         drawChat(batch);
         batch.end();
     }
@@ -468,8 +515,12 @@ public class HudRenderer {
         batch.draw(uiBlackBarTex, 0f, 0f, width, barHeight);
     }
 
-    private void drawVillageSpawnNotification(SpriteBatch batch) {
-        if (villageSpawnNotificationTimer <= 0f
+    private void drawTopNotification(SpriteBatch batch) {
+        if ((!topNotificationPersistent && topNotificationTimer <= 0f)
+                || topNotificationTitle == null
+                || topNotificationTitle.isBlank()
+                || topNotificationMessage == null
+                || topNotificationMessage.isBlank()
                 || uiCamera == null
                 || uiSpawnNotificationTex == null
                 || uiNotificationTitleFont == null
@@ -484,7 +535,7 @@ public class HudRenderer {
         float panelHeight = uiSpawnNotificationTex.getHeight() * scale;
         float panelX = (uiCamera.viewportWidth - panelWidth) * 0.5f;
         float panelY = uiCamera.viewportHeight - panelHeight - VILLAGE_SPAWN_NOTIFICATION_TOP_MARGIN + HUD_GLOBAL_Y_OFFSET;
-        float alpha = villageSpawnNotificationAlpha();
+        float alpha = topNotificationAlpha();
         if (alpha <= 0f) {
             return;
         }
@@ -499,14 +550,16 @@ public class HudRenderer {
                 - VILLAGE_SPAWN_NOTIFICATION_TEXT_DOWN_OFFSET
                 + VILLAGE_SPAWN_NOTIFICATION_MESSAGE_UP_OFFSET;
 
-        drawCenteredText(batch, uiNotificationTitleFont, VILLAGE_SPAWN_NOTIFICATION_TITLE, textCenterX, titleY,
+        drawCenteredText(batch, uiNotificationTitleFont, topNotificationTitle, textCenterX, titleY,
                 0.8902f, 0.5216f, 0f, 1f, alpha);
-        drawCenteredText(batch, uiNotificationMessageFont, VILLAGE_SPAWN_NOTIFICATION_MESSAGE, textCenterX, messageY,
+        drawCenteredText(batch, uiNotificationMessageFont, topNotificationMessage, textCenterX, messageY,
                 0.83f, 0.81f, 0.75f, 1f, alpha);
         batch.setColor(1f, 1f, 1f, 1f);
     }
 
-    private void drawMainMenu(SpriteBatch batch, int playerLevel) {
+    private void drawMainMenu(SpriteBatch batch, float currentHealth, float maxHealth,
+                              float currentStamina, float maxStamina, int playerLevel,
+                              String menuQuestTitle, String menuQuestObjective, String currentRegionName) {
         if (!mainMenuVisible || uiMainMenuPanelTex == null || uiCamera == null || uiLayout == null) {
             return;
         }
@@ -607,6 +660,22 @@ public class HudRenderer {
         }
 
         if (uiMainMenuBodyFont != null) {
+            float bodyTextWidth = cardW - 26f * scale;
+            float centerTextWidth = drawWidth * 0.34f - 24f * scale;
+            String activeQuestTitle = fitText(
+                    uiMainMenuBodyFont,
+                    menuQuestTitle == null || menuQuestTitle.isBlank() ? "No active quest" : menuQuestTitle,
+                    bodyTextWidth);
+            String activeQuestObjective = fitText(
+                    uiMainMenuBodyFont,
+                    menuQuestObjective == null || menuQuestObjective.isBlank() ? "Explore the world." : menuQuestObjective,
+                    bodyTextWidth);
+            String regionLabel = fitText(
+                    uiMainMenuBodyFont,
+                    "Current Region: "
+                            + (currentRegionName == null || currentRegionName.isBlank() ? "Unknown" : currentRegionName),
+                    centerTextWidth);
+
             drawMenuCenteredText(batch, uiMainMenuBodyFont, "Quest Log",
                     leftCardX + cardW * 0.5f, cardY + cardH - 26f * scale,
                     0.78f, 0.78f, 0.78f, 1f);
@@ -617,21 +686,30 @@ public class HudRenderer {
                     rightCardX + cardW * 0.5f, cardY + cardH - 26f * scale,
                     0.83f, 0.73f, 0.73f, 1f);
 
-            float bodyLineStep = 24f * scale;
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Find the Inn Keeper",
+            float bodyLineStep = 22f * scale;
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, activeQuestTitle,
                     leftCardX + cardW * 0.5f, cardY + cardH - 62f * scale,
-                    0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Gather 3 Herbs",
+                    0.79f, 0.73f, 0.58f, 1f);
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, activeQuestObjective,
                     leftCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep,
                     0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Current Region: Hagi Village",
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, regionLabel,
                     menuCenterX, drawY + drawHeight * 0.425f,
                     0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Level " + Integer.toString(playerLevel),
+            drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                    "Level " + playerLevel + " / " + PlayerLevelStats.MAX_LEVEL,
                     rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale,
                     0.78f, 0.66f, 0.66f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Class: Ranger",
+            drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                    "Health: " + formatValue((int) currentHealth) + " / " + formatValue((int) maxHealth),
                     rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep,
+                    0.78f, 0.66f, 0.66f, 1f);
+            drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                    "Stamina: " + formatValue((int) currentStamina) + " / " + formatValue((int) maxStamina),
+                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep * 2f,
+                    0.78f, 0.66f, 0.66f, 1f);
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Class: Ranger",
+                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep * 3f,
                     0.78f, 0.66f, 0.66f, 1f);
             drawMenuCenteredText(batch, uiMainMenuBodyFont, "Press M to close",
                     menuCenterX, drawY + drawHeight * 0.11f,
@@ -692,15 +770,21 @@ public class HudRenderer {
         drawMenuText(batch, chatFont, input, inputX + 5f, inputY + CHAT_INPUT_HEIGHT - 8f, 0.94f, 0.94f, 0.94f, 1f);
     }
 
-    private float villageSpawnNotificationAlpha() {
+    private float topNotificationAlpha() {
+        if (topNotificationPersistent) {
+            return 1f;
+        }
+        if (topNotificationDuration <= 0f) {
+            return 1f;
+        }
         float fadeSeconds = Math.min(VILLAGE_SPAWN_NOTIFICATION_FADE_SECONDS,
-                VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS * 0.5f);
+                topNotificationDuration * 0.5f);
         if (fadeSeconds <= 0f) {
             return 1f;
         }
-        float elapsed = VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS - villageSpawnNotificationTimer;
+        float elapsed = topNotificationDuration - topNotificationTimer;
         float fadeIn = clamp01(elapsed / fadeSeconds);
-        float fadeOut = clamp01(villageSpawnNotificationTimer / fadeSeconds);
+        float fadeOut = clamp01(topNotificationTimer / fadeSeconds);
         return Math.min(fadeIn, fadeOut);
     }
 

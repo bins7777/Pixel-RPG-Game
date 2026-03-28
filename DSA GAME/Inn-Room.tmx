@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="26" nextobjectid="10">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="30" tilewidth="16" tileheight="16" infinite="1" nextlayerid="29" nextobjectid="15">
  <tileset firstgid="1" source="TILE SETS/Fantasy_Walls.tsx"/>
  <tileset firstgid="257" source="TILE SETS/Fantasy_Floors.tsx"/>
  <tileset firstgid="323" source="TILE SETS/Fantasy_Autotiles.tsx"/>
  <tileset firstgid="593" source="TILE SETS/other tiles.tsx"/>
+ <tileset firstgid="2641" source="../core/assets/maps/NPC-TILE SETS/NPC-QUEST-Warrior.tsx"/>
  <layer id="1" name="wall" width="30" height="30">
   <data encoding="csv">
    <chunk x="0" y="-16" width="16" height="16">
@@ -1256,15 +1257,64 @@
 </chunk>
   </data>
  </layer>
- <objectgroup id="25" name="WALLS" visible="0">
+ <group id="26" name="NPC-Father">
+  <layer id="27" name="NPC-Father" width="30" height="30">
+   <data encoding="csv">
+    <chunk x="0" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2693,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2743,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2793,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+    <chunk x="16" y="0" width="16" height="16">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+2694,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+2744,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+2794,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</chunk>
+   </data>
+  </layer>
+ </group>
+ <objectgroup id="25" name="WALLS">
   <object id="2" x="-13.3333" y="-84.6667" width="108" height="302"/>
   <object id="5" x="32" y="-77.3333" width="354.667" height="83.3333"/>
   <object id="6" x="337.333" y="-107.333" width="46" height="418.667"/>
   <object id="7" x="8" y="226" width="427.333" height="62.6667"/>
   <object id="8" x="44" y="210" width="146.667" height="56.6667"/>
   <object id="9" x="242" y="209.333" width="191.333" height="64.6667"/>
+  <object id="11" x="111.284" y="0.944291" width="33.5795" height="41.4523"/>
+  <object id="12" x="159.648" y="1.48864" width="32.8977" height="39.5114"/>
+  <object id="13" x="239.318" y="-0.5" width="32.8068" height="41.125"/>
+  <object id="14" x="287.727" y="0.123138" width="32.7273" height="41.1174"/>
  </objectgroup>
  <objectgroup id="24" name="EXIT-Inn-Room" visible="0">
   <object id="1" x="190.667" y="209.667" width="50.6667" height="20.3333"/>
+ </objectgroup>
+ <objectgroup id="28" name="FIRST_SPAWN">
+  <object id="10" x="201.818" y="45.8182" width="28" height="16.1818"/>
  </objectgroup>
 </map>

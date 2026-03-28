@@ -1,6 +1,9 @@
 plugins {
     id "application"
+    id "org.openjfx.javafxplugin" version "0.1.0"
 }
+
+def javafxVersion = "17.0.14"
 
 dependencies {
     implementation project(":core")
@@ -13,10 +16,20 @@ application {
     mainClass = "com.pixelrpg.game.desktop.DesktopLauncher"
 }
 
+javafx {
+    version = javafxVersion
+    modules = [ "javafx.controls", "javafx.media" ]
+}
+
 sourceSets {
     main {
         resources {
             srcDir "../core/assets"
         }
     }
+}
+
+tasks.named("run").configure {
+    dependsOn(project(":core").tasks.named("classes"))
+    classpath = files(project(":core").sourceSets.main.output) + classpath
 }

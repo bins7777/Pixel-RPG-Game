@@ -19,8 +19,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.maps.MapGroupLayer;
@@ -40,6 +43,8 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.ShortArray;
@@ -47,9 +52,12 @@ import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
 import com.pixelrpg.game.config.MapCatalog;
 import com.pixelrpg.game.config.MapDefinition;
+import com.pixelrpg.game.entities.PlayerLevelStats;
 import com.pixelrpg.game.entities.PlayerState;
 import com.pixelrpg.game.helpers.ShaderFactory;
 import com.pixelrpg.game.managers.DayNightCycleManager;
+import com.pixelrpg.game.save.SaveGameData;
+import com.pixelrpg.game.save.SaveGameService;
 import com.pixelrpg.game.ui.HudRenderer;
 import com.pixelrpg.game.world.WorldState;
 
@@ -59,6 +67,9 @@ import com.pixelrpg.game.world.WorldState;
  */
 public class GameScreen extends ScreenAdapter {
     private static final String MAP_CATALOG_PATH = "config/maps.json";
+    private static final String DEFAULT_CHARACTER_NAME = "Character";
+    private static final float AUTO_SAVE_INTERVAL_SECONDS = 10f;
+    private static final float SCREEN_FADE_DURATION_SECONDS = 0.7f;
     private static final String PROJECT_ROOT_ABSOLUTE_PATH = resolveProjectRootAbsolutePath();
     private static final String MAP_ID_VILLAGE = "village";
     private static final String MAP_ID_RESEARCH_LAB_FLOOR_1 = "research-lab-floor-1";
@@ -67,6 +78,783 @@ public class GameScreen extends ScreenAdapter {
     private static final String MAP_ID_INN_ROOM = "inn-room";
     private static final String MAP_ID_DEMON_CASTLE = "demon-castle";
     private static final String MAP_ID_BOSS_ARENA_PHASE_2 = "boss-arena-phase-2";
+    private static final int FIRST_QUEST_DISABLED = 0;
+    private static final int FIRST_QUEST_TALK_TO_FATHER = 1;
+    private static final int FIRST_QUEST_DELIVER_TO_CAFE = 2;
+    private static final int FIRST_QUEST_COMPLETE = 3;
+    private static final int SECOND_QUEST_DISABLED = 0;
+    private static final int SECOND_QUEST_TALK_TO_CAFE_OWNER = 1;
+    private static final int SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST = 2;
+    private static final int SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES = 3;
+    private static final int SECOND_QUEST_RETURN_TO_SCIENTIST = 4;
+    private static final int SECOND_QUEST_COMPLETE = 5;
+    private static final int THIRD_QUEST_DISABLED = 0;
+    private static final int THIRD_QUEST_RETURN_TO_FATHER = 1;
+    private static final int THIRD_QUEST_MEET_FATHER_OUTSIDE = 2;
+    private static final int THIRD_QUEST_MOVEMENT_TUTORIAL = 3;
+    private static final int THIRD_QUEST_ATTACK_TUTORIAL = 4;
+    private static final int THIRD_QUEST_COMBAT_TUTORIAL = 5;
+    private static final int THIRD_QUEST_SPAR_WITH_FATHER = 6;
+    private static final int THIRD_QUEST_COMPLETE = 7;
+    private static final int FOURTH_QUEST_DISABLED = 0;
+    private static final int FOURTH_QUEST_REPORT_TO_SCIENTIST = 1;
+    private static final int FOURTH_QUEST_TALK_TO_CAFE_OWNER = 2;
+    private static final int FOURTH_QUEST_EXAMINE_CAFE_MARK = 3;
+    private static final int FOURTH_QUEST_CAFE_BATTLE = 4;
+    private static final int FOURTH_QUEST_EXAMINE_CENTER_MARK = 5;
+    private static final int FOURTH_QUEST_CENTER_BATTLE = 6;
+    private static final int FOURTH_QUEST_EXAMINE_EDGE_MARK = 7;
+    private static final int FOURTH_QUEST_EDGE_BATTLE = 8;
+    private static final int FOURTH_QUEST_RETURN_TO_SCIENTIST = 9;
+    private static final int FOURTH_QUEST_GO_TO_ARRAY = 10;
+    private static final int FOURTH_QUEST_ACTIVATE_ARRAY_NODE_1 = 11;
+    private static final int FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2 = 12;
+    private static final int FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3 = 13;
+    private static final int FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE = 14;
+    private static final int FOURTH_QUEST_ARRAY_DEFENSE = 15;
+    private static final int FOURTH_QUEST_GO_TO_BREACH = 16;
+    private static final int FOURTH_QUEST_EXAMINE_BREACH = 17;
+    private static final int FOURTH_QUEST_BREACH_BATTLE = 18;
+    private static final int FOURTH_QUEST_RETURN_RIFT_CORE = 19;
+    private static final int FOURTH_QUEST_EPILOGUE = 20;
+    private static final int FOURTH_QUEST_COMPLETE = 21;
+    private static final int FIFTH_QUEST_DISABLED = 0;
+    private static final int FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE = 1;
+    private static final int FIFTH_QUEST_OUTER_RUINS_BATTLE = 2;
+    private static final int FIFTH_QUEST_ADVANCE_TO_PORTAL = 3;
+    private static final int FIFTH_QUEST_MID_RUINS_BATTLE = 4;
+    private static final int FIFTH_QUEST_ANCHOR_1_BATTLE = 5;
+    private static final int FIFTH_QUEST_ANCHOR_1_DESTROY = 6;
+    private static final int FIFTH_QUEST_ANCHOR_2_BATTLE = 7;
+    private static final int FIFTH_QUEST_ANCHOR_2_DESTROY = 8;
+    private static final int FIFTH_QUEST_ANCHOR_3_BATTLE = 9;
+    private static final int FIFTH_QUEST_ANCHOR_3_DESTROY = 10;
+    private static final int FIFTH_QUEST_PORTAL_BOSS = 11;
+    private static final int FIFTH_QUEST_COMPLETE = 12;
+    private static final int SIXTH_QUEST_DISABLED = 0;
+    private static final int SIXTH_QUEST_ENTER_PORTAL = 1;
+    private static final int SIXTH_QUEST_OUTER_ASSAULT = 2;
+    private static final int SIXTH_QUEST_SEAL_A_BATTLE = 3;
+    private static final int SIXTH_QUEST_SEAL_A_DESTROY = 4;
+    private static final int SIXTH_QUEST_SEAL_B_BATTLE = 5;
+    private static final int SIXTH_QUEST_SEAL_B_DESTROY = 6;
+    private static final int SIXTH_QUEST_THRONE_GUARDS = 7;
+    private static final int SIXTH_QUEST_BOSS_PHASE_1 = 8;
+    private static final int SIXTH_QUEST_FINAL_PHASE_INTRO = 9;
+    private static final int SIXTH_QUEST_FINAL_PHASE_BATTLE = 10;
+    private static final int SIXTH_QUEST_ENDING = 11;
+    private static final int SIXTH_QUEST_COMPLETE = 12;
+    private static final String FIRST_QUEST_FATHER_LAYER_NAME = "NPC-Father";
+    private static final String FIRST_QUEST_CAFE_ENTRANCE_LAYER_NAME = "ENTRANCE-Cafe";
+    private static final String FIRST_QUEST_NOTIFICATION_TITLE = "First Quest";
+    private static final String SECOND_QUEST_NOTIFICATION_TITLE = "Ashes That Remain";
+    private static final String THIRD_QUEST_NOTIFICATION_TITLE = "Lessons of Survival";
+    private static final String FOURTH_QUEST_NOTIFICATION_TITLE = "The Mark Returns";
+    private static final String FIFTH_QUEST_NOTIFICATION_TITLE = "Embers at the Gate";
+    private static final String SIXTH_QUEST_NOTIFICATION_TITLE = "The Last Ember";
+    private static final String NEXT_QUEST_NOTIFICATION_TITLE = "Next Quest";
+    private static final String THIRD_QUEST_TRAINING_FATHER_LAYER_NAME = "NPC-QUEST-Warrior";
+    private static final String THIRD_QUEST_TRAINING_AREA_LAYER_NAME = "Father-Training";
+    private static final String THIRD_QUEST_LAB_EXIT_LAYER_NAME = "EXIT-Research-Lab";
+    private static final String THIRD_QUEST_INN_ENTRANCE_LAYER_NAME = "ENTRANCE-Inn";
+    private static final String THIRD_QUEST_INN_ROOM_ENTRANCE_LAYER_NAME = "ENTRANCE-Inn-Room";
+    private static final String FIRST_QUEST_PANEL_TEXTURE_PATH = "ui/menu/Big_Panel.png";
+    private static final String FIRST_QUEST_ITEM_TEXTURE_PATH = "ui/quests/Herb-and-Spice.png";
+    private static final String SECOND_QUEST_FRAGMENT_TEXTURE_PATH = "ui/quests/Scorched-Fragment.png";
+    private static final String THIRD_QUEST_FATHER_TEXTURE_PATH =
+            "maps/NPC/GandalfHardcore FREE Warrior/GandalfHardcore Warrior.png";
+    private static final String FIRST_QUEST_CAFE_NPC_IDLE_DIRECTORY =
+            PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "NPC"
+                    + File.separator + "Idle1";
+    private static final String GUI_FONT_PATH = "fonts/Berry Rotunda.ttf";
+    private static final int FIRST_QUEST_TITLE_FONT_SIZE = 22;
+    private static final int FIRST_QUEST_BODY_FONT_SIZE = 16;
+    private static final int FIRST_QUEST_HINT_FONT_SIZE = 13;
+    private static final float FIRST_QUEST_INTERACT_RANGE = 48f;
+    private static final float FIRST_QUEST_CAFE_NPC_FRAME_DURATION = 0.18f;
+    private static final float FIRST_QUEST_CAFE_NPC_DRAW_SCALE = 0.55f;
+    private static final float FIRST_QUEST_CAFE_NPC_Y_OFFSET = -14f;
+    private static final float FIRST_QUEST_CAFE_NPC_INTERACT_RANGE = 42f;
+    private static final float FIRST_QUEST_MARKER_BOB_SPEED = 3.2f;
+    private static final float FIRST_QUEST_MARKER_BOB_AMPLITUDE = 6f;
+    private static final float FIRST_QUEST_OVERLAY_DIM_ALPHA = 0.72f;
+    private static final float FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS = 5f;
+    private static final float QUEST_ARROW_MARKER_SCALE = 1.5f;
+    private static final float QUEST_ARROW_MARKER_OUTLINE_OFFSET = 2f;
+    private static final float FIRST_QUEST_OVERLAY_HEADER_SCALE = 0.6f;
+    private static final float FIRST_QUEST_DIALOGUE_HEADER_OFFSET_Y = -20f;
+    private static final float FIRST_QUEST_ITEM_CARD_HEADER_OFFSET_Y = -10f;
+    private static final float SECOND_QUEST_FRAGMENT_CARD_IMAGE_OFFSET_Y = -24f;
+    private static final float TECHNIQUE_LOCKED_NOTIFICATION_SECONDS = 2.8f;
+    private static final int QUEST_LEVEL_CAP_DEFAULT = PlayerLevelStats.MIN_LEVEL;
+    private static final int QUEST_2_LEVEL_CAP = 2;
+    private static final int QUEST_3_LEVEL_CAP = 3;
+    private static final int QUEST_4_LEVEL_CAP = 4;
+    private static final int DASH_ATTACK_UNLOCK_LEVEL = 3;
+    private static final int SPATIAL_DASH_UNLOCK_LEVEL = 4;
+    private static final String SECOND_QUEST_ARCHIVE_LAYER_NAME = "Table 1";
+    private static final String FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME = "ENTRANCE-Research-Lab";
+    private static final String FOURTH_QUEST_LAB_FLOOR_2_LAYER_NAME = "ENTRANCE-Research-Lab-Floor-2";
+    private static final String FOURTH_QUEST_LAB_FLOOR_2_EXIT_LAYER_NAME = "EXIT-Research-Lab-Floor-2";
+    private static final String FOURTH_QUEST_VILLAGE_EDGE_LAYER_NAME = "ENTRANCE-Dungeon";
+    private static final String FIFTH_QUEST_PORTAL_LAYER_NAME = "ENTRANCE-Dungeon";
+    private static final String VILLAGE_PORTAL_GROUP_NAME = "PORTAL";
+    private static final String FIFTH_QUEST_FIGHTING_AREA_LAYER_NAME = "FIGHTING AREA";
+    private static final String VILLAGE_PORTAL_ACTIVE_LAYER_NAME = "PORTAL-Active";
+    private static final String VILLAGE_PORTAL_INACTIVE_LAYER_NAME = "PORTAL-Inactive";
+    private static final int FOURTH_QUEST_ENCOUNTER_NONE = 0;
+    private static final int FOURTH_QUEST_ENCOUNTER_CAFE = 1;
+    private static final int FOURTH_QUEST_ENCOUNTER_CENTER = 2;
+    private static final int FOURTH_QUEST_ENCOUNTER_EDGE = 3;
+    private static final int FOURTH_QUEST_ENCOUNTER_ARRAY = 4;
+    private static final int FOURTH_QUEST_ENCOUNTER_BREACH = 5;
+    private static final int FIFTH_QUEST_ENCOUNTER_NONE = 0;
+    private static final int FIFTH_QUEST_ENCOUNTER_OUTER = 1;
+    private static final int FIFTH_QUEST_ENCOUNTER_MID = 2;
+    private static final int FIFTH_QUEST_ENCOUNTER_ANCHOR_1 = 3;
+    private static final int FIFTH_QUEST_ENCOUNTER_ANCHOR_2 = 4;
+    private static final int FIFTH_QUEST_ENCOUNTER_ANCHOR_3 = 5;
+    private static final int FIFTH_QUEST_ENCOUNTER_COMMANDER = 6;
+    private static final int SIXTH_QUEST_ENCOUNTER_OUTER = 101;
+    private static final int SIXTH_QUEST_ENCOUNTER_SEAL_A = 102;
+    private static final int SIXTH_QUEST_ENCOUNTER_SEAL_B = 103;
+    private static final int SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS = 104;
+    private static final int SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_1 = 105;
+    private static final int SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_2 = 106;
+    private static final float FOURTH_QUEST_SITE_WIDTH = 56f;
+    private static final float FOURTH_QUEST_SITE_HEIGHT = 42f;
+    private static final float FOURTH_QUEST_BREACH_SITE_SIZE = 96f;
+    private static final float FOURTH_QUEST_CORRUPTED_BAT_HEALTH = 52f;
+    private static final float FOURTH_QUEST_CORRUPTED_BAT_DAMAGE = 14f;
+    private static final float FOURTH_QUEST_CORRUPTED_BAT_SPEED = 40f;
+    private static final float FOURTH_QUEST_CENTER_ELITE_HEALTH = 96f;
+    private static final float FOURTH_QUEST_CENTER_ELITE_DAMAGE = 18f;
+    private static final float FOURTH_QUEST_EDGE_ELITE_HEALTH = 124f;
+    private static final float FOURTH_QUEST_EDGE_ELITE_DAMAGE = 20f;
+    private static final float FOURTH_QUEST_BREACH_BOSS_HEALTH = 260f;
+    private static final float FOURTH_QUEST_BREACH_BOSS_DAMAGE = 24f;
+    private static final float FOURTH_QUEST_BREACH_BOSS_SPEED = 50f;
+    private static final float FOURTH_QUEST_ARRAY_DEFENSE_SECONDS = 16f;
+    private static final float FOURTH_QUEST_BREACH_CALLOUT_SECONDS = 2.7f;
+    private static final float FIFTH_QUEST_OUTER_RUINS_WIDTH = 164f;
+    private static final float FIFTH_QUEST_OUTER_RUINS_HEIGHT = 108f;
+    private static final float FIFTH_QUEST_MID_RUINS_WIDTH = 152f;
+    private static final float FIFTH_QUEST_MID_RUINS_HEIGHT = 118f;
+    private static final float FIFTH_QUEST_PORTAL_ZONE_WIDTH = 130f;
+    private static final float FIFTH_QUEST_PORTAL_ZONE_HEIGHT = 118f;
+    private static final float FIFTH_QUEST_ANCHOR_SIZE = 42f;
+    private static final float FIFTH_QUEST_DEMON_1_HEALTH = 55f;
+    private static final float FIFTH_QUEST_DEMON_1_DAMAGE = 16f;
+    private static final float FIFTH_QUEST_DEMON_1_SPEED = 36f;
+    private static final float FIFTH_QUEST_DEMON_2_HEALTH = 80f;
+    private static final float FIFTH_QUEST_DEMON_2_DAMAGE = 22f;
+    private static final float FIFTH_QUEST_DEMON_2_SPEED = 40f;
+    private static final float FIFTH_QUEST_DEMON_3_HEALTH = 110f;
+    private static final float FIFTH_QUEST_DEMON_3_DAMAGE = 28f;
+    private static final float FIFTH_QUEST_DEMON_3_SPEED = 44f;
+    private static final float FIFTH_QUEST_COMMANDER_HEALTH = 210f;
+    private static final float FIFTH_QUEST_COMMANDER_DAMAGE = 34f;
+    private static final float FIFTH_QUEST_COMMANDER_SPEED = 48f;
+    private static final float FIFTH_QUEST_DEMON_SPEED_MULTIPLIER = 0.6f;
+    private static final float FIFTH_QUEST_COMMANDER_CALLOUT_SECONDS = 2.3f;
+    private static final float SIXTH_QUEST_OUTER_ASSAULT_WIDTH = 156f;
+    private static final float SIXTH_QUEST_OUTER_ASSAULT_HEIGHT = 110f;
+    private static final float SIXTH_QUEST_SEAL_WIDTH = 118f;
+    private static final float SIXTH_QUEST_SEAL_HEIGHT = 104f;
+    private static final float SIXTH_QUEST_THRONE_WIDTH = 148f;
+    private static final float SIXTH_QUEST_THRONE_HEIGHT = 116f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_1_HEALTH = 260f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_1_DAMAGE = 30f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_1_SPEED = 48f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_2_HEALTH = 360f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_2_DAMAGE = 36f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_2_SPEED = 54f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_TRANSITION_HEALTH_RATIO = 0.38f;
+    private static final float SIXTH_QUEST_BOSS_CALLOUT_SECONDS = 2.2f;
+    private static final float THIRD_QUEST_TRAINING_ZONE_HALF_WIDTH = 120f;
+    private static final float THIRD_QUEST_TRAINING_ZONE_HALF_HEIGHT = 86f;
+    private static final float THIRD_QUEST_TRAINING_ZONE_Y_OFFSET = 26f;
+    private static final float THIRD_QUEST_TRAINING_MARKER_REACH_DISTANCE = 22f;
+    private static final int THIRD_QUEST_DUMMY_HITS_REQUIRED = 5;
+    private static final int THIRD_QUEST_TUTORIAL_BAT_COUNT = 3;
+    private static final float THIRD_QUEST_TUTORIAL_BAT_HEALTH = 40f;
+    private static final float THIRD_QUEST_TUTORIAL_BAT_DAMAGE = 10f;
+    private static final float THIRD_QUEST_TUTORIAL_BAT_SPEED = 34f;
+    private static final float THIRD_QUEST_SPAR_FATHER_MAX_HEALTH = 140f;
+    private static final float THIRD_QUEST_SPAR_FATHER_DAMAGE = 14f;
+    private static final float THIRD_QUEST_SPAR_FATHER_ATTACK_RANGE = 24f;
+    private static final float THIRD_QUEST_SPAR_FATHER_MOVE_SPEED = 52f;
+    private static final float THIRD_QUEST_SPAR_FATHER_ATTACK_COOLDOWN = 1.05f;
+    private static final float THIRD_QUEST_SPAR_FATHER_HIT_COOLDOWN = 0.24f;
+    private static final int THIRD_QUEST_SPAR_HITS_TO_WIN = 6;
+    private static final float THIRD_QUEST_SPAR_SURVIVE_SECONDS = 12f;
+    private static final float THIRD_QUEST_SPAR_CALL_OUT_SECONDS = 2.8f;
+    private static final String[] FIRST_QUEST_FATHER_DIALOGUE_LINES = {
+            "You're awake. I need your help before the inn fills up.",
+            "Take this Herb-and-Spice bundle to the cafe for me.",
+            "Leave this room, pass through the inn, and head out to the village.",
+            "You'll find the cafe there. Keep the bundle safe until you arrive."
+    };
+    private static final String[] SECOND_QUEST_CAFE_OWNER_SPEAKERS = {
+            "Cafe Owner",
+            "Cafe Owner",
+            "Cafe Owner",
+            "Character",
+            "Cafe Owner",
+            "Character",
+            "Character",
+            "Cafe Owner",
+            "Cafe Owner"
+    };
+    private static final String[] SECOND_QUEST_CAFE_OWNER_DIALOGUE_LINES = {
+            "Thank you, dear. But... before you go, there is something I need to show you.",
+            "I found this near the cafe door just before you arrived.",
+            "At first I thought it was only soot, but it was still warm.",
+            "...That smell.",
+            "You know it?",
+            "I do.",
+            "It smells like the night my village burned.",
+            "Then take it to the scientist at the Research Lab.",
+            "If anyone can make sense of it, he can."
+    };
+    private static final String[] SECOND_QUEST_SCIENTIST_INTRO_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Character",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Scientist"
+    };
+    private static final String[] SECOND_QUEST_SCIENTIST_INTRO_DIALOGUE_LINES = {
+            "Let me see it.",
+            "...This is no ordinary ash.",
+            "So I was right.",
+            "You have seen this before.",
+            "When I was a child.",
+            "The same smell filled the air the night everything burned.",
+            "This fragment carries demonic residue.",
+            "Old, but active.",
+            "Then the demon is moving again?",
+            "I cannot prove that yet.",
+            "But I may have records upstairs that match this trace.",
+            "Go to the second floor and bring me the archive notes from the worktable."
+    };
+    private static final String[] SECOND_QUEST_SCIENTIST_RETURN_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Scientist"
+    };
+    private static final String[] SECOND_QUEST_SCIENTIST_RETURN_DIALOGUE_LINES = {
+            "These notes confirm it.",
+            "The residue matches records from the same demonic outbreak that destroyed your first home.",
+            "So it really is connected...",
+            "Yes.",
+            "And if this trace has reached the village, it may only be the beginning.",
+            "Then I need to be ready.",
+            "You will return here whenever you grow stronger. I can help you shape that strength.",
+            "But not all techniques can be learned at once. Some require greater control."
+    };
+    private static final String[] THIRD_QUEST_SCIENTIST_SENDOFF_SPEAKERS = {
+            "Scientist",
+            "Scientist"
+    };
+    private static final String[] THIRD_QUEST_SCIENTIST_SENDOFF_DIALOGUE_LINES = {
+            "You have the will to fight. Now you need the discipline to survive.",
+            "Go to your father. If anyone can prepare you for what is coming, it is him."
+    };
+    private static final String[] THIRD_QUEST_FATHER_RETURN_SPEAKERS = {
+            "Father",
+            "Father",
+            "Character",
+            "Character",
+            "Father",
+            "Character",
+            "Father",
+            "Father",
+            "Father",
+            "Father",
+            "Character",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_RETURN_DIALOGUE_LINES = {
+            "You came back quieter than usual.",
+            "That look on your face... I have only seen it once before.",
+            "The scientist confirmed it.",
+            "The same darkness that destroyed my old home has returned.",
+            "...I was afraid that day would come.",
+            "If the village is truly in danger, I cannot keep hiding behind peace.",
+            "Then I will not stop you.",
+            "But if you mean to fight what is coming, you will train first.",
+            "Fear is not shameful.",
+            "Hesitation is.",
+            "Then teach me.",
+            "Good. Meet me outside. Behind the inn. We begin there."
+    };
+    private static final String[] THIRD_QUEST_FATHER_TRAINING_INTRO_SPEAKERS = {
+            "Father",
+            "Father",
+            "Father",
+            "Father",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_TRAINING_INTRO_DIALOGUE_LINES = {
+            "Listen carefully.",
+            "You do not survive a battle by swinging wildly.",
+            "You survive by staying calm, watching your enemy, and striking with purpose.",
+            "First, move.",
+            "A warrior rooted to the ground is already dead."
+    };
+    private static final String[] THIRD_QUEST_FATHER_AFTER_MOVEMENT_SPEAKERS = {
+            "Father",
+            "Father",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_AFTER_MOVEMENT_DIALOGUE_LINES = {
+            "Good.",
+            "Speed means little if you cannot control it.",
+            "Now show me that you can strike."
+    };
+    private static final String[] THIRD_QUEST_FATHER_AFTER_ATTACK_SPEAKERS = {
+            "Father",
+            "Father",
+            "Father",
+            "Father",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_AFTER_ATTACK_DIALOGUE_LINES = {
+            "Again.",
+            "Do not swing out of panic.",
+            "Every strike must have intent.",
+            "A still target teaches your hands. A moving one teaches your instincts.",
+            "Watch how they move. Do not rush in blindly."
+    };
+    private static final String[] THIRD_QUEST_FATHER_PRE_SPAR_SPEAKERS = {
+            "Father",
+            "Father",
+            "Character",
+            "Father",
+            "Father",
+            "Character",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_PRE_SPAR_DIALOGUE_LINES = {
+            "Better. You are starting to fight with your head, not your fear.",
+            "Because real combat is not just about striking. It is about committing at the right moment.",
+            "But it still feels slow.",
+            "Now you face me.",
+            "I want you to stop thinking of yourself as that helpless child.",
+            "You want me to fight you?",
+            "Come at me."
+    };
+    private static final String[] THIRD_QUEST_FATHER_COMPLETE_SPEAKERS = {
+            "Father",
+            "Father",
+            "Character",
+            "Father",
+            "Father",
+            "Father",
+            "Character",
+            "Father",
+            "Father"
+    };
+    private static final String[] THIRD_QUEST_FATHER_COMPLETE_DIALOGUE_LINES = {
+            "That is enough.",
+            "You are still inexperienced. But you are no longer powerless.",
+            "If the demon comes... I want to be ready.",
+            "Then keep moving forward.",
+            "Not for revenge alone. For this village. For the life you still have.",
+            "There is one more technique you are ready to learn.",
+            "I understand.",
+            "It is not graceful, but it closes distance and turns hesitation into force.",
+            "Use it when hesitation would get you killed."
+    };
+    private static final String[] THIRD_QUEST_SPAR_CALLOUTS = {
+            "Do not freeze.",
+            "Watch my shoulders.",
+            "Strike after I overextend.",
+            "Good. Again."
+    };
+    private static final String[] FOURTH_QUEST_INTERRUPTION_SPEAKERS = {
+            "Villager",
+            "Villager",
+            "Villager",
+            "Father",
+            "Character",
+            "Father",
+            "Father"
+    };
+    private static final String[] FOURTH_QUEST_INTERRUPTION_DIALOGUE_LINES = {
+            "There you are!",
+            "Something is wrong near the cafe!",
+            "There are burn marks on the ground... and the air smells strange again!",
+            "So it has begun.",
+            "The mark returned...",
+            "Go to the scientist.",
+            "If this is connected to the demon, he needs to see it at once."
+    };
+    private static final String[] FOURTH_QUEST_SCIENTIST_REPORT_SPEAKERS = {
+            "Scientist",
+            "Character",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Scientist",
+            "Father",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Scientist",
+            "Scientist"
+    };
+    private static final String[] FOURTH_QUEST_SCIENTIST_REPORT_DIALOGUE_LINES = {
+            "You returned quickly. That alone tells me this is not good news.",
+            "A villager found fresh burn marks near the cafe.",
+            "The smell is the same.",
+            "Then the residue is spreading faster than I feared.",
+            "The fragment you brought before was only a trace.",
+            "Anchoring?",
+            "Demonic incursions rarely begin with a full assault.",
+            "They begin with signs. Residue. Heat. Corruption.",
+            "Then they open a path.",
+            "So this village is not merely being watched. It is being prepared.",
+            "Yes. And if we do not disrupt the anchors now, the village may become the next battlefield.",
+            "Tell me what to do.",
+            "There may be more than one mark.",
+            "I need fresh samples from every corrupted site before I can determine the source.",
+            "Search the village. If you find a sigil, examine it.",
+            "If corruption appears, destroy it and bring me what remains."
+    };
+    private static final String[] FOURTH_QUEST_CAFE_OWNER_SPEAKERS = {
+            "Cafe Owner",
+            "Cafe Owner",
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_CAFE_OWNER_DIALOGUE_LINES = {
+            "It spread farther since you left.",
+            "The ground was only warm before. Now it looks burned from within.",
+            "Stay back."
+    };
+    private static final String[] FOURTH_QUEST_CAFE_MARK_SPEAKERS = {
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_CAFE_MARK_DIALOGUE_LINES = {
+            "This is no accident..."
+    };
+    private static final String[] FOURTH_QUEST_CENTER_MARK_SPEAKERS = {
+            "Villager",
+            "Villager",
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_CENTER_MARK_DIALOGUE_LINES = {
+            "It appeared out of nowhere!",
+            "The air burns when I get too close!",
+            "Stand back. I will clear it."
+    };
+    private static final String[] FOURTH_QUEST_CENTER_AFTER_SPEAKERS = {
+            "Character",
+            "Villager",
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_CENTER_AFTER_DIALOGUE_LINES = {
+            "These marks are not random. They are being placed.",
+            "If this is the same evil from years ago... will it destroy us too?",
+            "Not while I can still fight."
+    };
+    private static final String[] FOURTH_QUEST_EDGE_MARK_SPEAKERS = {
+            "Character",
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_EDGE_MARK_DIALOGUE_LINES = {
+            "The air is heavier here...",
+            "This one feels stronger than the others. Stay sharp."
+    };
+    private static final String[] FOURTH_QUEST_EDGE_AFTER_SPEAKERS = {
+            "Character"
+    };
+    private static final String[] FOURTH_QUEST_EDGE_AFTER_DIALOGUE_LINES = {
+            "This was no wandering corruption. That thing came here with purpose."
+    };
+    private static final String[] FOURTH_QUEST_SAMPLE_ANALYSIS_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Father",
+            "Scientist",
+            "Character",
+            "Scientist"
+    };
+    private static final String[] FOURTH_QUEST_SAMPLE_ANALYSIS_DIALOGUE_LINES = {
+            "Three samples. Three separate anchor points.",
+            "...Yes. This is worse than I thought.",
+            "What do they mean?",
+            "They form a pattern. Not a random corruption pattern. A coordinated one.",
+            "These marks were not meant to kill. They were meant to open.",
+            "Open what?",
+            "A path. A spatial breach from the demon's domain into the village.",
+            "So the attack has already begun.",
+            "Not fully. The breach is unstable. But if it matures, monsters will pour through.",
+            "Then we destroy it now.",
+            "First I need to confirm where it will emerge. My resonance array upstairs can map the breach, but it requires manual activation."
+    };
+    private static final String[] FOURTH_QUEST_ARRAY_SCAN_COMPLETE_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Father"
+    };
+    private static final String[] FOURTH_QUEST_ARRAY_SCAN_COMPLETE_DIALOGUE_LINES = {
+            "The source is confirmed.",
+            "The breach point is forming near the outer road. And the energy signature extends beyond the village... all the way to the demon castle.",
+            "So the castle truly is the source.",
+            "Yes. But if you rush there now, the village may fall behind you.",
+            "Then we close this breach first."
+    };
+    private static final String[] FOURTH_QUEST_BREACH_INTRO_SPEAKERS = {
+            "Character",
+            "Scientist",
+            "Father"
+    };
+    private static final String[] FOURTH_QUEST_BREACH_INTRO_DIALOGUE_LINES = {
+            "So this is the path it was opening...",
+            "This is only a fragment of a full breach. But even this much is dangerous.",
+            "Enough talking. It's here."
+    };
+    private static final String[] FOURTH_QUEST_BREACH_AFTER_SPEAKERS = {
+            "Character",
+            "Scientist",
+            "Scientist"
+    };
+    private static final String[] FOURTH_QUEST_BREACH_AFTER_DIALOGUE_LINES = {
+            "What is this?",
+            "A condensed core of the breach itself.",
+            "With this... I may be able to do more than study the corruption. I may be able to shape it."
+    };
+    private static final String[] FOURTH_QUEST_SPATIAL_UNLOCK_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Father",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist"
+    };
+    private static final String[] FOURTH_QUEST_SPATIAL_UNLOCK_DIALOGUE_LINES = {
+            "This Rift Core is unstable. But it contains exactly what I need.",
+            "The demon's power bends space around its servants, its strongholds, and its attacks. That is why ordinary movement will not be enough in the castle.",
+            "Then give me what I need.",
+            "This is dangerous. I cannot promise this technique will feel natural.",
+            "She has come this far. Do it.",
+            "Very well.",
+            "The spatial current is unstable, but now you can ride it for a moment. Not a charge. Not a strike. A displacement.",
+            "A step through space itself...",
+            "Yes. Use it wisely."
+    };
+    private static final String[] FOURTH_QUEST_EPILOGUE_SPEAKERS = {
+            "Scientist",
+            "Father",
+            "Character",
+            "Father",
+            "Character",
+            "Scientist"
+    };
+    private static final String[] FOURTH_QUEST_EPILOGUE_DIALOGUE_LINES = {
+            "The breach in the village was only the beginning. As long as the castle stands, more will follow.",
+            "You know what lies ahead.",
+            "Yes. If I wait, this village becomes another graveyard.",
+            "Then go before fear has time to return.",
+            "I will end this at the source.",
+            "The path to the demon castle is open now. When you are ready, go."
+    };
+    private static final String[] FOURTH_QUEST_BREACH_CALLOUTS = {
+            "Do not overcommit!",
+            "Strike and move!",
+            "Watch the gap after its attack!"
+    };
+    private static final String[] FIFTH_QUEST_LAB_ALARM_SPEAKERS = {
+            "Villager",
+            "Villager",
+            "Villager",
+            "Scientist",
+            "Character",
+            "Father",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Father"
+    };
+    private static final String[] FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES = {
+            "The ruined village...!",
+            "There are creatures gathering there!",
+            "And the portal... it's alive!",
+            "So the breach has shifted.",
+            "The abandoned village...",
+            "Then that is where the final path has opened.",
+            "If demons are gathering near the portal, then the castle is no longer distant.",
+            "It is already pressing against this world.",
+            "Then I go now.",
+            "Not to the castle yet. First you stop whatever is crossing through."
+    };
+    private static final String[] FIFTH_QUEST_RUINS_INTRO_SPEAKERS = {
+            "Character",
+            "Character",
+            "Father",
+            "Character",
+            "Character"
+    };
+    private static final String[] FIFTH_QUEST_RUINS_INTRO_DIALOGUE_LINES = {
+            "This place...",
+            "After all these years, it still smells the same.",
+            "You do not have to face it alone.",
+            "I know.",
+            "But I do have to face it."
+    };
+    private static final String[] FIFTH_QUEST_PORTAL_AFTER_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Scientist",
+            "Character",
+            "Scientist",
+            "Father",
+            "Character"
+    };
+    private static final String[] FIFTH_QUEST_PORTAL_AFTER_DIALOGUE_LINES = {
+            "The anchors are broken. That portal should have collapsed completely...",
+            "But the energy is too concentrated. It can no longer spread outward.",
+            "It has done the opposite. It has narrowed into a direct path.",
+            "To the castle.",
+            "Yes. A one-way opening to the source.",
+            "Then the road ends here. And the final one begins.",
+            "This is where it started. And this is where I stop running."
+    };
+    private static final String[] FIFTH_QUEST_COMMANDER_CALLOUTS = {
+            "Keep moving!",
+            "Do not let it corner you!",
+            "Now! Strike!"
+    };
+    private static final String[] SIXTH_QUEST_PORTAL_BRIEFING_SPEAKERS = {
+            "Scientist",
+            "Scientist",
+            "Father",
+            "Character",
+            "Father",
+            "Father",
+            "Father",
+            "Character",
+            "Scientist",
+            "Scientist",
+            "Father"
+    };
+    private static final String[] SIXTH_QUEST_PORTAL_BRIEFING_DIALOGUE_LINES = {
+            "The anchors are gone. The portal is stable enough now.",
+            "It will take you straight to the source.",
+            "This is the last road.",
+            "I know.",
+            "You are not the frightened child I found in the ashes.",
+            "You have a home now. A life.",
+            "Fight for that.",
+            "I will.",
+            "Inside the castle, the space itself may be unstable.",
+            "Use what you have learned. Strike hard. Move wisely.",
+            "And come back alive."
+    };
+    private static final String[] SIXTH_QUEST_CASTLE_ARRIVAL_SPEAKERS = {
+            "Character",
+            "Demon",
+            "Character",
+            "Demon"
+    };
+    private static final String[] SIXTH_QUEST_CASTLE_ARRIVAL_DIALOGUE_LINES = {
+            "So this is the source of it all...",
+            "You survived the flames. How disappointing.",
+            "I came to finish what you started.",
+            "Then come, little ember. Let me see what grief has made of you."
+    };
+    private static final String[] SIXTH_QUEST_PHASE_1_INTRO_SPEAKERS = {
+            "Demon",
+            "Demon",
+            "Character",
+            "Demon",
+            "Character",
+            "Demon"
+    };
+    private static final String[] SIXTH_QUEST_PHASE_1_INTRO_DIALOGUE_LINES = {
+            "I burned one village, and from its ashes you crawled toward me.",
+            "Was it vengeance that kept you alive?",
+            "No. It was the people who gave me a second home.",
+            "Then I will burn that home as well.",
+            "Not while I still stand.",
+            "You carry ash, anger, and borrowed strength. And still you think you can kill me?"
+    };
+    private static final String[] SIXTH_QUEST_PHASE_1_TRANSITION_SPEAKERS = {
+            "Demon",
+            "Demon",
+            "Demon"
+    };
+    private static final String[] SIXTH_QUEST_PHASE_1_TRANSITION_DIALOGUE_LINES = {
+            "So this is the strength that survived my fire...",
+            "Come, then.",
+            "If you want the end... face me where fire has no limit."
+    };
+    private static final String[] SIXTH_QUEST_FINAL_PHASE_INTRO_SPEAKERS = {
+            "Character"
+    };
+    private static final String[] SIXTH_QUEST_FINAL_PHASE_INTRO_DIALOGUE_LINES = {
+            "No more running. No more ashes. This ends here."
+    };
+    private static final String[] SIXTH_QUEST_ENDING_SPEAKERS = {
+            "Father",
+            "Character",
+            "Scientist",
+            "Father",
+            "Character",
+            "Father",
+            "Character",
+            "Old Man"
+    };
+    private static final String[] SIXTH_QUEST_ENDING_DIALOGUE_LINES = {
+            "You came back.",
+            "It's over.",
+            "The demonic signal is gone. The breach has fully collapsed.",
+            "Then the dead can rest. And so can you.",
+            "I thought this place would always be the end of my story. But it was only where the fire began.",
+            "And now?",
+            "Now I go home.",
+            "The fire that once took everything from her was finally extinguished. From grief, she found strength. From ashes, she found a home. And from the last ember, a new dawn was born."
+    };
+    private static final String[] SIXTH_QUEST_PHASE_1_CALLOUTS = {
+            "Too slow.",
+            "Burn.",
+            "Kneel.",
+            "You are still only human."
+    };
+    private static final String[] SIXTH_QUEST_PHASE_2_CALLOUTS = {
+            "I am fire eternal!",
+            "You cannot outrun this flame.",
+            "Kneel before the night.",
+            "Burn with your past."
+    };
     private static final String FOREGROUND_LAYER_MARKER = "FRONT OF CHARACTR";
     private static final String FOREGROUND_LAYER_MARKER_ALT = "FRONT OF CHARACTER";
     private static final String FOREGROUND_ALWAYS_MARKER = "ALWAYS-INFRONT";
@@ -90,6 +878,7 @@ public class GameScreen extends ScreenAdapter {
     private static final String ROOM1_DOOR_CLOSED_COLLISION_LAYER_NAME = "WALL-COLLISION-IF-CLOSED";
     private static final String ROOM3_DOOR_ANIMATION_GROUP_NAME = "DOOR-Room-3-Animation";
     private static final String ROOM3_DOOR_TRIGGER_LAYER_NAME = "Door-Close(open-after-room-clear)";
+    private static final String ROOM3_DOOR_TRIGGER_LAYER_NAME_ALT = "ThisIsTheAreaThatDontDoAnimation";
     private static final String FIRST_BOSS_DOOR_ANIMATION_GROUP_NAME = "DOOR-FirstBoss-Double-Animation-1";
     private static final String FIRST_BOSS_DOOR_FRONT_ANIMATION_GROUP_NAME = "DOOR-FirstBoss-Front-Double-Animation-1 ALWAYS-INFRONT";
     private static final String FIRST_BOSS_DOOR_FRONT_ANIMATION_GROUP_NAME_ALT = "DOOR-FirstBoss-Front-Double-Animation-1";
@@ -132,9 +921,13 @@ public class GameScreen extends ScreenAdapter {
     private static final float SPRITE_FRAME_WIDTH = 240f;  // source frame size
     private static final float SPRITE_FRAME_HEIGHT = 128f; // source frame size
     private static final float PLAYER_SPEED = 57.6f;
+    private static final float MAX_LEVEL_MOVE_SPEED_MULTIPLIER = 1.2f;
     private static final float DASH_SPEED = 220f;
     private static final float DASH_DURATION = 0.108f;
     private static final float DASH_COOLDOWN = 0.6f;
+    private static final float DASH_STAMINA_COST = 10f;
+    private static final float STAMINA_REGEN_PER_SECOND = 3f;
+    private static final float HEALTH_REGEN_PER_SECOND = 1.5f;
     private static final float POST_DASH_MOVEMENT_LOCK_SECONDS = 0.2f;
     private static final float DASH_ATTACK_TELEPORT_TILES = 4f;
     private static final float DEFAULT_TILE_SIZE = 16f;
@@ -195,8 +988,8 @@ public class GameScreen extends ScreenAdapter {
     private static final float CHARACTER_SATURATION = 1.2f;
     private static final float ATTACK_COOLDOWN = 0.8f;
     private static final float ATTACK_FRAME_DURATION = 0.096f;
-    private static final float PLAYER_HIT_FRAME_DURATION = 0.09f;
-    private static final float PLAYER_HAZARD_HIT_REACTION_SECONDS = 0.8f;
+    private static final float PLAYER_HAZARD_HIT_REACTION_SECONDS = 0.2f;
+    private static final float PLAYER_DEATH_ANIMATION_SECONDS = 0.8f;
     private static final int VIGNETTE_SIZE = 1024;
     private static final float VIGNETTE_INNER = 0.28f;
     private static final float VIGNETTE_OUTER = 0.88f;
@@ -263,9 +1056,11 @@ public class GameScreen extends ScreenAdapter {
     private static final float BAT_CHASE_STOP_DISTANCE = 2f;
     private static final float BAT_ATTACK_RANGE = 18f;
     private static final float BAT_PLAYER_HIT_RANGE = 26f;
+    private static final float VILLAGE_BAT_ATTACK_INTERVAL_SECONDS = 1.5f;
     private static final float BAT_PLAYER_HIT_COOLDOWN_SECONDS = 0.2f;
     private static final float BAT_MAX_HEALTH = 100f;
     private static final float BAT_HIT_DAMAGE = 15f;
+    private static final float BAT_PLAYER_DAMAGE = 30f;
     private static final float BAT_HURT_SFX_VOLUME = 0.85f;
     private static final float BAT_HP_BAR_WIDTH = 16f;
     private static final float BAT_HP_BAR_HEIGHT = 2f;
@@ -305,7 +1100,8 @@ public class GameScreen extends ScreenAdapter {
     private static final float EVIL_WIZARD_MAX_HEALTH = 100f;
     private static final float EVIL_WIZARD_HIT_DAMAGE = 15f;
     private static final float EVIL_WIZARD_PLAYER_HIT_COOLDOWN_SECONDS = 0.2f;
-    private static final float EVIL_WIZARD_ATTACK_HAZARD_DAMAGE = EVIL_WIZARD_HIT_DAMAGE;
+    private static final float EVIL_WIZARD_PLAYER_DAMAGE = 100f;
+    private static final float EVIL_WIZARD_ATTACK_HAZARD_DAMAGE = EVIL_WIZARD_PLAYER_DAMAGE;
     private static final float EVIL_WIZARD_ATTACK_HAZARD_EXTRA_SECONDS = 2f;
     private static final float EVIL_WIZARD_ATTACK_HAZARD_EXPLOSION_WINDOW_SECONDS = 0.45f;
     private static final float EVIL_WIZARD_ATTACK_HAZARD_WARNING_LEAD_BUFFER_SECONDS = 0.05f;
@@ -345,6 +1141,40 @@ public class GameScreen extends ScreenAdapter {
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/04_demon_take_hit";
     private static final String BOSS_ARENA_PHASE_2_DEMON_IDLE_TEXTURE_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/spritesheets/demon_slime_FREE_v1.0_288x160_spritesheet.png";
+    private static final String FIFTH_QUEST_DEMON_1_IDLE_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Idle.png";
+    private static final String FIFTH_QUEST_DEMON_1_WALK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Walk.png";
+    private static final String FIFTH_QUEST_DEMON_1_ATTACK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Attack.png";
+    private static final String FIFTH_QUEST_DEMON_1_HURT_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Hurt.png";
+    private static final String FIFTH_QUEST_DEMON_1_DEAD_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Dead.png";
+    private static final String FIFTH_QUEST_DEMON_2_IDLE_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_2/Idle.png";
+    private static final String FIFTH_QUEST_DEMON_2_WALK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_2/Walk.png";
+    private static final String FIFTH_QUEST_DEMON_2_ATTACK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_2/Attack.png";
+    private static final String FIFTH_QUEST_DEMON_2_HURT_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_2/Hurt.png";
+    private static final String FIFTH_QUEST_DEMON_2_DEAD_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_2/Dead.png";
+    private static final String FIFTH_QUEST_DEMON_3_IDLE_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_3/Idle.png";
+    private static final String FIFTH_QUEST_DEMON_3_WALK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_3/Walk.png";
+    private static final String FIFTH_QUEST_DEMON_3_ATTACK_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_3/Attack.png";
+    private static final String FIFTH_QUEST_DEMON_3_HURT_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_3/Hurt.png";
+    private static final String FIFTH_QUEST_DEMON_3_DEAD_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_3/Dead.png";
+    private static final String FIFTH_QUEST_ADULT_MAN_IDLE_DIRECTORY =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/NPC/Idle2";
+    private static final String FIFTH_QUEST_OLD_WOMAN_IDLE_DIRECTORY =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/NPC/Idle3";
     private static final String CHEST_IDLE_TEXTURE_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ORIGINAL ASSETS/The dungeon (2)/The dungeon/Chest/Skull_chest_idle.png";
     private static final String CHEST_OPEN_TEXTURE_ABSOLUTE_PATH =
@@ -383,6 +1213,7 @@ public class GameScreen extends ScreenAdapter {
     private static final float GOLEM_1_ATTACK_RANGE = DEFAULT_TILE_SIZE * 15f;
     private static final float GOLEM_1_MAX_HEALTH = 100f;
     private static final float GOLEM_1_HIT_DAMAGE = EVIL_WIZARD_HIT_DAMAGE;
+    private static final float GOLEM_1_PLAYER_DAMAGE = 80f;
     private static final float GOLEM_1_HP_BAR_DOWN_OFFSET_TILES = 3.5f;
     private static final float GOLEM_1_ATTACK_COOLDOWN_SECONDS = 3f;
     private static final float GOLEM_1_EXPLOSION_DELAY_SECONDS = 0.7f;
@@ -390,7 +1221,7 @@ public class GameScreen extends ScreenAdapter {
     private static final float GOLEM_1_EXPLOSION_CHAIN_MAX_DISTANCE_TILES = 15f;
     private static final float GOLEM_1_EXPLOSION_CHAIN_STEP_DELAY_SECONDS = 0.3f;
     private static final float GOLEM_1_EXPLOSION_SOURCE_OFFSET_Y_TILES = -2f;
-    private static final float GOLEM_1_EXPLOSION_DAMAGE = EVIL_WIZARD_HIT_DAMAGE;
+    private static final float GOLEM_1_EXPLOSION_DAMAGE = GOLEM_1_PLAYER_DAMAGE;
     private static final float GOLEM_1_EXPLOSION_HIT_RADIUS_TILES = 2.4f;
     private static final float GOLEM_1_EXPLOSION_CAMERA_SHAKE_DURATION_SECONDS = 0.16f;
     private static final float GOLEM_1_EXPLOSION_CAMERA_SHAKE_PER_BURST = 1.4f;
@@ -416,6 +1247,25 @@ public class GameScreen extends ScreenAdapter {
     private static final float BOSS_ARENA_PHASE_2_DEMON_CHASE_STOP_DISTANCE_TILES = 1.5f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_RANGE = DEFAULT_TILE_SIZE * 20f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_PLAYER_HIT_COOLDOWN_SECONDS = 0.2f;
+    private static final int FIFTH_QUEST_DEMON_FRAME_WIDTH = 128;
+    private static final int FIFTH_QUEST_DEMON_FRAME_HEIGHT = 128;
+    private static final float FIFTH_QUEST_DEMON_IDLE_FRAME_DURATION = 0.13f;
+    private static final float FIFTH_QUEST_DEMON_WALK_FRAME_DURATION = 0.1f;
+    private static final float FIFTH_QUEST_DEMON_ATTACK_FRAME_DURATION = 0.09f;
+    private static final float FIFTH_QUEST_DEMON_HURT_FRAME_DURATION = 0.08f;
+    private static final float FIFTH_QUEST_DEMON_DEAD_FRAME_DURATION = 0.11f;
+    private static final float FIFTH_QUEST_DEMON_DRAW_SCALE = 0.62f;
+    private static final float FIFTH_QUEST_DEMON_HITBOX_WIDTH_SCALE = 0.22f;
+    private static final float FIFTH_QUEST_DEMON_HITBOX_HEIGHT_SCALE = 0.30f;
+    private static final float FIFTH_QUEST_DEMON_HITBOX_DOWN_OFFSET_TILES = 1.8f;
+    private static final float FIFTH_QUEST_DEMON_ATTACK_RANGE = DEFAULT_TILE_SIZE * 2.1f;
+    private static final float FIFTH_QUEST_DEMON_PLAYER_HIT_COOLDOWN_SECONDS = 0.22f;
+    private static final float FIFTH_QUEST_DEMON_ATTACK_COOLDOWN_SECONDS = 1.25f;
+    private static final float FIFTH_QUEST_DEMON_SHADOW_WIDTH_TILES = 2.4f;
+    private static final float FIFTH_QUEST_DEMON_SHADOW_HEIGHT_TILES = 0.78f;
+    private static final float FIFTH_QUEST_DEMON_SHADOW_DOWN_OFFSET_TILES = 1.8f;
+    private static final float FIFTH_QUEST_DEMON_SHADOW_ALPHA = 0.7f;
+    private static final float FIFTH_QUEST_VILLAGER_DRAW_SCALE = 0.52f;
     private static final float BOSS_ARENA_PHASE_2_DETECTION_CENTER_DOWN_OFFSET_TILES = 7.5f;
     private static final float ENEMY_HITBOX_DEBUG_FILL_ALPHA = 0.26f;
     private static final float ENEMY_HITBOX_DEBUG_OUTLINE_ALPHA = 0.95f;
@@ -439,8 +1289,11 @@ public class GameScreen extends ScreenAdapter {
     private static final float PLAYER_ATTACK_DASH_RIGHT_G = 0.34f;
     private static final float PLAYER_ATTACK_DASH_RIGHT_B = 0.92f;
     private static final String PLAYER_HIT_TEXTURE_INTERNAL_PATH = "images/huntress/14 - hit.png";
+    private static final String PLAYER_DEATH_TEXTURE_INTERNAL_PATH = "images/huntress/15 - death.png";
     private static final String PLAYER_HIT_TEXTURE_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/SHADOW Series - The Blind Huntress/Sprite Sheet/14 - hit.png";
+    private static final String PLAYER_DEATH_TEXTURE_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/SHADOW Series - The Blind Huntress/Sprite Sheet/15 - death.png";
     private static final String EVIL_WIZARD_ATTACK1_SFX_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/EVil Wizard 2/wizard1.mp3";
     private static final String EVIL_WIZARD_ATTACK2_SFX_ABSOLUTE_PATH =
@@ -495,6 +1348,61 @@ public class GameScreen extends ScreenAdapter {
         RETURN_TO_PLAYER
     }
 
+    private enum QuestDialogueId {
+        NONE,
+        FIRST_QUEST_FATHER,
+        SECOND_QUEST_CAFE_OWNER,
+        SECOND_QUEST_SCIENTIST_INTRO,
+        SECOND_QUEST_SCIENTIST_RETURN,
+        THIRD_QUEST_SCIENTIST_SENDOFF,
+        THIRD_QUEST_FATHER_RETURN,
+        THIRD_QUEST_FATHER_TRAINING_INTRO,
+        THIRD_QUEST_FATHER_AFTER_MOVEMENT,
+        THIRD_QUEST_FATHER_AFTER_ATTACK,
+        THIRD_QUEST_FATHER_PRE_SPAR,
+        THIRD_QUEST_FATHER_COMPLETE,
+        FOURTH_QUEST_INTERRUPTION,
+        FOURTH_QUEST_SCIENTIST_REPORT,
+        FOURTH_QUEST_CAFE_OWNER,
+        FOURTH_QUEST_CAFE_MARK,
+        FOURTH_QUEST_CENTER_MARK,
+        FOURTH_QUEST_CENTER_AFTER,
+        FOURTH_QUEST_EDGE_MARK,
+        FOURTH_QUEST_EDGE_AFTER,
+        FOURTH_QUEST_SAMPLE_ANALYSIS,
+        FOURTH_QUEST_ARRAY_SCAN_COMPLETE,
+        FOURTH_QUEST_BREACH_INTRO,
+        FOURTH_QUEST_BREACH_AFTER,
+        FOURTH_QUEST_SPATIAL_UNLOCK,
+        FOURTH_QUEST_EPILOGUE,
+        FIFTH_QUEST_LAB_ALARM,
+        FIFTH_QUEST_RUINS_INTRO,
+        FIFTH_QUEST_PORTAL_AFTER,
+        SIXTH_QUEST_PORTAL_BRIEFING,
+        SIXTH_QUEST_CASTLE_ARRIVAL,
+        SIXTH_QUEST_PHASE_1_INTRO,
+        SIXTH_QUEST_PHASE_1_TRANSITION,
+        SIXTH_QUEST_FINAL_PHASE_INTRO,
+        SIXTH_QUEST_ENDING
+    }
+
+    private enum QuestItemCardId {
+        NONE,
+        FIRST_QUEST_HERB_AND_SPICE,
+        SECOND_QUEST_SCORCHED_FRAGMENT,
+        SECOND_QUEST_ARCHIVE_NOTES,
+        THIRD_QUEST_DASH_ATTACK_UNLOCKED,
+        FOURTH_QUEST_SPATIAL_DASH_UNLOCKED,
+        SIXTH_QUEST_CLEAR
+    }
+
+    private enum FifthQuestDemonType {
+        DEMON_1,
+        DEMON_2,
+        DEMON_3,
+        COMMANDER
+    }
+
     private static final class BatInstance {
         final Vector2 position = new Vector2();
         BatAnimationState state = BatAnimationState.SLEEPING;
@@ -503,8 +1411,16 @@ public class GameScreen extends ScreenAdapter {
         float playerHitCooldownTimer = 0f;
         boolean useAttack1Next = true;
         boolean usingAttack1 = true;
+        boolean attackDamageApplied = false;
+        boolean tutorialEnemy = false;
+        int questEncounterId = FOURTH_QUEST_ENCOUNTER_NONE;
+        boolean elite = false;
         float maxHealth = BAT_MAX_HEALTH;
         float health = BAT_MAX_HEALTH;
+        float chaseSpeed = BAT_CHASE_SPEED;
+        float playerDamage = BAT_PLAYER_DAMAGE;
+        float attackCooldownTimer = 0f;
+        float attackIntervalSeconds = 0f;
         int lastDashAttackHitId = -1;
     }
 
@@ -569,11 +1485,40 @@ public class GameScreen extends ScreenAdapter {
         float stateTime = 0f;
         float attackStateTime = 0f;
         float hurtStateTime = 0f;
+        float maxHealth = SIXTH_QUEST_BOSS_PHASE_2_HEALTH;
+        float health = SIXTH_QUEST_BOSS_PHASE_2_HEALTH;
         float playerHitCooldownTimer = 0f;
         boolean facingLeft = false;
         boolean moving = false;
         boolean attacking = false;
         boolean hurting = false;
+        boolean attackDamageApplied = false;
+        int lastDashAttackHitId = -1;
+    }
+
+    private static final class FifthQuestDemonInstance {
+        final Vector2 position = new Vector2();
+        final Rectangle zoneBounds = new Rectangle();
+        FifthQuestDemonType type = FifthQuestDemonType.DEMON_1;
+        float stateTime = 0f;
+        float attackStateTime = 0f;
+        float hurtStateTime = 0f;
+        float dieStateTime = 0f;
+        float maxHealth = FIFTH_QUEST_DEMON_1_HEALTH;
+        float health = FIFTH_QUEST_DEMON_1_HEALTH;
+        float chaseSpeed = FIFTH_QUEST_DEMON_1_SPEED;
+        float playerDamage = FIFTH_QUEST_DEMON_1_DAMAGE;
+        float attackCooldownTimer = 0f;
+        float playerHitCooldownTimer = 0f;
+        float attackIntervalSeconds = FIFTH_QUEST_DEMON_ATTACK_COOLDOWN_SECONDS;
+        float attackRange = FIFTH_QUEST_DEMON_ATTACK_RANGE;
+        boolean facingLeft = false;
+        boolean moving = false;
+        boolean attacking = false;
+        boolean hurting = false;
+        boolean dying = false;
+        boolean attackDamageApplied = false;
+        int questEncounterId = FIFTH_QUEST_ENCOUNTER_NONE;
         int lastDashAttackHitId = -1;
     }
 
@@ -607,6 +1552,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture jumpDownAttackTex;
     private Texture idleUpAttackTex;
     private Texture playerHitTex;
+    private Texture playerDeathTex;
     private Texture batSleepTex;
     private Texture batWakeUpTex;
     private Texture batIdleFlyTex;
@@ -628,6 +1574,21 @@ public class GameScreen extends ScreenAdapter {
     private Texture golem1DieTex;
     private Texture golem1ExplosionTex;
     private Texture bossArenaPhase2DemonIdleTex;
+    private Texture fifthQuestDemon1IdleTex;
+    private Texture fifthQuestDemon1WalkTex;
+    private Texture fifthQuestDemon1AttackTex;
+    private Texture fifthQuestDemon1HurtTex;
+    private Texture fifthQuestDemon1DeadTex;
+    private Texture fifthQuestDemon2IdleTex;
+    private Texture fifthQuestDemon2WalkTex;
+    private Texture fifthQuestDemon2AttackTex;
+    private Texture fifthQuestDemon2HurtTex;
+    private Texture fifthQuestDemon2DeadTex;
+    private Texture fifthQuestDemon3IdleTex;
+    private Texture fifthQuestDemon3WalkTex;
+    private Texture fifthQuestDemon3AttackTex;
+    private Texture fifthQuestDemon3HurtTex;
+    private Texture fifthQuestDemon3DeadTex;
     private Texture chestIdleTex;
     private Texture chestOpenTex;
     private Sound attack1Sfx;
@@ -646,6 +1607,19 @@ public class GameScreen extends ScreenAdapter {
     private int questBlurBufferWidth = 0;
     private int questBlurBufferHeight = 0;
     private float questBlurProgress = 0f;
+    private Texture firstQuestPanelTex;
+    private Texture firstQuestItemTex;
+    private Texture secondQuestFragmentTex;
+    private Texture secondQuestArchiveNotesTex;
+    private Texture thirdQuestFatherVillageTex;
+    private TextureRegion[][] thirdQuestFatherVillageTiles;
+    private BitmapFont firstQuestTitleFont;
+    private BitmapFont firstQuestBodyFont;
+    private BitmapFont firstQuestHintFont;
+    private GlyphLayout firstQuestLayout;
+    private Animation<TextureRegion> firstQuestCafeNpcIdleAnim;
+    private Animation<TextureRegion> fifthQuestAdultManIdleAnim;
+    private Animation<TextureRegion> fifthQuestOldWomanIdleAnim;
     private Animation<TextureRegion> idleAnim;
     private Animation<TextureRegion> runAnim;
     private Animation<TextureRegion> attack1Anim;
@@ -656,6 +1630,7 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> jumpDownAttackAnim;
     private Animation<TextureRegion> idleUpAttackAnim;
     private Animation<TextureRegion> playerHitAnim;
+    private Animation<TextureRegion> playerDeathAnim;
     private Animation<TextureRegion> batSleepAnim;
     private Animation<TextureRegion> batWakeUpAnim;
     private Animation<TextureRegion> batIdleFlyAnim;
@@ -680,17 +1655,138 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> bossArenaPhase2DemonWalkAnim;
     private Animation<TextureRegion> bossArenaPhase2DemonAttackAnim;
     private Animation<TextureRegion> bossArenaPhase2DemonHurtAnim;
+    private Animation<TextureRegion> fifthQuestDemon1IdleAnim;
+    private Animation<TextureRegion> fifthQuestDemon1WalkAnim;
+    private Animation<TextureRegion> fifthQuestDemon1AttackAnim;
+    private Animation<TextureRegion> fifthQuestDemon1HurtAnim;
+    private Animation<TextureRegion> fifthQuestDemon1DeadAnim;
+    private Animation<TextureRegion> fifthQuestDemon2IdleAnim;
+    private Animation<TextureRegion> fifthQuestDemon2WalkAnim;
+    private Animation<TextureRegion> fifthQuestDemon2AttackAnim;
+    private Animation<TextureRegion> fifthQuestDemon2HurtAnim;
+    private Animation<TextureRegion> fifthQuestDemon2DeadAnim;
+    private Animation<TextureRegion> fifthQuestDemon3IdleAnim;
+    private Animation<TextureRegion> fifthQuestDemon3WalkAnim;
+    private Animation<TextureRegion> fifthQuestDemon3AttackAnim;
+    private Animation<TextureRegion> fifthQuestDemon3HurtAnim;
+    private Animation<TextureRegion> fifthQuestDemon3DeadAnim;
     private Animation<TextureRegion> chestIdleAnim;
     private Animation<TextureRegion> chestOpenAnim;
     private Animation<TextureRegion> activeAttackAnim;
     private final WorldState world = new WorldState();
     private final PlayerState player = new PlayerState();
+    private final SaveGameData initialSaveData;
+    private final String initialMapId;
+    private final String initialSpawnLayer;
+    private final String characterName;
+    private int firstQuestStage;
+    private int secondQuestStage;
+    private int thirdQuestStage;
+    private int fourthQuestStage;
+    private int fifthQuestStage;
+    private int sixthQuestStage;
+    private int progressionLevelCap;
+    private boolean scientistProgressionUnlocked;
+    private boolean thirdQuestAvailable;
+    private boolean gameCompleted;
+    private boolean firstQuestDialogueActive = false;
+    private boolean firstQuestItemCardVisible = false;
+    private int firstQuestDialogueLineIndex = 0;
+    private QuestDialogueId activeQuestDialogueId = QuestDialogueId.NONE;
+    private QuestItemCardId activeQuestItemCardId = QuestItemCardId.NONE;
+    private String[] activeQuestDialogueSpeakers = new String[0];
+    private String[] activeQuestDialogueLines = new String[0];
+    private String activeQuestItemTitle = "";
+    private String activeQuestItemDescription = "";
+    private Texture activeQuestItemTexture;
+    private float activeQuestItemTitleScale = 1f;
+    private float activeQuestItemImageScaleMultiplier = 1f;
+    private float activeQuestItemTitleOffsetY = 0f;
+    private float activeQuestItemDescriptionOffsetY = 0f;
+    private float activeQuestItemHintOffsetY = 0f;
+    private float firstQuestMarkerTimer = 0f;
+    private float firstQuestCafeNpcStateTime = 0f;
+    private float questGuidanceSuppressTimer = 0f;
+    private final Rectangle thirdQuestTrainingZoneBounds = new Rectangle();
+    private final Rectangle thirdQuestFatherTrainingBounds = new Rectangle();
+    private final Rectangle thirdQuestAttackDummyBounds = new Rectangle();
+    private final Rectangle thirdQuestSparZoneBounds = new Rectangle();
+    private final Vector2[] thirdQuestMovementMarkers = {
+            new Vector2(),
+            new Vector2(),
+            new Vector2()
+    };
+    private final boolean[] thirdQuestMovementMarkerReached = new boolean[3];
+    private boolean thirdQuestTrainingLayoutReady = false;
+    private int thirdQuestMovementMarkersReached = 0;
+    private int thirdQuestAttackDummyHitCount = 0;
+    private boolean thirdQuestAttackDummyBroken = false;
+    private boolean thirdQuestDummyHitRegistered = false;
+    private boolean thirdQuestTutorialEnemiesSpawned = false;
+    private boolean thirdQuestSparActive = false;
+    private boolean thirdQuestFatherHitRegistered = false;
+    private float thirdQuestFatherSparHealth = THIRD_QUEST_SPAR_FATHER_MAX_HEALTH;
+    private float thirdQuestFatherSparAttackCooldownTimer = 0f;
+    private float thirdQuestFatherSparHitCooldownTimer = 0f;
+    private float thirdQuestFatherSparElapsed = 0f;
+    private float thirdQuestFatherSparCalloutTimer = 0f;
+    private int thirdQuestFatherSparCalloutIndex = 0;
+    private int thirdQuestFatherSparHitsTaken = 0;
+    private final Rectangle fourthQuestCafeSiteBounds = new Rectangle();
+    private final Rectangle fourthQuestCenterSiteBounds = new Rectangle();
+    private final Rectangle fourthQuestEdgeSiteBounds = new Rectangle();
+    private final Rectangle fourthQuestBreachSiteBounds = new Rectangle();
+    private final Rectangle fourthQuestArrayConsoleBounds = new Rectangle();
+    private final Rectangle[] fourthQuestArrayNodeBounds = {
+            new Rectangle(),
+            new Rectangle(),
+            new Rectangle()
+    };
+    private final Rectangle fifthQuestRuinsIntroBounds = new Rectangle();
+    private final Rectangle fifthQuestOuterRuinsBounds = new Rectangle();
+    private final Rectangle fifthQuestMidRuinsBounds = new Rectangle();
+    private final Rectangle fifthQuestFightingAreaBounds = new Rectangle();
+    private final Rectangle fifthQuestPortalBounds = new Rectangle();
+    private final Rectangle[] fifthQuestAnchorBounds = {
+            new Rectangle(),
+            new Rectangle(),
+            new Rectangle()
+    };
+    private final Rectangle sixthQuestOuterCastleBounds = new Rectangle();
+    private final Rectangle sixthQuestSealABounds = new Rectangle();
+    private final Rectangle sixthQuestSealAInteractBounds = new Rectangle();
+    private final Rectangle sixthQuestSealBBounds = new Rectangle();
+    private final Rectangle sixthQuestSealBInteractBounds = new Rectangle();
+    private final Rectangle sixthQuestThroneBounds = new Rectangle();
+    private final Rectangle sixthQuestBossPhase1SpawnBounds = new Rectangle();
+    private final Rectangle sixthQuestFinalPhaseBounds = new Rectangle();
+    private final Rectangle sixthQuestFinalPhaseSpawnBounds = new Rectangle();
+    private boolean fourthQuestVillageLayoutReady = false;
+    private boolean fourthQuestFloor2LayoutReady = false;
+    private boolean fourthQuestEncounterSpawned = false;
+    private float fourthQuestArrayDefenseTimer = 0f;
+    private int fourthQuestArrayDefenseWaveCount = 0;
+    private float fourthQuestBreachCalloutTimer = 0f;
+    private int fourthQuestBreachCalloutIndex = 0;
+    private boolean fifthQuestVillageLayoutReady = false;
+    private boolean fifthQuestEncounterSpawned = false;
+    private float fifthQuestCommanderCalloutTimer = 0f;
+    private int fifthQuestCommanderCalloutIndex = 0;
+    private boolean sixthQuestCastleLayoutReady = false;
+    private boolean sixthQuestFinalArenaLayoutReady = false;
+    private boolean sixthQuestEncounterSpawned = false;
+    private float sixthQuestBossCalloutTimer = 0f;
+    private int sixthQuestBossCalloutIndex = 0;
+    private boolean sixthQuestLowHealthExchangePlayed = false;
+    private boolean infiniteHealthEnabled = false;
+    private final Vector3 questMarkerProjection = new Vector3();
     private final EarClippingTriangulator triangulator = new EarClippingTriangulator();
     private final Polygon playerCollisionPolygon = new Polygon();
     private final float[] playerCollisionVertices = new float[8];
     private DayNightCycleManager dayNightCycle;
     private MapTransitionPhase mapTransitionPhase = MapTransitionPhase.NONE;
     private float mapTransitionTimer = 0f;
+    private float screenFadeAlpha = 1f;
     private String pendingTransitionMapId;
     private String pendingTransitionSpawnLayer;
     private int depthSplitGroupLayerIndex = -1;
@@ -701,10 +1797,14 @@ public class GameScreen extends ScreenAdapter {
     private final Array<EvilWizardInstance> evilWizards = new Array<>();
     private final Array<Golem1Instance> golem1s = new Array<>();
     private final Array<BossArenaPhase2DemonInstance> bossArenaPhase2Demons = new Array<>();
+    private final Array<FifthQuestDemonInstance> fifthQuestDemons = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonIdleFrameTextures = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonWalkFrameTextures = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonAttackFrameTextures = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonHurtFrameTextures = new Array<>();
+    private final Array<Texture> firstQuestCafeNpcFrameTextures = new Array<>();
+    private final Array<Texture> fifthQuestAdultManFrameTextures = new Array<>();
+    private final Array<Texture> fifthQuestOldWomanFrameTextures = new Array<>();
     private final Array<RewardChestInstance> rewardChests = new Array<>();
     private final Array<MapLayer> entranceDoorAnimationFrames = new Array<>();
     private final Array<MapLayer> entranceDoorFrontAnimationFrames = new Array<>();
@@ -785,6 +1885,7 @@ public class GameScreen extends ScreenAdapter {
     private boolean cameraTeleportTargetActive = false;
     private float cameraShakeTimer = 0f;
     private float cameraShakeStrength = 0f;
+    private float autoSaveTimer = 0f;
     private final Vector2 cameraShakeOffset = new Vector2();
     private final Vector2 dashAttackPlannedPosition = new Vector2();
     private boolean dashAttackPlannedPositionValid = false;
@@ -803,6 +1904,8 @@ public class GameScreen extends ScreenAdapter {
     private final Array<Vector2> evilWizardSafeCircleCenters = new Array<>();
     private float playerHazardHitReactionTimer = 0f;
     private float playerHazardHitStateTime = 0f;
+    private float playerDeathStateTime = 0f;
+    private boolean playerDead = false;
     private final InputAdapter chatInputAdapter = new InputAdapter() {
         @Override
         public boolean keyTyped(char character) {
@@ -824,6 +1927,40 @@ public class GameScreen extends ScreenAdapter {
         }
     };
 
+    public GameScreen() {
+        this(null, null, null, null);
+    }
+
+    public GameScreen(SaveGameData initialSaveData) {
+        this(initialSaveData, null, null, null);
+    }
+
+    public GameScreen(String initialMapId, String initialSpawnLayer) {
+        this(null, initialMapId, initialSpawnLayer, null);
+    }
+
+    public GameScreen(String initialMapId, String initialSpawnLayer, String characterName) {
+        this(null, initialMapId, initialSpawnLayer, characterName);
+    }
+
+    private GameScreen(SaveGameData initialSaveData, String initialMapId, String initialSpawnLayer,
+                       String initialCharacterName) {
+        this.initialSaveData = initialSaveData;
+        this.initialMapId = initialMapId;
+        this.initialSpawnLayer = initialSpawnLayer;
+        this.characterName = resolveCharacterName(initialSaveData, initialCharacterName);
+        this.firstQuestStage = resolveInitialFirstQuestStage(initialSaveData);
+        this.secondQuestStage = resolveInitialSecondQuestStage(initialSaveData);
+        this.thirdQuestStage = resolveInitialThirdQuestStage(initialSaveData);
+        this.fourthQuestStage = resolveInitialFourthQuestStage(initialSaveData);
+        this.fifthQuestStage = resolveInitialFifthQuestStage(initialSaveData);
+        this.sixthQuestStage = resolveInitialSixthQuestStage(initialSaveData);
+        this.progressionLevelCap = resolveInitialProgressionLevelCap(initialSaveData);
+        this.scientistProgressionUnlocked = resolveInitialScientistProgressionUnlocked(initialSaveData);
+        this.thirdQuestAvailable = resolveInitialThirdQuestAvailable(initialSaveData);
+        this.gameCompleted = resolveInitialGameCompleted(initialSaveData);
+    }
+
     @Override
     public void show() {
         camera = new OrthographicCamera();
@@ -831,10 +1968,13 @@ public class GameScreen extends ScreenAdapter {
         camera.zoom = DEFAULT_ZOOM; // locked zoom
         uiCamera = new OrthographicCamera();
         uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        screenFadeAlpha = 1f;
 
         batch = new SpriteBatch();
         hudRenderer = new HudRenderer(uiCamera);
         hudRenderer.loadAssets();
+        loadFirstQuestAssets();
+        loadFifthQuestAssets();
         dayNightCycle = new DayNightCycleManager(
                 DAY_DURATION_SECONDS,
                 SUNSET_DURATION_SECONDS,
@@ -854,23 +1994,63 @@ public class GameScreen extends ScreenAdapter {
         playerAuraTex = createPlayerAuraTexture(PLAYER_AURA_TEXTURE_SIZE);
 
         loadMapCatalog();
-        loadMap();
+        loadMap(world.activeMapId, initialSpawnLayer);
+        applyLoadedSaveIfPresent();
         centerCameraOnPlayer();
+        writeAutosave();
         installInputProcessor();
     }
 
     @Override
     public void render(float delta) {
+        if (screenFadeAlpha > 0f) {
+            screenFadeAlpha = Math.max(0f, screenFadeAlpha - delta / SCREEN_FADE_DURATION_SECONDS);
+        }
         clearCameraShakeOffsetFromCameraPosition();
+        if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
+            handleMainMenuInput();
+            if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
+                player.moving = false;
+                centerCameraOnPlayer();
+                hudRenderer.update(delta);
+                updateQuestBlur(delta);
+
+                if (world.mapRenderer == null) {
+                    return;
+                }
+
+                float nightBlend = currentNightBlend();
+                float worldSaturation = lerp(1f, NIGHT_WORLD_SATURATION, nightBlend);
+                int[] backgroundRenderLayers = activeBackgroundRenderLayers();
+                int[] foregroundRenderLayers = activeForegroundRenderLayers();
+                renderWorldWithOptionalQuestBlur(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
+                hudRenderer.draw(
+                        batch,
+                        player.currentHealth,
+                        player.maxHealth,
+                        player.currentMana,
+                        player.maxMana,
+                        player.playerLevel,
+                        currentMainMenuQuestTitle(),
+                        currentMainMenuQuestObjective(),
+                        currentMainMenuRegionName());
+                drawFirstQuestUi();
+                drawMapTransitionOverlay();
+                drawScreenFadeOverlay();
+                return;
+            }
+        }
         if (postDashMovementLockTimer > 0f) {
             postDashMovementLockTimer = Math.max(0f, postDashMovementLockTimer - delta);
         }
         updatePlayerHazardHitReaction(delta);
+        updatePlayerDeath(delta);
         player.stateTime += delta;
         updateBats(delta);
         updateEvilWizards(delta);
         updateGolem1s(delta);
         updateBossArenaPhase2Demons(delta);
+        updateFifthQuestDemons(delta);
         updateRewardChests(delta);
         updateEvilWizardAttackHazard(delta);
         updateDayNightCycle(delta);
@@ -889,7 +2069,8 @@ public class GameScreen extends ScreenAdapter {
                 || isRoom3DoorInputBlocked()
                 || isFirstBossDoorInputBlocked()
                 || isBoss1IntroActive()
-                || isPlayerHazardHitReactionActive()) {
+                || isPlayerHazardHitReactionActive()
+                || isPlayerDead()) {
             if (!isBoss1IntroStepDownActive()) {
                 player.moving = false;
             }
@@ -907,11 +2088,16 @@ public class GameScreen extends ScreenAdapter {
         updateEvilWizardHurtFromPlayer();
         updateGolem1HurtFromPlayer();
         updateBossArenaPhase2DemonHurtFromPlayer();
+        updateFifthQuestDemonHurtFromPlayer();
         updateTorchAnimation(delta);
         updateNpcAnimation(delta);
+        updatePlayerStamina(delta);
+        updatePlayerHealth(delta);
+        updateFirstQuest(delta);
         hudRenderer.update(delta);
         updateQuestBlur(delta);
         updateBossArenaPhase2AttackZoom(delta);
+        updateAutosave(delta);
         clampCamera();
         updateAndApplyExplosionCameraShake(delta);
 
@@ -924,8 +2110,19 @@ public class GameScreen extends ScreenAdapter {
         int[] backgroundRenderLayers = activeBackgroundRenderLayers();
         int[] foregroundRenderLayers = activeForegroundRenderLayers();
         renderWorldWithOptionalQuestBlur(nightBlend, worldSaturation, backgroundRenderLayers, foregroundRenderLayers);
-        hudRenderer.draw(batch, player.currentHealth, player.maxHealth, player.currentMana, player.maxMana, player.playerLevel);
+        hudRenderer.draw(
+                batch,
+                player.currentHealth,
+                player.maxHealth,
+                player.currentMana,
+                player.maxMana,
+                player.playerLevel,
+                currentMainMenuQuestTitle(),
+                currentMainMenuQuestObjective(),
+                currentMainMenuRegionName());
+        drawFirstQuestUi();
         drawMapTransitionOverlay();
+        drawScreenFadeOverlay();
     }
 
     @Override
@@ -940,11 +2137,13 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void hide() {
+        writeAutosave();
         restoreInputProcessor();
     }
 
     @Override
     public void dispose() {
+        writeAutosave();
         restoreInputProcessor();
         unloadMap();
         if (batch != null) batch.dispose();
@@ -963,6 +2162,7 @@ public class GameScreen extends ScreenAdapter {
         if (jumpDownAttackTex != null) jumpDownAttackTex.dispose();
         if (idleUpAttackTex != null) idleUpAttackTex.dispose();
         if (playerHitTex != null) playerHitTex.dispose();
+        if (playerDeathTex != null) playerDeathTex.dispose();
         if (batSleepTex != null) batSleepTex.dispose();
         if (batWakeUpTex != null) batWakeUpTex.dispose();
         if (batIdleFlyTex != null) batIdleFlyTex.dispose();
@@ -985,6 +2185,21 @@ public class GameScreen extends ScreenAdapter {
         if (golem1ExplosionTex != null) golem1ExplosionTex.dispose();
         disposeBossArenaPhase2DemonFrameTextures();
         if (bossArenaPhase2DemonIdleTex != null) bossArenaPhase2DemonIdleTex.dispose();
+        if (fifthQuestDemon1IdleTex != null) fifthQuestDemon1IdleTex.dispose();
+        if (fifthQuestDemon1WalkTex != null) fifthQuestDemon1WalkTex.dispose();
+        if (fifthQuestDemon1AttackTex != null) fifthQuestDemon1AttackTex.dispose();
+        if (fifthQuestDemon1HurtTex != null) fifthQuestDemon1HurtTex.dispose();
+        if (fifthQuestDemon1DeadTex != null) fifthQuestDemon1DeadTex.dispose();
+        if (fifthQuestDemon2IdleTex != null) fifthQuestDemon2IdleTex.dispose();
+        if (fifthQuestDemon2WalkTex != null) fifthQuestDemon2WalkTex.dispose();
+        if (fifthQuestDemon2AttackTex != null) fifthQuestDemon2AttackTex.dispose();
+        if (fifthQuestDemon2HurtTex != null) fifthQuestDemon2HurtTex.dispose();
+        if (fifthQuestDemon2DeadTex != null) fifthQuestDemon2DeadTex.dispose();
+        if (fifthQuestDemon3IdleTex != null) fifthQuestDemon3IdleTex.dispose();
+        if (fifthQuestDemon3WalkTex != null) fifthQuestDemon3WalkTex.dispose();
+        if (fifthQuestDemon3AttackTex != null) fifthQuestDemon3AttackTex.dispose();
+        if (fifthQuestDemon3HurtTex != null) fifthQuestDemon3HurtTex.dispose();
+        if (fifthQuestDemon3DeadTex != null) fifthQuestDemon3DeadTex.dispose();
         if (chestIdleTex != null) chestIdleTex.dispose();
         if (chestOpenTex != null) chestOpenTex.dispose();
         if (attack1Sfx != null) attack1Sfx.dispose();
@@ -999,6 +2214,35 @@ public class GameScreen extends ScreenAdapter {
         if (lightAreaMaskShader != null) lightAreaMaskShader.dispose();
         if (screenBlurShader != null) screenBlurShader.dispose();
         disposeQuestBlurFrameBuffer();
+        if (firstQuestPanelTex != null) firstQuestPanelTex.dispose();
+        if (firstQuestItemTex != null) firstQuestItemTex.dispose();
+        if (secondQuestFragmentTex != null) secondQuestFragmentTex.dispose();
+        if (secondQuestArchiveNotesTex != null) secondQuestArchiveNotesTex.dispose();
+        if (thirdQuestFatherVillageTex != null) thirdQuestFatherVillageTex.dispose();
+        if (firstQuestTitleFont != null) firstQuestTitleFont.dispose();
+        if (firstQuestBodyFont != null) firstQuestBodyFont.dispose();
+        if (firstQuestHintFont != null) firstQuestHintFont.dispose();
+        for (int i = 0; i < firstQuestCafeNpcFrameTextures.size; i++) {
+            Texture frameTexture = firstQuestCafeNpcFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        firstQuestCafeNpcFrameTextures.clear();
+        for (int i = 0; i < fifthQuestAdultManFrameTextures.size; i++) {
+            Texture frameTexture = fifthQuestAdultManFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        fifthQuestAdultManFrameTextures.clear();
+        for (int i = 0; i < fifthQuestOldWomanFrameTextures.size; i++) {
+            Texture frameTexture = fifthQuestOldWomanFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        fifthQuestOldWomanFrameTextures.clear();
         if (hudRenderer != null) hudRenderer.dispose();
     }
 
@@ -1023,10 +2267,428 @@ public class GameScreen extends ScreenAdapter {
         activeInputProcessor = null;
     }
 
+    private void loadFirstQuestAssets() {
+        firstQuestPanelTex = loadOptionalTexture(FIRST_QUEST_PANEL_TEXTURE_PATH);
+        firstQuestItemTex = loadOptionalTexture(FIRST_QUEST_ITEM_TEXTURE_PATH);
+        secondQuestFragmentTex = loadOptionalTexture(SECOND_QUEST_FRAGMENT_TEXTURE_PATH);
+        thirdQuestFatherVillageTex = loadOptionalTexture(THIRD_QUEST_FATHER_TEXTURE_PATH);
+        if (secondQuestFragmentTex == null) {
+            secondQuestFragmentTex = createScorchedFragmentTexture();
+        }
+        secondQuestArchiveNotesTex = createArchiveNotesTexture();
+        firstQuestTitleFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_TITLE_FONT_SIZE);
+        firstQuestBodyFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_BODY_FONT_SIZE);
+        firstQuestHintFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_HINT_FONT_SIZE);
+        firstQuestLayout = new GlyphLayout();
+        firstQuestCafeNpcIdleAnim = loadOptionalAbsoluteFrameAnimation(
+                FIRST_QUEST_CAFE_NPC_IDLE_DIRECTORY,
+                FIRST_QUEST_CAFE_NPC_FRAME_DURATION,
+                firstQuestCafeNpcFrameTextures);
+        setNearestFilter(firstQuestPanelTex);
+        setNearestFilter(firstQuestItemTex);
+        setNearestFilter(secondQuestFragmentTex);
+        setNearestFilter(secondQuestArchiveNotesTex);
+        setNearestFilter(thirdQuestFatherVillageTex);
+        if (thirdQuestFatherVillageTex != null) {
+            int tileSize = Math.max(1, Math.round(DEFAULT_TILE_SIZE));
+            thirdQuestFatherVillageTiles = TextureRegion.split(thirdQuestFatherVillageTex, tileSize, tileSize);
+        } else {
+            thirdQuestFatherVillageTiles = null;
+        }
+    }
+
+    private void loadFifthQuestAssets() {
+        fifthQuestDemon1IdleTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_1_IDLE_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon1WalkTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_1_WALK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon1AttackTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_1_ATTACK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon1HurtTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_1_HURT_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon1DeadTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_1_DEAD_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon2IdleTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_2_IDLE_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon2WalkTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_2_WALK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon2AttackTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_2_ATTACK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon2HurtTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_2_HURT_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon2DeadTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_2_DEAD_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon3IdleTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_3_IDLE_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon3WalkTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_3_WALK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon3AttackTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_3_ATTACK_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon3HurtTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_3_HURT_TEXTURE_ABSOLUTE_PATH);
+        fifthQuestDemon3DeadTex = loadOptionalAbsoluteTexture(FIFTH_QUEST_DEMON_3_DEAD_TEXTURE_ABSOLUTE_PATH);
+
+        fifthQuestDemon1IdleAnim = buildOptionalStripAnimation(fifthQuestDemon1IdleTex, FIFTH_QUEST_DEMON_IDLE_FRAME_DURATION, true);
+        fifthQuestDemon1WalkAnim = buildOptionalStripAnimation(fifthQuestDemon1WalkTex, FIFTH_QUEST_DEMON_WALK_FRAME_DURATION, true);
+        fifthQuestDemon1AttackAnim = buildOptionalStripAnimation(fifthQuestDemon1AttackTex, FIFTH_QUEST_DEMON_ATTACK_FRAME_DURATION, false);
+        fifthQuestDemon1HurtAnim = buildOptionalStripAnimation(fifthQuestDemon1HurtTex, FIFTH_QUEST_DEMON_HURT_FRAME_DURATION, false);
+        fifthQuestDemon1DeadAnim = buildOptionalStripAnimation(fifthQuestDemon1DeadTex, FIFTH_QUEST_DEMON_DEAD_FRAME_DURATION, false);
+        fifthQuestDemon2IdleAnim = buildOptionalStripAnimation(fifthQuestDemon2IdleTex, FIFTH_QUEST_DEMON_IDLE_FRAME_DURATION, true);
+        fifthQuestDemon2WalkAnim = buildOptionalStripAnimation(fifthQuestDemon2WalkTex, FIFTH_QUEST_DEMON_WALK_FRAME_DURATION, true);
+        fifthQuestDemon2AttackAnim = buildOptionalStripAnimation(fifthQuestDemon2AttackTex, FIFTH_QUEST_DEMON_ATTACK_FRAME_DURATION, false);
+        fifthQuestDemon2HurtAnim = buildOptionalStripAnimation(fifthQuestDemon2HurtTex, FIFTH_QUEST_DEMON_HURT_FRAME_DURATION, false);
+        fifthQuestDemon2DeadAnim = buildOptionalStripAnimation(fifthQuestDemon2DeadTex, FIFTH_QUEST_DEMON_DEAD_FRAME_DURATION, false);
+        fifthQuestDemon3IdleAnim = buildOptionalStripAnimation(fifthQuestDemon3IdleTex, FIFTH_QUEST_DEMON_IDLE_FRAME_DURATION, true);
+        fifthQuestDemon3WalkAnim = buildOptionalStripAnimation(fifthQuestDemon3WalkTex, FIFTH_QUEST_DEMON_WALK_FRAME_DURATION, true);
+        fifthQuestDemon3AttackAnim = buildOptionalStripAnimation(fifthQuestDemon3AttackTex, FIFTH_QUEST_DEMON_ATTACK_FRAME_DURATION, false);
+        fifthQuestDemon3HurtAnim = buildOptionalStripAnimation(fifthQuestDemon3HurtTex, FIFTH_QUEST_DEMON_HURT_FRAME_DURATION, false);
+        fifthQuestDemon3DeadAnim = buildOptionalStripAnimation(fifthQuestDemon3DeadTex, FIFTH_QUEST_DEMON_DEAD_FRAME_DURATION, false);
+        fifthQuestAdultManIdleAnim = loadOptionalAbsoluteFrameAnimation(
+                FIFTH_QUEST_ADULT_MAN_IDLE_DIRECTORY,
+                FIRST_QUEST_CAFE_NPC_FRAME_DURATION,
+                fifthQuestAdultManFrameTextures);
+        fifthQuestOldWomanIdleAnim = loadOptionalAbsoluteFrameAnimation(
+                FIFTH_QUEST_OLD_WOMAN_IDLE_DIRECTORY,
+                FIRST_QUEST_CAFE_NPC_FRAME_DURATION,
+                fifthQuestOldWomanFrameTextures);
+    }
+
+    private Animation<TextureRegion> buildOptionalStripAnimation(Texture texture, float frameDuration, boolean loop) {
+        if (texture == null) {
+            return null;
+        }
+        setNearestFilter(texture);
+        int frameSize = Math.max(1, texture.getHeight());
+        int frameCount = Math.max(1, texture.getWidth() / frameSize);
+        Animation<TextureRegion> animation = buildRawAnimation(texture, frameCount, frameSize, frameSize, frameDuration);
+        animation.setPlayMode(loop ? Animation.PlayMode.LOOP : Animation.PlayMode.NORMAL);
+        return animation;
+    }
+
     private void loadMapCatalog() {
         world.mapCatalog = MapCatalog.load(MAP_CATALOG_PATH, DEFAULT_MAP_PADDING);
-        world.activeMap = world.mapCatalog.getDefaultMap();
+        world.activeMap = resolveInitialMap();
         world.activeMapId = world.activeMap.getId();
+    }
+
+    private MapDefinition resolveInitialMap() {
+        if (initialSaveData != null && initialSaveData.mapId != null) {
+            MapDefinition savedMap = world.mapCatalog.getById(initialSaveData.mapId);
+            if (savedMap != null) {
+                return savedMap;
+            }
+        }
+        if (initialMapId != null && !initialMapId.isBlank()) {
+            MapDefinition configuredMap = world.mapCatalog.getById(initialMapId);
+            if (configuredMap != null) {
+                return configuredMap;
+            }
+        }
+        return world.mapCatalog.getDefaultMap();
+    }
+
+    private int resolveInitialFirstQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            return clampFirstQuestStage(saveData.firstQuestStage);
+        }
+        return FIRST_QUEST_TALK_TO_FATHER;
+    }
+
+    private int resolveInitialSecondQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            if (saveData.sixthQuestStage != null && clampSixthQuestStage(saveData.sixthQuestStage) > SIXTH_QUEST_DISABLED) {
+                return SECOND_QUEST_COMPLETE;
+            }
+            if (saveData.fifthQuestStage != null && clampFifthQuestStage(saveData.fifthQuestStage) > FIFTH_QUEST_DISABLED) {
+                return SECOND_QUEST_COMPLETE;
+            }
+            if (saveData.fourthQuestStage != null && clampFourthQuestStage(saveData.fourthQuestStage) > FOURTH_QUEST_DISABLED) {
+                return SECOND_QUEST_COMPLETE;
+            }
+            if (saveData.thirdQuestStage != null && clampThirdQuestStage(saveData.thirdQuestStage) > THIRD_QUEST_DISABLED) {
+                return SECOND_QUEST_COMPLETE;
+            }
+            if (Boolean.TRUE.equals(saveData.thirdQuestAvailable)
+                    || Boolean.TRUE.equals(saveData.scientistProgressionUnlocked)) {
+                return SECOND_QUEST_COMPLETE;
+            }
+            if (saveData.secondQuestStage != null) {
+                return clampSecondQuestStage(saveData.secondQuestStage);
+            }
+            if (clampFirstQuestStage(saveData.firstQuestStage) >= FIRST_QUEST_COMPLETE) {
+                return SECOND_QUEST_TALK_TO_CAFE_OWNER;
+            }
+        }
+        return SECOND_QUEST_DISABLED;
+    }
+
+    private int resolveInitialThirdQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            if (saveData.sixthQuestStage != null && clampSixthQuestStage(saveData.sixthQuestStage) > SIXTH_QUEST_DISABLED) {
+                return THIRD_QUEST_COMPLETE;
+            }
+            if (saveData.fifthQuestStage != null && clampFifthQuestStage(saveData.fifthQuestStage) > FIFTH_QUEST_DISABLED) {
+                return THIRD_QUEST_COMPLETE;
+            }
+            if (saveData.fourthQuestStage != null && clampFourthQuestStage(saveData.fourthQuestStage) > FOURTH_QUEST_DISABLED) {
+                return THIRD_QUEST_COMPLETE;
+            }
+            if (saveData.thirdQuestStage != null) {
+                return clampThirdQuestStage(saveData.thirdQuestStage);
+            }
+            if (Boolean.TRUE.equals(saveData.thirdQuestAvailable)
+                    || Boolean.TRUE.equals(saveData.scientistProgressionUnlocked)) {
+                return THIRD_QUEST_RETURN_TO_FATHER;
+            }
+        }
+        return THIRD_QUEST_DISABLED;
+    }
+
+    private int resolveInitialFourthQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            if (saveData.sixthQuestStage != null && clampSixthQuestStage(saveData.sixthQuestStage) > SIXTH_QUEST_DISABLED) {
+                return FOURTH_QUEST_COMPLETE;
+            }
+            if (saveData.fifthQuestStage != null && clampFifthQuestStage(saveData.fifthQuestStage) > FIFTH_QUEST_DISABLED) {
+                return FOURTH_QUEST_COMPLETE;
+            }
+            if (saveData.fourthQuestStage != null) {
+                return clampFourthQuestStage(saveData.fourthQuestStage);
+            }
+            if (saveData.thirdQuestStage != null && clampThirdQuestStage(saveData.thirdQuestStage) >= THIRD_QUEST_COMPLETE) {
+                return FOURTH_QUEST_REPORT_TO_SCIENTIST;
+            }
+        }
+        return FOURTH_QUEST_DISABLED;
+    }
+
+    private int resolveInitialFifthQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            if (saveData.sixthQuestStage != null && clampSixthQuestStage(saveData.sixthQuestStage) > SIXTH_QUEST_DISABLED) {
+                return FIFTH_QUEST_COMPLETE;
+            }
+            if (saveData.fifthQuestStage != null) {
+                return clampFifthQuestStage(saveData.fifthQuestStage);
+            }
+            if (saveData.fourthQuestStage != null && clampFourthQuestStage(saveData.fourthQuestStage) >= FOURTH_QUEST_COMPLETE) {
+                return FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE;
+            }
+        }
+        return FIFTH_QUEST_DISABLED;
+    }
+
+    private int resolveInitialSixthQuestStage(SaveGameData saveData) {
+        if (saveData != null) {
+            if (Boolean.TRUE.equals(saveData.gameCompleted)) {
+                return SIXTH_QUEST_COMPLETE;
+            }
+            if (saveData.sixthQuestStage != null) {
+                return clampSixthQuestStage(saveData.sixthQuestStage);
+            }
+            if (MAP_ID_BOSS_ARENA_PHASE_2.equals(saveData.mapId)) {
+                return SIXTH_QUEST_FINAL_PHASE_BATTLE;
+            }
+            if (MAP_ID_DEMON_CASTLE.equals(saveData.mapId)) {
+                return SIXTH_QUEST_OUTER_ASSAULT;
+            }
+            if (saveData.fifthQuestStage != null && clampFifthQuestStage(saveData.fifthQuestStage) >= FIFTH_QUEST_COMPLETE) {
+                return SIXTH_QUEST_ENTER_PORTAL;
+            }
+        }
+        return SIXTH_QUEST_DISABLED;
+    }
+
+    private int resolveInitialProgressionLevelCap(SaveGameData saveData) {
+        if (saveData != null && saveData.progressionLevelCap != null) {
+            return clampProgressionLevelCap(saveData.progressionLevelCap);
+        }
+        if (saveData != null && saveData.fourthQuestStage != null
+                && clampFourthQuestStage(saveData.fourthQuestStage) >= FOURTH_QUEST_COMPLETE) {
+            return QUEST_4_LEVEL_CAP;
+        }
+        if (saveData != null && saveData.playerLevel > 0) {
+            return clampProgressionLevelCap(saveData.playerLevel);
+        }
+        return QUEST_LEVEL_CAP_DEFAULT;
+    }
+
+    private boolean resolveInitialScientistProgressionUnlocked(SaveGameData saveData) {
+        return saveData != null && Boolean.TRUE.equals(saveData.scientistProgressionUnlocked);
+    }
+
+    private boolean resolveInitialThirdQuestAvailable(SaveGameData saveData) {
+        return saveData != null && Boolean.TRUE.equals(saveData.thirdQuestAvailable);
+    }
+
+    private boolean resolveInitialGameCompleted(SaveGameData saveData) {
+        return saveData != null
+                && (Boolean.TRUE.equals(saveData.gameCompleted)
+                || (saveData.sixthQuestStage != null
+                && clampSixthQuestStage(saveData.sixthQuestStage) >= SIXTH_QUEST_COMPLETE));
+    }
+
+    private int clampFirstQuestStage(Integer stage) {
+        if (stage == null) {
+            return FIRST_QUEST_DISABLED;
+        }
+        return Math.max(FIRST_QUEST_DISABLED, Math.min(FIRST_QUEST_COMPLETE, stage));
+    }
+
+    private int clampSecondQuestStage(Integer stage) {
+        if (stage == null) {
+            return SECOND_QUEST_DISABLED;
+        }
+        return Math.max(SECOND_QUEST_DISABLED, Math.min(SECOND_QUEST_COMPLETE, stage));
+    }
+
+    private int clampThirdQuestStage(Integer stage) {
+        if (stage == null) {
+            return THIRD_QUEST_DISABLED;
+        }
+        return Math.max(THIRD_QUEST_DISABLED, Math.min(THIRD_QUEST_COMPLETE, stage));
+    }
+
+    private int clampFourthQuestStage(Integer stage) {
+        if (stage == null) {
+            return FOURTH_QUEST_DISABLED;
+        }
+        return Math.max(FOURTH_QUEST_DISABLED, Math.min(FOURTH_QUEST_COMPLETE, stage));
+    }
+
+    private int clampFifthQuestStage(Integer stage) {
+        if (stage == null) {
+            return FIFTH_QUEST_DISABLED;
+        }
+        return Math.max(FIFTH_QUEST_DISABLED, Math.min(FIFTH_QUEST_COMPLETE, stage));
+    }
+
+    private int clampSixthQuestStage(Integer stage) {
+        if (stage == null) {
+            return SIXTH_QUEST_DISABLED;
+        }
+        return Math.max(SIXTH_QUEST_DISABLED, Math.min(SIXTH_QUEST_COMPLETE, stage));
+    }
+
+    private int clampProgressionLevelCap(int levelCap) {
+        return PlayerLevelStats.clampLevel(Math.max(QUEST_LEVEL_CAP_DEFAULT, levelCap));
+    }
+
+    private void applyLoadedSaveIfPresent() {
+        if (initialSaveData == null) {
+            return;
+        }
+
+        int savedLevel = PlayerLevelStats.clampLevel(initialSaveData.playerLevel);
+        applyPlayerLevelStats(
+                savedLevel,
+                scaleSavedResourceToLevel(initialSaveData.currentHealth, initialSaveData.maxHealth,
+                        PlayerLevelStats.maxHealthForLevel(savedLevel)),
+                scaleSavedResourceToLevel(initialSaveData.currentMana, initialSaveData.maxMana,
+                        PlayerLevelStats.maxStaminaForLevel(savedLevel)));
+        firstQuestStage = clampFirstQuestStage(initialSaveData.firstQuestStage);
+        secondQuestStage = resolveInitialSecondQuestStage(initialSaveData);
+        thirdQuestStage = resolveInitialThirdQuestStage(initialSaveData);
+        fourthQuestStage = resolveInitialFourthQuestStage(initialSaveData);
+        fifthQuestStage = resolveInitialFifthQuestStage(initialSaveData);
+        sixthQuestStage = resolveInitialSixthQuestStage(initialSaveData);
+        progressionLevelCap = resolveInitialProgressionLevelCap(initialSaveData);
+        scientistProgressionUnlocked = resolveInitialScientistProgressionUnlocked(initialSaveData);
+        thirdQuestAvailable = resolveInitialThirdQuestAvailable(initialSaveData);
+        gameCompleted = resolveInitialGameCompleted(initialSaveData);
+        if (thirdQuestStage > THIRD_QUEST_DISABLED) {
+            thirdQuestAvailable = true;
+        }
+        if (world.activeMapId != null && world.activeMapId.equals(initialSaveData.mapId)) {
+            float halfW = HITBOX_WIDTH / 2f;
+            Vector2 savedBottomCenter = new Vector2(initialSaveData.playerBoundsX + halfW, initialSaveData.playerBoundsY);
+            Vector2 free = findNearestFreeSpot(savedBottomCenter);
+            player.bounds.set(free.x - halfW, free.y, HITBOX_WIDTH, HITBOX_HEIGHT);
+        }
+        player.moving = false;
+        player.attacking = false;
+        player.attackTimer = 0f;
+        player.attackCooldownTimer = 0f;
+        player.attackComboStep = 0;
+        player.dashing = false;
+        player.dashTimer = 0f;
+        player.dashCooldownTimer = 0f;
+        player.dashAttackActive = false;
+        player.dashAttackMoveDuration = 0f;
+        player.dashAttackFollowupQueued = false;
+        activeAttackAnim = null;
+        cameraTeleportSmoothTimer = 0f;
+        postDashMovementLockTimer = 0f;
+        cameraTeleportTargetActive = false;
+        dashAttackPlannedPositionValid = false;
+        clearDashAttackSweepState();
+        applyVillagePortalVisualState();
+        handleQuestMapLoadEvents();
+        onPlayerSpawned();
+    }
+
+    private void updateAutosave(float delta) {
+        autoSaveTimer += delta;
+        if (autoSaveTimer >= AUTO_SAVE_INTERVAL_SECONDS) {
+            writeAutosave();
+        }
+    }
+
+    private void writeAutosave() {
+        if (!canWriteAutosave()) {
+            return;
+        }
+
+        SaveGameData saveData = new SaveGameData();
+        saveData.slotId = SaveGameService.AUTOSAVE_SLOT_ID;
+        saveData.displayName = "Autosave";
+        saveData.characterName = characterName;
+        saveData.mapId = world.activeMapId;
+        saveData.playerBoundsX = player.bounds.x;
+        saveData.playerBoundsY = player.bounds.y;
+        saveData.currentHealth = player.currentHealth;
+        saveData.maxHealth = player.maxHealth;
+        saveData.currentMana = player.currentMana;
+        saveData.maxMana = player.maxMana;
+        saveData.playerLevel = player.playerLevel;
+        saveData.firstQuestStage = firstQuestStage;
+        saveData.secondQuestStage = secondQuestStage;
+        saveData.thirdQuestStage = thirdQuestStage;
+        saveData.fourthQuestStage = fourthQuestStage;
+        saveData.fifthQuestStage = fifthQuestStage;
+        saveData.sixthQuestStage = sixthQuestStage;
+        saveData.progressionLevelCap = progressionLevelCap;
+        saveData.scientistProgressionUnlocked = scientistProgressionUnlocked;
+        saveData.thirdQuestAvailable = thirdQuestStage > THIRD_QUEST_DISABLED || thirdQuestAvailable;
+        saveData.gameCompleted = gameCompleted;
+        SaveGameService.save(saveData);
+        autoSaveTimer = 0f;
+    }
+
+    private void applyPlayerLevelStats(int level, float currentHealth, float currentStamina) {
+        player.playerLevel = PlayerLevelStats.clampLevel(level);
+        player.maxHealth = PlayerLevelStats.maxHealthForLevel(player.playerLevel);
+        player.maxMana = PlayerLevelStats.maxStaminaForLevel(player.playerLevel);
+        player.currentHealth = Math.min(player.maxHealth, Math.max(0f, currentHealth));
+        player.currentMana = Math.min(player.maxMana, Math.max(0f, currentStamina));
+    }
+
+    private float scaleSavedResourceToLevel(float savedCurrentValue, float savedMaxValue, float levelMaxValue) {
+        if (savedCurrentValue <= 0f) {
+            return 0f;
+        }
+        if (savedMaxValue > 0f) {
+            return levelMaxValue * clamp01(savedCurrentValue / savedMaxValue);
+        }
+        return Math.min(levelMaxValue, savedCurrentValue);
+    }
+
+    private boolean canWriteAutosave() {
+        return world.activeMapId != null
+                && !world.activeMapId.isBlank()
+                && player.bounds.width > 0f
+                && player.bounds.height > 0f
+                && !isPlayerDead();
+    }
+
+    private String resolveCharacterName(SaveGameData saveData, String initialCharacterName) {
+        if (saveData != null && saveData.characterName != null && !saveData.characterName.isBlank()) {
+            return normalizeCharacterName(saveData.characterName);
+        }
+        return normalizeCharacterName(initialCharacterName);
+    }
+
+    private String normalizeCharacterName(String rawCharacterName) {
+        if (rawCharacterName == null) {
+            return DEFAULT_CHARACTER_NAME;
+        }
+        String normalized = rawCharacterName.trim().replaceAll("\\s+", " ");
+        return normalized.isEmpty() ? DEFAULT_CHARACTER_NAME : normalized;
     }
 
     private void loadMap() {
@@ -1086,6 +2748,8 @@ public class GameScreen extends ScreenAdapter {
         configureGolem1Spawns();
         configureBossArenaPhase2Demons();
         configureRewardChestSpawns();
+        applyVillagePortalVisualState();
+        handleQuestMapLoadEvents();
     }
 
     private void unloadMap() {
@@ -1108,6 +2772,25 @@ public class GameScreen extends ScreenAdapter {
         world.npcAnimationFrames.clear();
         world.npcAnimationFrameIndex = 0;
         world.npcAnimationTimer = 0f;
+        thirdQuestTrainingLayoutReady = false;
+        thirdQuestSparActive = false;
+        fourthQuestVillageLayoutReady = false;
+        fourthQuestFloor2LayoutReady = false;
+        fourthQuestEncounterSpawned = false;
+        fourthQuestArrayDefenseTimer = 0f;
+        fourthQuestArrayDefenseWaveCount = 0;
+        fourthQuestBreachCalloutTimer = 0f;
+        fourthQuestBreachCalloutIndex = 0;
+        fifthQuestVillageLayoutReady = false;
+        fifthQuestEncounterSpawned = false;
+        fifthQuestCommanderCalloutTimer = 0f;
+        fifthQuestCommanderCalloutIndex = 0;
+        sixthQuestCastleLayoutReady = false;
+        sixthQuestFinalArenaLayoutReady = false;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
         entranceDoorAnimationFrames.clear();
         entranceDoorFrontAnimationFrames.clear();
         entranceDoorTriggerLayer = null;
@@ -1188,6 +2871,7 @@ public class GameScreen extends ScreenAdapter {
         clearSpawnedEvilWizards();
         clearSpawnedGolem1();
         clearSpawnedBossArenaPhase2Demons();
+        clearSpawnedFifthQuestDemons();
         clearSpawnedRewardChests();
     }
 
@@ -1544,6 +3228,33 @@ public class GameScreen extends ScreenAdapter {
         playerHazardHitStateTime += safeDelta;
     }
 
+    private boolean isPlayerDead() {
+        return playerDead || player.currentHealth <= 0f;
+    }
+
+    private void updatePlayerDeath(float delta) {
+        if (!isPlayerDead()) {
+            return;
+        }
+        if (!playerDead) {
+            startPlayerDeath();
+        }
+        if (delta <= 0f) {
+            return;
+        }
+        float respawnDelay = PLAYER_DEATH_ANIMATION_SECONDS;
+        if (playerDeathAnim != null) {
+            float animationDuration = Math.max(0f, playerDeathAnim.getAnimationDuration());
+            playerDeathStateTime = Math.min(animationDuration, playerDeathStateTime + delta);
+            respawnDelay = animationDuration;
+        } else {
+            playerDeathStateTime += delta;
+        }
+        if (playerDeathStateTime >= Math.max(0.1f, respawnDelay)) {
+            respawnPlayerAfterDeath();
+        }
+    }
+
     private void triggerPlayerHazardHitReaction() {
         playerHazardHitReactionTimer = PLAYER_HAZARD_HIT_REACTION_SECONDS;
         playerHazardHitStateTime = 0f;
@@ -1558,6 +3269,70 @@ public class GameScreen extends ScreenAdapter {
         activeAttackAnim = null;
         dashAttackPlannedPositionValid = false;
         clearDashAttackSweepState();
+    }
+
+    private void applyDamageToPlayer(float damage) {
+        if (player.currentHealth <= 0f || infiniteHealthEnabled) {
+            return;
+        }
+        player.currentHealth = Math.max(0f, player.currentHealth - Math.max(0f, damage));
+        if (player.currentHealth <= 0f) {
+            startPlayerDeath();
+        } else {
+            triggerPlayerHazardHitReaction();
+        }
+    }
+
+    private void startPlayerDeath() {
+        if (playerDead) {
+            return;
+        }
+        playerDead = true;
+        playerDeathStateTime = 0f;
+        clearPlayerHazardHitReaction();
+        player.attacking = false;
+        player.attackTimer = 0f;
+        player.dashing = false;
+        player.dashTimer = 0f;
+        player.dashAttackActive = false;
+        player.dashAttackMoveDuration = 0f;
+        player.dashAttackFollowupQueued = false;
+        player.moving = false;
+        activeAttackAnim = null;
+        postDashMovementLockTimer = 0f;
+        cameraTeleportTargetActive = false;
+        dashAttackPlannedPositionValid = false;
+        clearDashAttackSweepState();
+    }
+
+    private void resetPlayerDeathState() {
+        playerDead = false;
+        playerDeathStateTime = 0f;
+    }
+
+    private void respawnPlayerAfterDeath() {
+        int currentLevel = PlayerLevelStats.clampLevel(player.playerLevel);
+        String respawnMapId = MAP_ID_VILLAGE;
+        String respawnSpawnLayer = THIRD_QUEST_INN_ENTRANCE_LAYER_NAME;
+        String respawnMessage = "You recover outside the inn.";
+        if (MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            respawnMapId = MAP_ID_DEMON_CASTLE;
+            respawnSpawnLayer = "Spawn";
+            respawnMessage = "You recover at the castle entrance.";
+        }
+
+        loadMap(respawnMapId, respawnSpawnLayer);
+        applyPlayerLevelStats(
+                currentLevel,
+                PlayerLevelStats.maxHealthForLevel(currentLevel),
+                PlayerLevelStats.maxStaminaForLevel(currentLevel));
+        centerCameraOnPlayer();
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    "Respawn",
+                    respawnMessage,
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
     }
 
     private void clearPlayerHazardHitReaction() {
@@ -1747,7 +3522,15 @@ public class GameScreen extends ScreenAdapter {
         MapLayer room3DoorGroup = findLayerByName(ROOM3_DOOR_ANIMATION_GROUP_NAME);
         room3DoorTriggerLayer = findLayerInGroup(
                 ROOM3_DOOR_ANIMATION_GROUP_NAME,
-                ROOM3_DOOR_TRIGGER_LAYER_NAME);
+                ROOM3_DOOR_TRIGGER_LAYER_NAME_ALT);
+        if (room3DoorTriggerLayer == null) {
+            room3DoorTriggerLayer = findLayerInGroup(
+                    ROOM3_DOOR_ANIMATION_GROUP_NAME,
+                    ROOM3_DOOR_TRIGGER_LAYER_NAME);
+        }
+        if (room3DoorTriggerLayer == null) {
+            room3DoorTriggerLayer = findLayerByName(ROOM3_DOOR_TRIGGER_LAYER_NAME_ALT);
+        }
         if (room3DoorTriggerLayer == null) {
             // In Demon-Castle_finite.tmx this trigger is authored in a sibling door group.
             room3DoorTriggerLayer = findLayerByName(ROOM3_DOOR_TRIGGER_LAYER_NAME);
@@ -1872,7 +3655,7 @@ public class GameScreen extends ScreenAdapter {
         if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
             return;
         }
-        bossFightZoneLayer = findLayerInGroup(BOSS_1_GROUP_LAYER_NAME, BOSS_FIGHT_ZONE_LAYER_NAME);
+        bossFightZoneLayer = resolveFightZoneLayer(BOSS_1_GROUP_LAYER_NAME, BOSS_FIGHT_ZONE_LAYER_NAME);
         Rectangle bounds = objectLayerBounds(bossFightZoneLayer);
         if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
             bossFightZoneBounds.set(bounds);
@@ -1993,7 +3776,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void configureRewardChestSpawns() {
         clearSpawnedRewardChests();
-        if (chestIdleAnim == null && chestOpenAnim == null) {
+        if (isSixthQuestCastleRaidActive() || isSixthQuestFinalBattleActive() || (chestIdleAnim == null && chestOpenAnim == null)) {
             return;
         }
         MapLayer spawnLayer = resolveRewardChestSpawnLayer();
@@ -2027,12 +3810,28 @@ public class GameScreen extends ScreenAdapter {
         return findLayerByName(CHEST_REWARD_OBJECT_LAYER_NAME);
     }
 
+    private boolean isSixthQuestCastleRaidActive() {
+        return MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
+                && sixthQuestStage < SIXTH_QUEST_FINAL_PHASE_INTRO;
+    }
+
+    private boolean isSixthQuestFinalBattleActive() {
+        return MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)
+                && sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_INTRO
+                && sixthQuestStage < SIXTH_QUEST_COMPLETE;
+    }
+
     private MapLayer resolveGolem1WalkableLayer() {
-        MapLayer layer = findLayerInGroup(GOLEM_1_GROUP_LAYER_NAME, GOLEM_1_WALKABLE_LAYER_NAME);
-        if (layer != null) {
-            return layer;
+        return resolveFightZoneLayer(GOLEM_1_GROUP_LAYER_NAME, GOLEM_1_WALKABLE_LAYER_NAME);
+    }
+
+    private MapLayer resolveFightZoneLayer(String groupLayerName, String layerName) {
+        MapLayer layer = findLayerInGroup(groupLayerName, layerName);
+        if (isWallCollisionLayer(layer)) {
+            return null;
         }
-        return findLayerByName(GOLEM_1_WALKABLE_LAYER_NAME);
+        return layer;
     }
 
     private MapLayer resolveGolem1SpawnLayer() {
@@ -2099,6 +3898,20 @@ public class GameScreen extends ScreenAdapter {
         bats.add(bat);
     }
 
+    private void addTutorialBatAt(float x, float y) {
+        BatInstance bat = new BatInstance();
+        bat.position.set(x, y);
+        bat.tutorialEnemy = true;
+        bat.maxHealth = THIRD_QUEST_TUTORIAL_BAT_HEALTH;
+        bat.health = THIRD_QUEST_TUTORIAL_BAT_HEALTH;
+        bat.chaseSpeed = THIRD_QUEST_TUTORIAL_BAT_SPEED;
+        bat.playerDamage = THIRD_QUEST_TUTORIAL_BAT_DAMAGE;
+        bat.attackIntervalSeconds = VILLAGE_BAT_ATTACK_INTERVAL_SECONDS;
+        bat.state = BatAnimationState.CHASING;
+        bat.stateTime = 0f;
+        bats.add(bat);
+    }
+
     private void addGolem1At(float x, float y, Rectangle zoneBounds) {
         Golem1Instance golem = new Golem1Instance();
         golem.position.set(x, y);
@@ -2125,11 +3938,14 @@ public class GameScreen extends ScreenAdapter {
         float spawnOffsetX = BOSS_ARENA_PHASE_2_DEMON_SPAWN_OFFSET_X_TILES * DEFAULT_TILE_SIZE;
         float spawnOffsetY = BOSS_ARENA_PHASE_2_DEMON_SPAWN_OFFSET_Y_TILES * DEFAULT_TILE_SIZE;
         demon.position.set(x + spawnOffsetX, y + spawnOffsetY);
+        demon.maxHealth = SIXTH_QUEST_BOSS_PHASE_2_HEALTH;
+        demon.health = demon.maxHealth;
         demon.facingLeft = true;
         demon.attacking = false;
         demon.attackStateTime = 0f;
         demon.hurting = false;
         demon.hurtStateTime = 0f;
+        demon.attackDamageApplied = false;
         demon.playerHitCooldownTimer = 0f;
         demon.lastDashAttackHitId = -1;
         Animation<TextureRegion> spawnAnimation = bossArenaPhase2DemonIdleAnim != null
@@ -2454,10 +4270,14 @@ public class GameScreen extends ScreenAdapter {
         float stopDistance = BOSS_ARENA_PHASE_2_DEMON_CHASE_STOP_DISTANCE_TILES * DEFAULT_TILE_SIZE;
         float stopDistanceSq = stopDistance * stopDistance;
         float attackRangeSq = BOSS_ARENA_PHASE_2_DEMON_ATTACK_RANGE * BOSS_ARENA_PHASE_2_DEMON_ATTACK_RANGE;
-        for (int i = 0; i < bossArenaPhase2Demons.size; i++) {
+        for (int i = bossArenaPhase2Demons.size - 1; i >= 0; i--) {
             BossArenaPhase2DemonInstance demon = bossArenaPhase2Demons.get(i);
             if (demon.playerHitCooldownTimer > 0f) {
                 demon.playerHitCooldownTimer = Math.max(0f, demon.playerHitCooldownTimer - safeDelta);
+            }
+            if (demon.health <= 0f && !demon.hurting) {
+                bossArenaPhase2Demons.removeIndex(i);
+                continue;
             }
             float detectionCenterX = bossArenaPhase2DemonDetectionCenterX(demon);
             float detectionCenterY = bossArenaPhase2DemonDetectionCenterY(demon);
@@ -2472,11 +4292,16 @@ public class GameScreen extends ScreenAdapter {
             if (demon.hurting) {
                 demon.attackStateTime = 0f;
                 demon.attacking = false;
+                demon.attackDamageApplied = false;
                 demon.hurtStateTime += safeDelta;
                 if (bossArenaPhase2DemonHurtAnim == null
                         || bossArenaPhase2DemonHurtAnim.isAnimationFinished(demon.hurtStateTime)) {
                     demon.hurting = false;
                     demon.hurtStateTime = 0f;
+                    if (demon.health <= 0f) {
+                        bossArenaPhase2Demons.removeIndex(i);
+                        continue;
+                    }
                 }
                 demon.stateTime += safeDelta;
                 continue;
@@ -2484,10 +4309,23 @@ public class GameScreen extends ScreenAdapter {
 
             if (demon.attacking) {
                 demon.attackStateTime += safeDelta;
+                if (!demon.attackDamageApplied) {
+                    float impactTime = safeDelta;
+                    if (bossArenaPhase2DemonAttackAnim != null) {
+                        impactTime = Math.max(safeDelta, bossArenaPhase2DemonAttackAnim.getAnimationDuration() * 0.5f);
+                    }
+                    if (demon.attackStateTime >= impactTime) {
+                        demon.attackDamageApplied = true;
+                        if (distanceSq <= attackRangeSq) {
+                            applyDamageToPlayer(SIXTH_QUEST_BOSS_PHASE_2_DAMAGE);
+                        }
+                    }
+                }
                 if (bossArenaPhase2DemonAttackAnim == null
                         || bossArenaPhase2DemonAttackAnim.isAnimationFinished(demon.attackStateTime)) {
                     demon.attacking = false;
                     demon.attackStateTime = 0f;
+                    demon.attackDamageApplied = false;
                 }
             }
 
@@ -2495,6 +4333,7 @@ public class GameScreen extends ScreenAdapter {
                 if (!demon.attacking) {
                     demon.attacking = true;
                     demon.attackStateTime = 0f;
+                    demon.attackDamageApplied = false;
                 }
                 demon.stateTime += safeDelta;
                 continue;
@@ -2515,6 +4354,219 @@ public class GameScreen extends ScreenAdapter {
             }
             demon.stateTime += safeDelta;
         }
+    }
+
+    private void updateFifthQuestDemons(float delta) {
+        if (fifthQuestDemons.size == 0
+                || delta <= 0f
+                || (!MAP_ID_VILLAGE.equals(world.activeMapId)
+                && !MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && !MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId))) {
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        for (int i = fifthQuestDemons.size - 1; i >= 0; i--) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.playerHitCooldownTimer > 0f) {
+                demon.playerHitCooldownTimer = Math.max(0f, demon.playerHitCooldownTimer - safeDelta);
+            }
+            if (demon.attackCooldownTimer > 0f) {
+                demon.attackCooldownTimer = Math.max(0f, demon.attackCooldownTimer - safeDelta);
+            }
+
+            if (demon.dying) {
+                demon.dieStateTime += safeDelta;
+                Animation<TextureRegion> deathAnimation = fifthQuestDemonDeadAnimation(demon.type);
+                if (deathAnimation == null || deathAnimation.isAnimationFinished(demon.dieStateTime)) {
+                    fifthQuestDemons.removeIndex(i);
+                }
+                continue;
+            }
+
+            float dx = playerCenterX - demon.position.x;
+            float dy = playerCenterY - demon.position.y;
+            if (Math.abs(dx) > 0.001f) {
+                demon.facingLeft = dx < 0f;
+            }
+
+            if (demon.hurting) {
+                demon.moving = false;
+                demon.attacking = false;
+                demon.attackStateTime = 0f;
+                demon.attackDamageApplied = false;
+                demon.hurtStateTime += safeDelta;
+                Animation<TextureRegion> hurtAnimation = fifthQuestDemonHurtAnimation(demon.type);
+                if (hurtAnimation == null || hurtAnimation.isAnimationFinished(demon.hurtStateTime)) {
+                    demon.hurting = false;
+                    demon.hurtStateTime = 0f;
+                }
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            if (demon.attacking) {
+                demon.moving = false;
+                demon.attackStateTime += safeDelta;
+                Animation<TextureRegion> attackAnimation = fifthQuestDemonAttackAnimation(demon.type);
+                tryApplyFifthQuestDemonAttackHitToPlayer(demon, attackAnimation);
+                if (attackAnimation == null || attackAnimation.isAnimationFinished(demon.attackStateTime)) {
+                    demon.attacking = false;
+                    demon.attackStateTime = 0f;
+                    demon.attackDamageApplied = false;
+                }
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            if (!Intersector.overlaps(player.bounds, demon.zoneBounds)) {
+                demon.moving = false;
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq <= demon.attackRange * demon.attackRange) {
+                demon.moving = false;
+                if (demon.attackCooldownTimer <= 0f) {
+                    startFifthQuestDemonAttack(demon);
+                }
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            float stopDistance = Math.max(18f, demon.attackRange * 0.62f);
+            float stopDistanceSq = stopDistance * stopDistance;
+            boolean moved = false;
+            if (distanceSq > stopDistanceSq) {
+                float distance = (float) Math.sqrt(distanceSq);
+                float maxStep = demon.chaseSpeed * safeDelta;
+                float remainingAfterStop = Math.max(0f, distance - stopDistance);
+                float step = Math.min(maxStep, remainingAfterStop);
+                if (step > 0f && distance > 0.001f) {
+                    demon.position.x += dx / distance * step;
+                    demon.position.y += dy / distance * step;
+                    clampFifthQuestDemonToZone(demon);
+                    moved = true;
+                }
+            }
+            demon.moving = moved;
+            demon.stateTime += safeDelta;
+        }
+    }
+
+    private void startFifthQuestDemonAttack(FifthQuestDemonInstance demon) {
+        if (demon == null || demon.dying) {
+            return;
+        }
+        demon.attacking = true;
+        demon.attackStateTime = 0f;
+        demon.attackDamageApplied = false;
+        demon.attackCooldownTimer = Math.max(0.2f, demon.attackIntervalSeconds);
+    }
+
+    private void tryApplyFifthQuestDemonAttackHitToPlayer(FifthQuestDemonInstance demon, Animation<TextureRegion> attackAnimation) {
+        if (demon == null
+                || attackAnimation == null
+                || demon.attackDamageApplied
+                || player.currentHealth <= 0f
+                || isPlayerHazardHitReactionActive()) {
+            return;
+        }
+        float hitMoment = Math.max(0.08f, attackAnimation.getAnimationDuration() * 0.52f);
+        if (demon.attackStateTime < hitMoment) {
+            return;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float dx = playerCenterX - demon.position.x;
+        float dy = playerCenterY - demon.position.y;
+        if (dx * dx + dy * dy > demon.attackRange * demon.attackRange) {
+            return;
+        }
+        demon.attackDamageApplied = true;
+        applyDamageToPlayer(demon.playerDamage);
+    }
+
+    private void updateFifthQuestDemonHurtFromPlayer() {
+        if (fifthQuestDemons.size == 0
+                || !player.attacking
+                || activeAttackAnim == null
+                || isTeleportDashAnimation(activeAttackAnim)) {
+            return;
+        }
+        float hitRange = playerBatHitRange();
+        float hitRangeSq = hitRange * hitRange;
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.dying
+                    || demon.health <= 0f
+                    || demon.playerHitCooldownTimer > 0f
+                    || !isFifthQuestDemonWithinPlayerAttackRange(demon, hitRangeSq)) {
+                continue;
+            }
+            applyHitToFifthQuestDemonFromPlayer(demon);
+        }
+    }
+
+    private void applyHitToFifthQuestDemonFromPlayer(FifthQuestDemonInstance demon) {
+        if (demon == null || demon.dying || demon.health <= 0f || demon.playerHitCooldownTimer > 0f) {
+            return;
+        }
+        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE);
+        demon.moving = false;
+        demon.attacking = false;
+        demon.attackStateTime = 0f;
+        demon.attackDamageApplied = false;
+        if (demon.health <= 0f) {
+            demon.dying = true;
+            demon.dieStateTime = 0f;
+            demon.hurting = false;
+            demon.hurtStateTime = 0f;
+            demon.attackCooldownTimer = 0f;
+            demon.playerHitCooldownTimer = 0f;
+            return;
+        }
+        Animation<TextureRegion> hurtAnimation = fifthQuestDemonHurtAnimation(demon.type);
+        if (hurtAnimation != null) {
+            demon.hurting = true;
+            demon.hurtStateTime = 0f;
+        }
+        demon.playerHitCooldownTimer = FIFTH_QUEST_DEMON_PLAYER_HIT_COOLDOWN_SECONDS;
+    }
+
+    private boolean isFifthQuestDemonWithinPlayerAttackRange(FifthQuestDemonInstance demon, float hitRangeSq) {
+        if (demon == null) {
+            return false;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float centerX = fifthQuestDemonHitboxCenterX(demon);
+        float centerY = fifthQuestDemonHitboxCenterY(demon);
+        float halfWidth = fifthQuestDemonHitboxHalfWidth();
+        float halfHeight = fifthQuestDemonHitboxHalfHeight();
+        float left = centerX - halfWidth;
+        float right = centerX + halfWidth;
+        float bottom = centerY - halfHeight;
+        float top = centerY + halfHeight;
+        float closestX = Math.max(left, Math.min(playerCenterX, right));
+        float closestY = Math.max(bottom, Math.min(playerCenterY, top));
+        float dx = playerCenterX - closestX;
+        float dy = playerCenterY - closestY;
+        return dx * dx + dy * dy <= hitRangeSq;
+    }
+
+    private void clampFifthQuestDemonToZone(FifthQuestDemonInstance demon) {
+        if (demon == null || demon.zoneBounds.width <= 0f || demon.zoneBounds.height <= 0f) {
+            return;
+        }
+        float minX = demon.zoneBounds.x;
+        float minY = demon.zoneBounds.y;
+        float maxX = demon.zoneBounds.x + demon.zoneBounds.width;
+        float maxY = demon.zoneBounds.y + demon.zoneBounds.height;
+        demon.position.x = Math.max(minX, Math.min(demon.position.x, maxX));
+        demon.position.y = Math.max(minY, Math.min(demon.position.y, maxY));
     }
 
     private void updateGolem1ExplosionLine(Golem1Instance golem, float delta) {
@@ -2869,8 +4921,7 @@ public class GameScreen extends ScreenAdapter {
         if (!isPlayerInsideEvilWizardAttackZone() || isPlayerInsideEvilWizardSafeCircle()) {
             return;
         }
-        player.currentHealth = Math.max(0f, player.currentHealth - EVIL_WIZARD_ATTACK_HAZARD_DAMAGE);
-        triggerPlayerHazardHitReaction();
+        applyDamageToPlayer(EVIL_WIZARD_ATTACK_HAZARD_DAMAGE);
     }
 
     private void playEvilWizardPreExplosionWarningSfx() {
@@ -3082,17 +5133,21 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void applyHitToBossArenaPhase2DemonFromPlayer(BossArenaPhase2DemonInstance demon) {
-        if (demon == null || demon.hurting || demon.playerHitCooldownTimer > 0f) {
+        if (demon == null || demon.hurting || demon.playerHitCooldownTimer > 0f || demon.health <= 0f) {
             return;
         }
+        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE);
         demon.moving = false;
         demon.attacking = false;
         demon.attackStateTime = 0f;
+        demon.attackDamageApplied = false;
         if (bossArenaPhase2DemonHurtAnim != null) {
             demon.hurting = true;
             demon.hurtStateTime = 0f;
         }
-        demon.playerHitCooldownTimer = BOSS_ARENA_PHASE_2_DEMON_PLAYER_HIT_COOLDOWN_SECONDS;
+        demon.playerHitCooldownTimer = demon.health > 0f
+                ? BOSS_ARENA_PHASE_2_DEMON_PLAYER_HIT_COOLDOWN_SECONDS
+                : 0f;
     }
 
     private void startGolem1Dying(Golem1Instance golem) {
@@ -3356,6 +5411,9 @@ public class GameScreen extends ScreenAdapter {
             if (bat.playerHitCooldownTimer > 0f) {
                 bat.playerHitCooldownTimer = Math.max(0f, bat.playerHitCooldownTimer - delta);
             }
+            if (bat.attackCooldownTimer > 0f) {
+                bat.attackCooldownTimer = Math.max(0f, bat.attackCooldownTimer - delta);
+            }
 
             if (bat.state == BatAnimationState.DIE) {
                 if (batDieAnim == null || batDieAnim.isAnimationFinished(bat.stateTime)) {
@@ -3367,6 +5425,7 @@ public class GameScreen extends ScreenAdapter {
                 if (batHurtAnim == null || batHurtAnim.isAnimationFinished(bat.stateTime)) {
                     bat.state = bat.stateBeforeHurt;
                     bat.stateTime = 0f;
+                    bat.attackDamageApplied = false;
                 }
                 continue;
             }
@@ -3374,6 +5433,7 @@ public class GameScreen extends ScreenAdapter {
                 if (batWakeUpAnim != null && batWakeUpAnim.isAnimationFinished(bat.stateTime)) {
                     bat.state = BatAnimationState.IDLE_FLY;
                     bat.stateTime = 0f;
+                    bat.attackDamageApplied = false;
                 }
                 continue;
             }
@@ -3381,12 +5441,13 @@ public class GameScreen extends ScreenAdapter {
                 if (bat.stateTime >= BAT_IDLE_FLY_TO_CHASE_SECONDS) {
                     bat.state = BatAnimationState.CHASING;
                     bat.stateTime = 0f;
+                    bat.attackDamageApplied = false;
                 }
                 continue;
             }
             if (bat.state == BatAnimationState.CHASING) {
                 updateBatChaseMovement(bat, delta);
-                if (isBatWithinAttackRange(bat)) {
+                if (bat.attackCooldownTimer <= 0f && isBatWithinAttackRange(bat)) {
                     startBatAttack(bat);
                 }
                 continue;
@@ -3396,13 +5457,17 @@ public class GameScreen extends ScreenAdapter {
                 if (activeAttack == null) {
                     bat.state = BatAnimationState.CHASING;
                     bat.stateTime = 0f;
+                    bat.attackDamageApplied = false;
                 } else if (activeAttack.isAnimationFinished(bat.stateTime)) {
-                    if (isBatWithinAttackRange(bat)) {
+                    if (bat.attackCooldownTimer <= 0f && isBatWithinAttackRange(bat)) {
                         startBatAttack(bat);
                     } else {
                         bat.state = BatAnimationState.CHASING;
                         bat.stateTime = 0f;
+                        bat.attackDamageApplied = false;
                     }
+                } else {
+                    tryApplyBatAttackHitToPlayer(bat, activeAttack);
                 }
             }
         }
@@ -3415,7 +5480,7 @@ public class GameScreen extends ScreenAdapter {
 
         float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
         float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
-        float maxStep = BAT_CHASE_SPEED * delta;
+        float maxStep = bat.chaseSpeed * delta;
         float stopDistanceSq = BAT_CHASE_STOP_DISTANCE * BAT_CHASE_STOP_DISTANCE;
         float dx = playerCenterX - bat.position.x;
         float dy = playerCenterY - bat.position.y;
@@ -3463,6 +5528,8 @@ public class GameScreen extends ScreenAdapter {
 
         bat.state = BatAnimationState.ATTACKING;
         bat.stateTime = 0f;
+        bat.attackDamageApplied = false;
+        bat.attackCooldownTimer = Math.max(0f, bat.attackIntervalSeconds);
     }
 
     private Animation<TextureRegion> activeBatAttackAnimation(BatInstance bat) {
@@ -3473,6 +5540,24 @@ public class GameScreen extends ScreenAdapter {
             return batAttack1Anim != null ? batAttack1Anim : batAttack2Anim;
         }
         return batAttack2Anim != null ? batAttack2Anim : batAttack1Anim;
+    }
+
+    private void tryApplyBatAttackHitToPlayer(BatInstance bat, Animation<TextureRegion> attackAnimation) {
+        if (bat == null
+                || attackAnimation == null
+                || bat.attackDamageApplied
+                || player.currentHealth <= 0f
+                || isPlayerHazardHitReactionActive()) {
+            return;
+        }
+
+        float hitMoment = Math.max(0.08f, attackAnimation.getAnimationDuration() * 0.5f);
+        if (bat.stateTime < hitMoment || !isBatWithinAttackRange(bat)) {
+            return;
+        }
+
+        bat.attackDamageApplied = true;
+        applyDamageToPlayer(bat.playerDamage);
     }
 
     private void updateBatHurtFromPlayer() {
@@ -3867,7 +5952,7 @@ public class GameScreen extends ScreenAdapter {
         float playerTargetX = player.bounds.x + player.bounds.width * 0.5f;
         float playerTargetY = player.bounds.y + player.bounds.height * 0.5f;
         if (boss1IntroPhase == Boss1IntroPhase.STEP_DOWN) {
-            float step = PLAYER_SPEED * safeDelta;
+            float step = currentPlayerMoveSpeed() * safeDelta;
             tryMove(0f, -step);
             player.lastMoveX = 0f;
             player.lastMoveY = -1f;
@@ -3960,12 +6045,13 @@ public class GameScreen extends ScreenAdapter {
             bossFightZoneDarkTransitionTimer = 0f;
             return;
         }
-        if (!bossFightZoneDarkMode && isPlayerWithinObjectLayer(bossFightZoneLayer)) {
+        boolean playerInsideZone = isPlayerInsideZoneBounds(bossFightZoneBounds);
+        if (!bossFightZoneDarkMode && playerInsideZone) {
             bossFightZoneDarkMode = true;
         }
         if (!boss1IntroPlayed
                 && !isBoss1IntroActive()
-                && isPlayerWithinObjectLayer(bossFightZoneLayer)) {
+                && playerInsideZone) {
             startBoss1IntroSequence();
         }
         if (!bossFightZoneDarkMode) {
@@ -3989,7 +6075,7 @@ public class GameScreen extends ScreenAdapter {
             golemFightZoneDarkTransitionTimer = 0f;
             return;
         }
-        boolean playerInside = isPlayerWithinObjectLayer(golemFightZoneLayer);
+        boolean playerInside = isPlayerInsideZoneBounds(golemFightZoneBounds);
         if (!playerInside) {
             golemFightZoneDarkMode = false;
             golemFightZoneDarkTransitionTimer = 0f;
@@ -4022,6 +6108,22 @@ public class GameScreen extends ScreenAdapter {
         return isBoss1Defeated()
                 && isBoss2Defeated()
                 && isGolemFightCleared();
+    }
+
+    private boolean hasLivingBatInZone(Rectangle zoneBounds) {
+        if (zoneBounds == null || zoneBounds.width <= 0f || zoneBounds.height <= 0f) {
+            return false;
+        }
+        for (int i = 0; i < bats.size; i++) {
+            BatInstance bat = bats.get(i);
+            if (bat == null || bat.health <= 0f || bat.state == BatAnimationState.DIE) {
+                continue;
+            }
+            if (zoneBounds.contains(bat.position.x, bat.position.y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasLivingEvilWizardInZone(Rectangle zoneBounds) {
@@ -4085,9 +6187,21 @@ public class GameScreen extends ScreenAdapter {
         if (rect == null) {
             return false;
         }
+        if (bossFightZoneBounds.width <= 0f || bossFightZoneBounds.height <= 0f) {
+            return false;
+        }
         float centerX = rect.x + rect.width * 0.5f;
         float centerY = rect.y + rect.height * 0.5f;
         return bossFightZoneBounds.contains(centerX, centerY);
+    }
+
+    private boolean isPlayerInsideZoneBounds(Rectangle zoneBounds) {
+        if (zoneBounds == null || zoneBounds.width <= 0f || zoneBounds.height <= 0f) {
+            return false;
+        }
+        float centerX = player.bounds.x + player.bounds.width * 0.5f;
+        float centerY = player.bounds.y + player.bounds.height * 0.5f;
+        return zoneBounds.contains(centerX, centerY);
     }
 
     private void startRoom3DoorClosing() {
@@ -4857,6 +6971,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void onPlayerSpawned() {
         clearPlayerHazardHitReaction();
+        resetPlayerDeathState();
         if (hudRenderer == null) {
             return;
         }
@@ -4962,9 +7077,2382 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void updateDayNightCycle(float delta) {
-        if (dayNightCycle != null) {
-            dayNightCycle.update(delta);
+        // Automatic cycling is disabled. Time-of-day now changes only through explicit controls.
+    }
+
+    private void updatePlayerStamina(float delta) {
+        if (delta <= 0f || isPlayerDead() || player.currentMana >= player.maxMana) {
+            return;
         }
+        player.currentMana = Math.min(player.maxMana, player.currentMana + STAMINA_REGEN_PER_SECOND * delta);
+    }
+
+    private void updatePlayerHealth(float delta) {
+        if (delta <= 0f || isPlayerDead() || player.currentHealth >= player.maxHealth) {
+            return;
+        }
+        player.currentHealth = Math.min(player.maxHealth, player.currentHealth + HEALTH_REGEN_PER_SECOND * delta);
+    }
+
+    private void updateFirstQuest(float delta) {
+        firstQuestMarkerTimer += Math.max(0f, delta);
+        firstQuestCafeNpcStateTime += Math.max(0f, delta);
+        questGuidanceSuppressTimer = Math.max(0f, questGuidanceSuppressTimer - Math.max(0f, delta));
+        updateThirdQuest(delta);
+        updateFourthQuest(delta);
+        updateFifthQuest(delta);
+        updateSixthQuest(delta);
+        refreshFirstQuestGuidance();
+    }
+
+    private void refreshFirstQuestGuidance() {
+        if (hudRenderer == null || isFirstQuestOverlayActive() || questGuidanceSuppressTimer > 0f) {
+            return;
+        }
+        if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE && MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIRST_QUEST_NOTIFICATION_TITLE, "Leave the room.");
+            return;
+        }
+        if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE && MAP_ID_INN.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIRST_QUEST_NOTIFICATION_TITLE, "Leave the inn.");
+            return;
+        }
+        if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIRST_QUEST_NOTIFICATION_TITLE,
+                    "Bring the Herb-and-Spice to the cafe owner outside the cafe.");
+            return;
+        }
+        if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE, "Speak with the cafe owner.");
+            return;
+        }
+        if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Bring the Scorched Fragment to the Research Lab.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Show the fragment to the scientist.");
+                return;
+            }
+        }
+        if (secondQuestStage == SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Go upstairs to Research Lab Floor 2.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Retrieve the Archive Notes from the worktable.");
+                return;
+            }
+        }
+        if (secondQuestStage == SECOND_QUEST_RETURN_TO_SCIENTIST) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Return downstairs to the scientist.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Bring the Archive Notes to the scientist.");
+                return;
+            }
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Leave the Research Lab.");
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Return to the inn.");
+                return;
+            }
+            if (MAP_ID_INN.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Go back to the inn room.");
+                return;
+            }
+            if (MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Speak with Father.");
+                return;
+            }
+        }
+        if (thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE) {
+            if (MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Leave the room.");
+                return;
+            }
+            if (MAP_ID_INN.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Leave the inn.");
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(THIRD_QUEST_NOTIFICATION_TITLE, "Meet Father behind the inn.");
+                return;
+            }
+        }
+        if (thirdQuestStage == THIRD_QUEST_MOVEMENT_TUTORIAL && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(
+                    THIRD_QUEST_NOTIFICATION_TITLE,
+                    "Reach all training markers (" + thirdQuestMovementMarkersReached + "/" + thirdQuestMovementMarkers.length + ").");
+            return;
+        }
+        if (thirdQuestStage == THIRD_QUEST_ATTACK_TUTORIAL && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(
+                    THIRD_QUEST_NOTIFICATION_TITLE,
+                    "Hit the training dummy (" + thirdQuestAttackDummyHitCount + "/" + THIRD_QUEST_DUMMY_HITS_REQUIRED + ").");
+            return;
+        }
+        if (thirdQuestStage == THIRD_QUEST_COMBAT_TUTORIAL && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(
+                    THIRD_QUEST_NOTIFICATION_TITLE,
+                    "Defeat the training shades and wait for safe openings.");
+            return;
+        }
+        if (thirdQuestStage == THIRD_QUEST_SPAR_WITH_FATHER && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(
+                    THIRD_QUEST_NOTIFICATION_TITLE,
+                    thirdQuestSparActive
+                            ? "Spar with Father. Stay calm and strike with intent."
+                            : "Speak with Father.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_REPORT_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Head to the Research Lab.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Report to the scientist.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_TALK_TO_CAFE_OWNER) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Leave the Research Lab.");
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the corrupted site outside the cafe.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Examine the corrupted mark outside the cafe.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Defeat the corrupted enemies near the cafe.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the corrupted site in the village center.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_CENTER_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Clear the corruption threatening the village center.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_EDGE_MARK && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the final corrupted site near the outer road.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EDGE_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Defeat the corrupted enemies at the village edge.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Bring the samples back to the scientist.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Deliver the samples to the scientist.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_ARRAY) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Go upstairs and activate the Resonance Array.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Find the Resonance Array controls.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_1 && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Activate the first outer array node.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2 && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Activate the second outer array node.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3 && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Activate the third outer array node.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Return to the main console and begin the scan.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ARRAY_DEFENSE && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "Protect the Resonance Array until the scan completes.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Go back downstairs.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Leave the Research Lab and head to the breach site.");
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Go to the breach forming near the outer road.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_BREACH && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the breach site.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_BREACH_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Defeat the Rift Beast before the breach expands.");
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Bring the Rift Core to the scientist.");
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Give the Rift Core to the scientist.");
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EPILOGUE && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Speak with the scientist.");
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Leave the Research Lab.");
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Go to the abandoned village by the portal.");
+                return;
+            }
+        }
+        if (fifthQuestStage == FIFTH_QUEST_OUTER_RUINS_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Defeat all demons in the outer ruins.");
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_ADVANCE_TO_PORTAL && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Advance deeper toward the portal.");
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_MID_RUINS_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Defeat the demons blocking the path.");
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_1_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Defeat the demons guarding the anchor.");
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_DESTROY)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Use the interact key/button to destroy the anchor.");
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_PORTAL_BOSS && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(FIFTH_QUEST_NOTIFICATION_TITLE, "Defeat the demon guarding the portal.");
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_COMPLETE
+                && sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Enter the Portal and raid the Demon Castle.");
+            return;
+        }
+        if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
+                && sixthQuestStage < SIXTH_QUEST_ENDING
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Return to the portal and continue the assault.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_OUTER_ASSAULT && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Defeat the demons blocking the route to the inner gate.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_A_BATTLE && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Break the first Castle Seal.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Use the interact key/button to shatter the first seal.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_B_BATTLE && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Break the second Castle Seal.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Use the interact key/button to shatter the second seal.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_THRONE_GUARDS && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Advance to the Throne Hall and clear the demon guards.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_BOSS_PHASE_1 && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Confront the Demon in the throne hall.");
+            return;
+        }
+        if ((sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO || sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_BATTLE)
+                && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Survive the final phase and end the demon.");
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_COMPLETE || gameCompleted) {
+            hudRenderer.showPersistentNotification("Game Complete", "The demon is gone. The village is safe.");
+            return;
+        }
+        if (thirdQuestStage == THIRD_QUEST_COMPLETE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            hudRenderer.showPersistentNotification(NEXT_QUEST_NOTIFICATION_TITLE,
+                    "Investigate the fresh demonic mark near the village.");
+        }
+    }
+
+    private void updateThirdQuest(float delta) {
+        if (thirdQuestStage <= THIRD_QUEST_DISABLED) {
+            return;
+        }
+        if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureThirdQuestTrainingLayout();
+        }
+        if (isFirstQuestOverlayActive()) {
+            return;
+        }
+        switch (thirdQuestStage) {
+            case THIRD_QUEST_MOVEMENT_TUTORIAL -> updateThirdQuestMovementTutorial();
+            case THIRD_QUEST_ATTACK_TUTORIAL -> updateThirdQuestAttackTutorial();
+            case THIRD_QUEST_COMBAT_TUTORIAL -> updateThirdQuestCombatTutorial();
+            case THIRD_QUEST_SPAR_WITH_FATHER -> updateThirdQuestFatherSpar(delta);
+            default -> {
+                thirdQuestDummyHitRegistered = false;
+                thirdQuestFatherHitRegistered = false;
+            }
+        }
+    }
+
+    private void updateFourthQuest(float delta) {
+        if (fourthQuestStage <= FOURTH_QUEST_DISABLED) {
+            return;
+        }
+        if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+        } else if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            ensureFourthQuestFloor2Layout();
+        }
+        if (isFirstQuestOverlayActive()) {
+            return;
+        }
+        switch (fourthQuestStage) {
+            case FOURTH_QUEST_CAFE_BATTLE -> updateFourthQuestCafeBattle();
+            case FOURTH_QUEST_CENTER_BATTLE -> updateFourthQuestCenterBattle();
+            case FOURTH_QUEST_EDGE_BATTLE -> updateFourthQuestEdgeBattle();
+            case FOURTH_QUEST_ARRAY_DEFENSE -> updateFourthQuestArrayDefense(delta);
+            case FOURTH_QUEST_BREACH_BATTLE -> updateFourthQuestBreachBattle(delta);
+            default -> {
+            }
+        }
+    }
+
+    private void updateFifthQuest(float delta) {
+        if (fifthQuestStage <= FIFTH_QUEST_DISABLED) {
+            return;
+        }
+        if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFifthQuestVillageLayout();
+        }
+        if (isFirstQuestOverlayActive()) {
+            return;
+        }
+        switch (fifthQuestStage) {
+            case FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE -> {
+                if (MAP_ID_VILLAGE.equals(world.activeMapId)
+                        && fifthQuestVillageLayoutReady
+                        && overlapsPlayerExpanded(fifthQuestRuinsIntroBounds)) {
+                    startQuestDialogue(
+                            QuestDialogueId.FIFTH_QUEST_RUINS_INTRO,
+                            FIFTH_QUEST_RUINS_INTRO_SPEAKERS,
+                            FIFTH_QUEST_RUINS_INTRO_DIALOGUE_LINES);
+                }
+            }
+            case FIFTH_QUEST_OUTER_RUINS_BATTLE -> updateFifthQuestOuterRuinsBattle();
+            case FIFTH_QUEST_ADVANCE_TO_PORTAL -> {
+                if (MAP_ID_VILLAGE.equals(world.activeMapId)
+                        && fifthQuestVillageLayoutReady
+                        && overlapsPlayerExpanded(fifthQuestMidRuinsBounds)) {
+                    beginFifthQuestMidRuinsBattle();
+                }
+            }
+            case FIFTH_QUEST_MID_RUINS_BATTLE -> updateFifthQuestMidRuinsBattle();
+            case FIFTH_QUEST_ANCHOR_1_BATTLE -> updateFifthQuestAnchorBattle(0, FIFTH_QUEST_ENCOUNTER_ANCHOR_1);
+            case FIFTH_QUEST_ANCHOR_2_BATTLE -> updateFifthQuestAnchorBattle(1, FIFTH_QUEST_ENCOUNTER_ANCHOR_2);
+            case FIFTH_QUEST_ANCHOR_3_BATTLE -> updateFifthQuestAnchorBattle(2, FIFTH_QUEST_ENCOUNTER_ANCHOR_3);
+            case FIFTH_QUEST_PORTAL_BOSS -> updateFifthQuestPortalBoss(delta);
+            default -> {
+            }
+        }
+    }
+
+    private void ensureFifthQuestVillageLayout() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || fifthQuestVillageLayoutReady) {
+            return;
+        }
+        Rectangle portalBounds = objectLayerBounds(findLayerByName(FIFTH_QUEST_PORTAL_LAYER_NAME));
+        if (portalBounds == null) {
+            return;
+        }
+        fifthQuestPortalBounds.set(portalBounds);
+        clampRectangleToMap(fifthQuestPortalBounds);
+
+        Rectangle fightingAreaBounds = objectLayerBounds(findLayerByName(FIFTH_QUEST_FIGHTING_AREA_LAYER_NAME));
+        if (fightingAreaBounds != null && fightingAreaBounds.width > 0f && fightingAreaBounds.height > 0f) {
+            fifthQuestFightingAreaBounds.set(fightingAreaBounds);
+            clampRectangleToMap(fifthQuestFightingAreaBounds);
+
+            float outerWidth = Math.min(FIFTH_QUEST_OUTER_RUINS_WIDTH, fifthQuestFightingAreaBounds.width * 0.54f);
+            float outerHeight = Math.min(FIFTH_QUEST_OUTER_RUINS_HEIGHT, fifthQuestFightingAreaBounds.height * 0.86f);
+            float midWidth = Math.min(FIFTH_QUEST_MID_RUINS_WIDTH, fifthQuestFightingAreaBounds.width * 0.58f);
+            float midHeight = Math.min(FIFTH_QUEST_MID_RUINS_HEIGHT, fifthQuestFightingAreaBounds.height * 0.88f);
+            float introWidth = Math.min(108f, outerWidth);
+            float introHeight = Math.min(90f, outerHeight);
+
+            setRectangleInsideBounds(fifthQuestRuinsIntroBounds, fifthQuestFightingAreaBounds, 0.18f, 0.52f, introWidth, introHeight);
+            setRectangleInsideBounds(fifthQuestOuterRuinsBounds, fifthQuestFightingAreaBounds, 0.34f, 0.52f, outerWidth, outerHeight);
+            setRectangleInsideBounds(fifthQuestMidRuinsBounds, fifthQuestFightingAreaBounds, 0.60f, 0.52f, midWidth, midHeight);
+            setRectangleInsideBounds(fifthQuestAnchorBounds[0], fifthQuestFightingAreaBounds, 0.42f, 0.52f, FIFTH_QUEST_ANCHOR_SIZE, FIFTH_QUEST_ANCHOR_SIZE);
+            setRectangleInsideBounds(fifthQuestAnchorBounds[1], fifthQuestFightingAreaBounds, 0.60f, 0.52f, FIFTH_QUEST_ANCHOR_SIZE, FIFTH_QUEST_ANCHOR_SIZE);
+            setRectangleInsideBounds(fifthQuestAnchorBounds[2], fifthQuestFightingAreaBounds, 0.76f, 0.52f, FIFTH_QUEST_ANCHOR_SIZE, FIFTH_QUEST_ANCHOR_SIZE);
+
+            clampRectangleToMap(fifthQuestRuinsIntroBounds);
+            clampRectangleToMap(fifthQuestOuterRuinsBounds);
+            clampRectangleToMap(fifthQuestMidRuinsBounds);
+            for (Rectangle anchorBounds : fifthQuestAnchorBounds) {
+                clampRectangleToMap(anchorBounds);
+            }
+
+            fifthQuestVillageLayoutReady = true;
+            return;
+        }
+        fifthQuestFightingAreaBounds.set(0f, 0f, 0f, 0f);
+
+        float portalCenterX = portalBounds.x + portalBounds.width * 0.5f;
+        float portalCenterY = portalBounds.y + portalBounds.height * 0.5f;
+        setCenteredRectangle(
+                fifthQuestRuinsIntroBounds,
+                portalCenterX - 150f,
+                portalCenterY + 18f,
+                FIFTH_QUEST_OUTER_RUINS_WIDTH,
+                FIFTH_QUEST_OUTER_RUINS_HEIGHT);
+        setCenteredRectangle(
+                fifthQuestOuterRuinsBounds,
+                portalCenterX - 112f,
+                portalCenterY + 22f,
+                FIFTH_QUEST_OUTER_RUINS_WIDTH,
+                FIFTH_QUEST_OUTER_RUINS_HEIGHT);
+        setCenteredRectangle(
+                fifthQuestMidRuinsBounds,
+                portalCenterX - 24f,
+                portalCenterY + 28f,
+                FIFTH_QUEST_MID_RUINS_WIDTH,
+                FIFTH_QUEST_MID_RUINS_HEIGHT);
+        setCenteredRectangle(
+                fifthQuestPortalBounds,
+                portalCenterX + 14f,
+                portalCenterY + 28f,
+                FIFTH_QUEST_PORTAL_ZONE_WIDTH,
+                FIFTH_QUEST_PORTAL_ZONE_HEIGHT);
+        setCenteredRectangle(
+                fifthQuestAnchorBounds[0],
+                portalCenterX - 72f,
+                portalCenterY + 80f,
+                FIFTH_QUEST_ANCHOR_SIZE,
+                FIFTH_QUEST_ANCHOR_SIZE);
+        setCenteredRectangle(
+                fifthQuestAnchorBounds[1],
+                portalCenterX + 18f,
+                portalCenterY + 92f,
+                FIFTH_QUEST_ANCHOR_SIZE,
+                FIFTH_QUEST_ANCHOR_SIZE);
+        setCenteredRectangle(
+                fifthQuestAnchorBounds[2],
+                portalCenterX + 72f,
+                portalCenterY + 18f,
+                FIFTH_QUEST_ANCHOR_SIZE,
+                FIFTH_QUEST_ANCHOR_SIZE);
+
+        clampRectangleToMap(fifthQuestRuinsIntroBounds);
+        clampRectangleToMap(fifthQuestOuterRuinsBounds);
+        clampRectangleToMap(fifthQuestMidRuinsBounds);
+        clampRectangleToMap(fifthQuestPortalBounds);
+        snapQuestZoneToWalkableArea(fifthQuestRuinsIntroBounds, 6, 7);
+        snapQuestZoneToWalkableArea(fifthQuestOuterRuinsBounds, 6, 7);
+        snapQuestZoneToWalkableArea(fifthQuestMidRuinsBounds, 6, 7);
+        snapQuestZoneToWalkableArea(fifthQuestPortalBounds, 6, 7);
+        for (Rectangle anchorBounds : fifthQuestAnchorBounds) {
+            clampRectangleToMap(anchorBounds);
+        }
+
+        fifthQuestVillageLayoutReady = true;
+    }
+
+    private void setRectangleInsideBounds(Rectangle bounds, Rectangle parentBounds, float normalizedCenterX,
+                                          float normalizedCenterY, float width, float height) {
+        if (bounds == null || parentBounds == null) {
+            return;
+        }
+        float clampedWidth = Math.min(Math.max(1f, width), parentBounds.width);
+        float clampedHeight = Math.min(Math.max(1f, height), parentBounds.height);
+        float centerX = parentBounds.x + parentBounds.width * clamp01(normalizedCenterX);
+        float centerY = parentBounds.y + parentBounds.height * clamp01(normalizedCenterY);
+        float minCenterX = parentBounds.x + clampedWidth * 0.5f;
+        float maxCenterX = parentBounds.x + parentBounds.width - clampedWidth * 0.5f;
+        float minCenterY = parentBounds.y + clampedHeight * 0.5f;
+        float maxCenterY = parentBounds.y + parentBounds.height - clampedHeight * 0.5f;
+        if (minCenterX > maxCenterX) {
+            centerX = parentBounds.x + parentBounds.width * 0.5f;
+        } else {
+            centerX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
+        }
+        if (minCenterY > maxCenterY) {
+            centerY = parentBounds.y + parentBounds.height * 0.5f;
+        } else {
+            centerY = Math.max(minCenterY, Math.min(maxCenterY, centerY));
+        }
+        setCenteredRectangle(bounds, centerX, centerY, clampedWidth, clampedHeight);
+    }
+
+    private void clampRectangleToMap(Rectangle bounds) {
+        if (bounds == null || world.mapBounds == null) {
+            return;
+        }
+        float minX = world.mapBounds.x + 12f;
+        float minY = world.mapBounds.y + 12f;
+        float maxX = world.mapBounds.x + world.mapBounds.width - bounds.width - 12f;
+        float maxY = world.mapBounds.y + world.mapBounds.height - bounds.height - 12f;
+        bounds.x = Math.max(minX, Math.min(bounds.x, maxX));
+        bounds.y = Math.max(minY, Math.min(bounds.y, maxY));
+    }
+
+    private void snapQuestZoneToWalkableArea(Rectangle bounds, int maxSearchSteps, int minimumWalkableSamples) {
+        if (bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+            return;
+        }
+
+        Rectangle bestBounds = new Rectangle(bounds);
+        Rectangle candidateBounds = new Rectangle(bounds);
+        float preferredCenterX = bounds.x + bounds.width * 0.5f;
+        float preferredCenterY = bounds.y + bounds.height * 0.5f;
+        float step = DEFAULT_TILE_SIZE;
+        int bestScore = scoreQuestZoneWalkability(bestBounds);
+        float bestDistanceSq = 0f;
+        if (bestScore >= minimumWalkableSamples) {
+            return;
+        }
+
+        for (int radius = 1; radius <= Math.max(1, maxSearchSteps); radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
+                    if (Math.abs(dx) != radius && Math.abs(dy) != radius) {
+                        continue;
+                    }
+                    float candidateCenterX = preferredCenterX + dx * step;
+                    float candidateCenterY = preferredCenterY + dy * step;
+                    candidateBounds.set(
+                            candidateCenterX - bounds.width * 0.5f,
+                            candidateCenterY - bounds.height * 0.5f,
+                            bounds.width,
+                            bounds.height);
+                    clampRectangleToMap(candidateBounds);
+                    int score = scoreQuestZoneWalkability(candidateBounds);
+                    float distanceSq = dx * dx + dy * dy;
+                    if (score > bestScore || (score == bestScore && distanceSq < bestDistanceSq)) {
+                        bestBounds.set(candidateBounds);
+                        bestScore = score;
+                        bestDistanceSq = distanceSq;
+                    }
+                    if (score >= minimumWalkableSamples) {
+                        bounds.set(candidateBounds);
+                        return;
+                    }
+                }
+            }
+        }
+
+        bounds.set(bestBounds);
+    }
+
+    private int scoreQuestZoneWalkability(Rectangle bounds) {
+        if (bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+            return 0;
+        }
+        float[] sampleXs = {0.18f, 0.50f, 0.82f};
+        float[] sampleYs = {0.18f, 0.50f, 0.82f};
+        int score = 0;
+        for (float sampleX : sampleXs) {
+            for (float sampleY : sampleYs) {
+                float centerX = bounds.x + bounds.width * sampleX;
+                float centerY = bounds.y + bounds.height * sampleY;
+                if (isWalkablePlayerCenter(centerX, centerY)) {
+                    score++;
+                }
+            }
+        }
+        return score;
+    }
+
+    private boolean isWalkablePlayerCenter(float centerX, float centerY) {
+        Rectangle testBounds = new Rectangle(
+                centerX - HITBOX_WIDTH * 0.5f,
+                centerY - HITBOX_HEIGHT * 0.5f,
+                HITBOX_WIDTH,
+                HITBOX_HEIGHT);
+        return !collides(testBounds);
+    }
+
+    private Rectangle createWalkableCombatZone(Rectangle anchorBounds, float width, float height) {
+        Rectangle combatBounds = new Rectangle();
+        if (anchorBounds == null || anchorBounds.width <= 0f || anchorBounds.height <= 0f) {
+            return combatBounds;
+        }
+        setCenteredRectangle(
+                combatBounds,
+                anchorBounds.x + anchorBounds.width * 0.5f,
+                anchorBounds.y + anchorBounds.height * 0.5f,
+                width,
+                height);
+        clampRectangleToMap(combatBounds);
+        snapQuestZoneToWalkableArea(combatBounds, 6, 7);
+        return combatBounds;
+    }
+
+    private Vector2 questZonePoint(Rectangle bounds, float normalizedX, float normalizedY) {
+        if (bounds == null) {
+            return new Vector2();
+        }
+        float clampedX = clamp01(normalizedX);
+        float clampedY = clamp01(normalizedY);
+        return new Vector2(
+                bounds.x + bounds.width * clampedX,
+                bounds.y + bounds.height * clampedY);
+    }
+
+    private void startFifthQuest() {
+        fifthQuestStage = FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE;
+        fifthQuestEncounterSpawned = false;
+        fifthQuestCommanderCalloutTimer = 0f;
+        fifthQuestCommanderCalloutIndex = 0;
+        showQuestNotification(
+                FIFTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Go to the abandoned village by the portal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFifthQuestOuterRuinsBattle() {
+        fifthQuestStage = FIFTH_QUEST_OUTER_RUINS_BATTLE;
+        fifthQuestEncounterSpawned = false;
+        showQuestNotification(
+                "Field Reminder",
+                "Use E Dash Attack to engage fast, and right click Spatial Dash to reposition.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    FIFTH_QUEST_NOTIFICATION_TITLE,
+                    "Objective Updated: Clear the outer ruins.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void beginFifthQuestMidRuinsBattle() {
+        fifthQuestStage = FIFTH_QUEST_MID_RUINS_BATTLE;
+        fifthQuestEncounterSpawned = false;
+        if (hudRenderer != null) {
+            hudRenderer.showNotification("Father", "They're guarding the way.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            hudRenderer.showNotification(characterName, "Then I break through.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+        showQuestNotification(
+                FIFTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Defeat the demons blocking the path to the portal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFifthQuestAnchorBattle(int anchorIndex) {
+        fifthQuestStage = switch (anchorIndex) {
+            case 0 -> FIFTH_QUEST_ANCHOR_1_BATTLE;
+            case 1 -> FIFTH_QUEST_ANCHOR_2_BATTLE;
+            default -> FIFTH_QUEST_ANCHOR_3_BATTLE;
+        };
+        fifthQuestEncounterSpawned = false;
+        showQuestNotification(
+                FIFTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Destroy the portal anchors.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFifthQuestPortalBoss() {
+        fifthQuestStage = FIFTH_QUEST_PORTAL_BOSS;
+        fifthQuestEncounterSpawned = false;
+        fifthQuestCommanderCalloutTimer = 0f;
+        fifthQuestCommanderCalloutIndex = 0;
+        showQuestNotification(
+                FIFTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Defeat the demon guarding the portal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void updateFifthQuestOuterRuinsBattle() {
+        if (fifthQuestStage != FIFTH_QUEST_OUTER_RUINS_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fifthQuestEncounterSpawned) {
+            spawnFifthQuestOuterEncounter();
+        }
+        if (fifthQuestEncounterSpawned && countFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_OUTER) <= 0) {
+            fifthQuestEncounterSpawned = false;
+            fifthQuestStage = FIFTH_QUEST_ADVANCE_TO_PORTAL;
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        characterName,
+                        "These are not scouts anymore. This is an invasion.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            showQuestNotification(
+                    FIFTH_QUEST_NOTIFICATION_TITLE,
+                    "Objective Updated: Advance toward the portal.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void updateFifthQuestMidRuinsBattle() {
+        if (fifthQuestStage != FIFTH_QUEST_MID_RUINS_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fifthQuestEncounterSpawned) {
+            spawnFifthQuestMidEncounter();
+        }
+        if (fifthQuestEncounterSpawned && countFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_MID) <= 0) {
+            fifthQuestEncounterSpawned = false;
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        characterName,
+                        "They're not just emerging here. They're preparing this place.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginFifthQuestAnchorBattle(0);
+        }
+    }
+
+    private void updateFifthQuestAnchorBattle(int anchorIndex, int encounterId) {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || anchorIndex < 0 || anchorIndex >= fifthQuestAnchorBounds.length) {
+            return;
+        }
+        Rectangle anchorBounds = fifthQuestAnchorBounds[anchorIndex];
+        if (!fifthQuestEncounterSpawned) {
+            if (overlapsPlayerExpanded(anchorBounds)) {
+                spawnFifthQuestAnchorEncounter(anchorIndex, encounterId);
+            }
+            return;
+        }
+        if (countFifthQuestEncounterDemons(encounterId) > 0) {
+            return;
+        }
+        fifthQuestEncounterSpawned = false;
+        fifthQuestStage = switch (anchorIndex) {
+            case 0 -> FIFTH_QUEST_ANCHOR_1_DESTROY;
+            case 1 -> FIFTH_QUEST_ANCHOR_2_DESTROY;
+            default -> FIFTH_QUEST_ANCHOR_3_DESTROY;
+        };
+        showQuestNotification(
+                FIFTH_QUEST_NOTIFICATION_TITLE,
+                "The anchor is exposed. Use the interact key/button to destroy it.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void updateFifthQuestPortalBoss(float delta) {
+        if (fifthQuestStage != FIFTH_QUEST_PORTAL_BOSS || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fifthQuestEncounterSpawned) {
+            Rectangle triggerBounds = fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds;
+            if (overlapsPlayerExpanded(triggerBounds)) {
+                spawnFifthQuestPortalBossEncounter();
+            }
+            return;
+        }
+        fifthQuestCommanderCalloutTimer += Math.max(0f, delta);
+        if (hudRenderer != null && fifthQuestCommanderCalloutTimer >= FIFTH_QUEST_COMMANDER_CALLOUT_SECONDS) {
+            fifthQuestCommanderCalloutTimer = 0f;
+            hudRenderer.showNotification(
+                    "Father",
+                    FIFTH_QUEST_COMMANDER_CALLOUTS[fifthQuestCommanderCalloutIndex % FIFTH_QUEST_COMMANDER_CALLOUTS.length],
+                    1.4f);
+            fifthQuestCommanderCalloutIndex++;
+        }
+        if (countFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_COMMANDER) <= 0) {
+            fifthQuestEncounterSpawned = false;
+            clearFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_COMMANDER);
+            startQuestDialogue(
+                    QuestDialogueId.FIFTH_QUEST_PORTAL_AFTER,
+                    FIFTH_QUEST_PORTAL_AFTER_SPEAKERS,
+                    FIFTH_QUEST_PORTAL_AFTER_DIALOGUE_LINES);
+        }
+    }
+
+    private void spawnFifthQuestOuterEncounter() {
+        ensureFifthQuestVillageLayout();
+        clearFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_OUTER);
+        Rectangle zoneBounds = createWalkableCombatZone(
+                fifthQuestOuterRuinsBounds,
+                fifthQuestOuterRuinsBounds.width,
+                fifthQuestOuterRuinsBounds.height);
+        Vector2 leftDemon = questZonePoint(zoneBounds, 0.20f, 0.42f);
+        Vector2 upperDemon = questZonePoint(zoneBounds, 0.48f, 0.68f);
+        Vector2 rightDemon = questZonePoint(zoneBounds, 0.80f, 0.32f);
+        addFifthQuestDemonAt(leftDemon.x, leftDemon.y, FifthQuestDemonType.DEMON_1, FIFTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH, FIFTH_QUEST_DEMON_1_DAMAGE, FIFTH_QUEST_DEMON_1_SPEED);
+        addFifthQuestDemonAt(upperDemon.x, upperDemon.y, FifthQuestDemonType.DEMON_1, FIFTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH, FIFTH_QUEST_DEMON_1_DAMAGE, FIFTH_QUEST_DEMON_1_SPEED);
+        addFifthQuestDemonAt(rightDemon.x, rightDemon.y, FifthQuestDemonType.DEMON_1, FIFTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH, FIFTH_QUEST_DEMON_1_DAMAGE, FIFTH_QUEST_DEMON_1_SPEED);
+        fifthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFifthQuestMidEncounter() {
+        ensureFifthQuestVillageLayout();
+        clearFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_MID);
+        Rectangle zoneBounds = createWalkableCombatZone(
+                fifthQuestMidRuinsBounds,
+                fifthQuestMidRuinsBounds.width,
+                fifthQuestMidRuinsBounds.height);
+        Vector2 leftDemon = questZonePoint(zoneBounds, 0.18f, 0.48f);
+        Vector2 upperDemon = questZonePoint(zoneBounds, 0.42f, 0.70f);
+        Vector2 rightDemon = questZonePoint(zoneBounds, 0.68f, 0.44f);
+        Vector2 rearDemon = questZonePoint(zoneBounds, 0.84f, 0.24f);
+        addFifthQuestDemonAt(leftDemon.x, leftDemon.y, FifthQuestDemonType.DEMON_1, FIFTH_QUEST_ENCOUNTER_MID,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 6f, FIFTH_QUEST_DEMON_1_DAMAGE + 2f, FIFTH_QUEST_DEMON_1_SPEED + 2f);
+        addFifthQuestDemonAt(upperDemon.x, upperDemon.y, FifthQuestDemonType.DEMON_2, FIFTH_QUEST_ENCOUNTER_MID,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH, FIFTH_QUEST_DEMON_2_DAMAGE, FIFTH_QUEST_DEMON_2_SPEED);
+        addFifthQuestDemonAt(rightDemon.x, rightDemon.y, FifthQuestDemonType.DEMON_1, FIFTH_QUEST_ENCOUNTER_MID,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 6f, FIFTH_QUEST_DEMON_1_DAMAGE + 2f, FIFTH_QUEST_DEMON_1_SPEED + 2f);
+        addFifthQuestDemonAt(rearDemon.x, rearDemon.y, FifthQuestDemonType.DEMON_2, FIFTH_QUEST_ENCOUNTER_MID,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 8f, FIFTH_QUEST_DEMON_2_DAMAGE + 2f, FIFTH_QUEST_DEMON_2_SPEED + 2f);
+        fifthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFifthQuestAnchorEncounter(int anchorIndex, int encounterId) {
+        ensureFifthQuestVillageLayout();
+        Rectangle anchorBounds = fifthQuestAnchorBounds[anchorIndex];
+        clearFifthQuestEncounterDemons(encounterId);
+        Rectangle zoneBounds = createWalkableCombatZone(anchorBounds, 118f, 96f);
+        Vector2 leftDemon = questZonePoint(zoneBounds, 0.20f, 0.44f);
+        Vector2 upperDemon = questZonePoint(zoneBounds, 0.52f, 0.68f);
+        Vector2 eliteDemon = questZonePoint(zoneBounds, 0.78f, 0.30f);
+        addFifthQuestDemonAt(leftDemon.x, leftDemon.y, FifthQuestDemonType.DEMON_1, encounterId,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 8f, FIFTH_QUEST_DEMON_1_DAMAGE + 2f, FIFTH_QUEST_DEMON_1_SPEED + 2f);
+        addFifthQuestDemonAt(upperDemon.x, upperDemon.y, FifthQuestDemonType.DEMON_2, encounterId,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 10f, FIFTH_QUEST_DEMON_2_DAMAGE + 2f, FIFTH_QUEST_DEMON_2_SPEED + 2f);
+        FifthQuestDemonType eliteType = anchorIndex == 2 ? FifthQuestDemonType.DEMON_3 : FifthQuestDemonType.DEMON_2;
+        float eliteHealth = anchorIndex == 2 ? FIFTH_QUEST_DEMON_3_HEALTH : FIFTH_QUEST_DEMON_2_HEALTH + 18f;
+        float eliteDamage = anchorIndex == 2 ? FIFTH_QUEST_DEMON_3_DAMAGE : FIFTH_QUEST_DEMON_2_DAMAGE + 4f;
+        float eliteSpeed = anchorIndex == 2 ? FIFTH_QUEST_DEMON_3_SPEED : FIFTH_QUEST_DEMON_2_SPEED + 4f;
+        addFifthQuestDemonAt(eliteDemon.x, eliteDemon.y, eliteType, encounterId, zoneBounds, eliteHealth, eliteDamage, eliteSpeed);
+        if (anchorIndex == 2) {
+            Vector2 rearDemon = questZonePoint(zoneBounds, 0.32f, 0.16f);
+            addFifthQuestDemonAt(rearDemon.x, rearDemon.y, FifthQuestDemonType.DEMON_3, encounterId,
+                    zoneBounds, FIFTH_QUEST_DEMON_3_HEALTH + 10f, FIFTH_QUEST_DEMON_3_DAMAGE + 2f, FIFTH_QUEST_DEMON_3_SPEED + 2f);
+        }
+        fifthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFifthQuestPortalBossEncounter() {
+        ensureFifthQuestVillageLayout();
+        clearFifthQuestEncounterDemons(FIFTH_QUEST_ENCOUNTER_COMMANDER);
+        Rectangle combatAnchorBounds = fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds;
+        Rectangle zoneBounds = createWalkableCombatZone(
+                combatAnchorBounds,
+                combatAnchorBounds == fifthQuestFightingAreaBounds
+                        ? Math.max(104f, combatAnchorBounds.width - 12f)
+                        : Math.max(104f, combatAnchorBounds.width - 16f),
+                combatAnchorBounds == fifthQuestFightingAreaBounds
+                        ? Math.max(92f, combatAnchorBounds.height - 8f)
+                        : Math.max(92f, combatAnchorBounds.height - 16f));
+        Vector2 leftGuard = questZonePoint(zoneBounds, 0.24f, 0.48f);
+        Vector2 rightGuard = questZonePoint(zoneBounds, 0.76f, 0.44f);
+        Vector2 commander = questZonePoint(zoneBounds, 0.52f, 0.72f);
+        addFifthQuestDemonAt(leftGuard.x, leftGuard.y, FifthQuestDemonType.DEMON_2, FIFTH_QUEST_ENCOUNTER_COMMANDER,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 14f, FIFTH_QUEST_DEMON_2_DAMAGE + 3f, FIFTH_QUEST_DEMON_2_SPEED + 2f);
+        addFifthQuestDemonAt(rightGuard.x, rightGuard.y, FifthQuestDemonType.DEMON_2, FIFTH_QUEST_ENCOUNTER_COMMANDER,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 14f, FIFTH_QUEST_DEMON_2_DAMAGE + 3f, FIFTH_QUEST_DEMON_2_SPEED + 2f);
+        addFifthQuestDemonAt(commander.x, commander.y, FifthQuestDemonType.COMMANDER, FIFTH_QUEST_ENCOUNTER_COMMANDER,
+                zoneBounds, FIFTH_QUEST_COMMANDER_HEALTH, FIFTH_QUEST_COMMANDER_DAMAGE, FIFTH_QUEST_COMMANDER_SPEED);
+        fifthQuestEncounterSpawned = true;
+    }
+
+    private void addFifthQuestDemonAt(float x, float y, FifthQuestDemonType type, int encounterId,
+                                      Rectangle zoneBounds, float health, float damage, float speed) {
+        FifthQuestDemonInstance demon = new FifthQuestDemonInstance();
+        demon.position.set(x, y);
+        demon.type = type == null ? FifthQuestDemonType.DEMON_1 : type;
+        demon.questEncounterId = encounterId;
+        demon.zoneBounds.set(zoneBounds != null ? zoneBounds : fifthQuestPortalBounds);
+        demon.maxHealth = Math.max(1f, health);
+        demon.health = demon.maxHealth;
+        demon.playerDamage = Math.max(1f, damage);
+        demon.chaseSpeed = Math.max(1f, speed * FIFTH_QUEST_DEMON_SPEED_MULTIPLIER);
+        demon.attackRange = demon.type == FifthQuestDemonType.COMMANDER
+                ? FIFTH_QUEST_DEMON_ATTACK_RANGE + 10f
+                : FIFTH_QUEST_DEMON_ATTACK_RANGE;
+        demon.attackIntervalSeconds = demon.type == FifthQuestDemonType.COMMANDER
+                ? 1.05f
+                : FIFTH_QUEST_DEMON_ATTACK_COOLDOWN_SECONDS;
+        fifthQuestDemons.add(demon);
+    }
+
+    private int countFifthQuestEncounterDemons(int encounterId) {
+        int remaining = 0;
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.questEncounterId == encounterId && !demon.dying && demon.health > 0f) {
+                remaining++;
+            }
+        }
+        return remaining;
+    }
+
+    private void clearFifthQuestEncounterDemons(int encounterId) {
+        for (int i = fifthQuestDemons.size - 1; i >= 0; i--) {
+            if (fifthQuestDemons.get(i).questEncounterId == encounterId) {
+                fifthQuestDemons.removeIndex(i);
+            }
+        }
+    }
+
+    private void updateSixthQuest(float delta) {
+        if (sixthQuestStage <= SIXTH_QUEST_DISABLED || sixthQuestStage >= SIXTH_QUEST_COMPLETE || isFirstQuestOverlayActive()) {
+            return;
+        }
+
+        if (sixthQuestStage == SIXTH_QUEST_OUTER_ASSAULT) {
+            updateSixthQuestOuterAssault();
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_A_BATTLE) {
+            updateSixthQuestSealBattle(true);
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_B_BATTLE) {
+            updateSixthQuestSealBattle(false);
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_THRONE_GUARDS) {
+            updateSixthQuestThroneGuards();
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_BOSS_PHASE_1) {
+            updateSixthQuestBossPhase1(delta);
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_BATTLE) {
+            updateSixthQuestFinalPhaseBattle(delta);
+        }
+    }
+
+    private void ensureSixthQuestCastleLayout() {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId) || sixthQuestCastleLayoutReady) {
+            return;
+        }
+        Rectangle room1Spawn = objectLayerBounds(findLayerInGroup(ROOM1_GROUP_LAYER_NAME, ROOM1_BATS_SPAWN_LAYER_NAME));
+        Rectangle sealAZone = objectLayerBounds(findLayerInGroup(BOSS_1_GROUP_LAYER_NAME, BOSS_FIGHT_ZONE_LAYER_NAME));
+        Rectangle sealAInteract = objectLayerBounds(findLayerInGroup(BOSS_1_GROUP_LAYER_NAME, BOSS_PHASE_2_BOSS_LAYER_NAME));
+        Rectangle throneZone = objectLayerBounds(findLayerInGroup(BOSS_2_GROUP_LAYER_NAME, BOSS_WALKABLE_LAYER_NAME));
+        Rectangle throneSpawn = objectLayerBounds(findLayerInGroup(BOSS_2_GROUP_LAYER_NAME, BOSS_PHASE_2_BOSS_LAYER_NAME));
+        Rectangle sealBInteract = objectLayerBounds(findLayerInGroup(GOLEM_1_GROUP_LAYER_NAME, GOLEM_1_OBJECT_LAYER_NAME));
+        if (sealBInteract == null) {
+            sealBInteract = objectLayerBounds(findLayerInGroup(GOLEM_1_GROUP_LAYER_NAME, GOLEM_1_OBJECT_LAYER_NAME_ALT));
+        }
+
+        Rectangle mapBounds = world.mapBounds != null ? new Rectangle(world.mapBounds) : new Rectangle(0f, 0f, 0f, 0f);
+        if (room1Spawn != null) {
+            setCenteredRectangle(
+                    sixthQuestOuterCastleBounds,
+                    room1Spawn.x + room1Spawn.width * 0.5f,
+                    room1Spawn.y + room1Spawn.height * 0.5f,
+                    SIXTH_QUEST_OUTER_ASSAULT_WIDTH,
+                    SIXTH_QUEST_OUTER_ASSAULT_HEIGHT);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            setCenteredRectangle(
+                    sixthQuestOuterCastleBounds,
+                    mapBounds.x + mapBounds.width * 0.34f,
+                    mapBounds.y + mapBounds.height * 0.22f,
+                    SIXTH_QUEST_OUTER_ASSAULT_WIDTH,
+                    SIXTH_QUEST_OUTER_ASSAULT_HEIGHT);
+        }
+
+        if (sealAZone != null) {
+            sixthQuestSealABounds.set(sealAZone);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            setCenteredRectangle(
+                    sixthQuestSealABounds,
+                    mapBounds.x + mapBounds.width * 0.58f,
+                    mapBounds.y + mapBounds.height * 0.46f,
+                    SIXTH_QUEST_SEAL_WIDTH,
+                    SIXTH_QUEST_SEAL_HEIGHT);
+        }
+        if (sealAInteract != null) {
+            sixthQuestSealAInteractBounds.set(sealAInteract);
+        } else {
+            setCenteredRectangle(
+                    sixthQuestSealAInteractBounds,
+                    sixthQuestSealABounds.x + sixthQuestSealABounds.width * 0.5f,
+                    sixthQuestSealABounds.y + sixthQuestSealABounds.height * 0.62f,
+                    28f,
+                    28f);
+        }
+
+        if (golemFightZoneBounds.width > 0f && golemFightZoneBounds.height > 0f) {
+            sixthQuestSealBBounds.set(golemFightZoneBounds);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            setCenteredRectangle(
+                    sixthQuestSealBBounds,
+                    mapBounds.x + mapBounds.width * 0.76f,
+                    mapBounds.y + mapBounds.height * 0.36f,
+                    SIXTH_QUEST_SEAL_WIDTH,
+                    SIXTH_QUEST_SEAL_HEIGHT);
+        }
+        if (sealBInteract != null) {
+            sixthQuestSealBInteractBounds.set(sealBInteract);
+        } else {
+            setCenteredRectangle(
+                    sixthQuestSealBInteractBounds,
+                    sixthQuestSealBBounds.x + sixthQuestSealBBounds.width * 0.5f,
+                    sixthQuestSealBBounds.y + sixthQuestSealBBounds.height * 0.58f,
+                    30f,
+                    30f);
+        }
+
+        if (throneZone != null) {
+            sixthQuestThroneBounds.set(throneZone);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            setCenteredRectangle(
+                    sixthQuestThroneBounds,
+                    mapBounds.x + mapBounds.width * 0.82f,
+                    mapBounds.y + mapBounds.height * 0.62f,
+                    SIXTH_QUEST_THRONE_WIDTH,
+                    SIXTH_QUEST_THRONE_HEIGHT);
+        }
+        if (throneSpawn != null) {
+            sixthQuestBossPhase1SpawnBounds.set(throneSpawn);
+        } else {
+            setCenteredRectangle(
+                    sixthQuestBossPhase1SpawnBounds,
+                    sixthQuestThroneBounds.x + sixthQuestThroneBounds.width * 0.5f,
+                    sixthQuestThroneBounds.y + sixthQuestThroneBounds.height * 0.64f,
+                    24f,
+                    24f);
+        }
+        sixthQuestCastleLayoutReady = true;
+    }
+
+    private void ensureSixthQuestFinalArenaLayout() {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId) || sixthQuestFinalArenaLayoutReady) {
+            return;
+        }
+        Rectangle spawnBounds = objectLayerBounds(findLayerByName(BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME));
+        Rectangle mapBounds = world.mapBounds != null ? new Rectangle(world.mapBounds) : new Rectangle(0f, 0f, 0f, 0f);
+        if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            sixthQuestFinalPhaseBounds.set(mapBounds);
+        }
+        if (spawnBounds != null) {
+            sixthQuestFinalPhaseSpawnBounds.set(spawnBounds);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
+            setCenteredRectangle(
+                    sixthQuestFinalPhaseSpawnBounds,
+                    mapBounds.x + mapBounds.width * 0.5f,
+                    mapBounds.y + mapBounds.height * 0.5f,
+                    24f,
+                    24f);
+        }
+        sixthQuestFinalArenaLayoutReady = true;
+    }
+
+    private void updateSixthQuestOuterAssault() {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+        ensureSixthQuestCastleLayout();
+        if (!overlapsPlayerExpanded(sixthQuestOuterCastleBounds) && !isPlayerInsideZoneBounds(sixthQuestOuterCastleBounds)) {
+            return;
+        }
+        if (!hasLivingBatInZone(sixthQuestOuterCastleBounds)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        characterName,
+                        "These are not scouts anymore. This is the army that burned my first home.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginSixthQuestSealABattle();
+        }
+    }
+
+    private void updateSixthQuestSealBattle(boolean firstSeal) {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+        ensureSixthQuestCastleLayout();
+        Rectangle triggerBounds = firstSeal ? sixthQuestSealABounds : sixthQuestSealBBounds;
+        if (!overlapsPlayerExpanded(triggerBounds) && !isPlayerInsideZoneBounds(triggerBounds)) {
+            return;
+        }
+
+        boolean encounterRemaining = firstSeal
+                ? hasLivingEvilWizardInZone(triggerBounds)
+                : hasLivingGolem1InZone(triggerBounds);
+        if (encounterRemaining) {
+            return;
+        }
+        sixthQuestStage = firstSeal ? SIXTH_QUEST_SEAL_A_DESTROY : SIXTH_QUEST_SEAL_B_DESTROY;
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                firstSeal
+                        ? "The first seal is exposed. Use the interact key/button to shatter it."
+                        : "The second seal is exposed. Use the interact key/button to shatter it.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void updateSixthQuestThroneGuards() {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+        ensureSixthQuestCastleLayout();
+        if (!overlapsPlayerExpanded(sixthQuestThroneBounds) && !isPlayerInsideZoneBounds(sixthQuestThroneBounds)) {
+            return;
+        }
+        if (!hasLivingEvilWizardInZone(sixthQuestThroneBounds)) {
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_PHASE_1_INTRO,
+                    SIXTH_QUEST_PHASE_1_INTRO_SPEAKERS,
+                    SIXTH_QUEST_PHASE_1_INTRO_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateSixthQuestBossPhase1(float delta) {
+        if (!MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            return;
+        }
+        ensureSixthQuestCastleLayout();
+        if (!sixthQuestEncounterSpawned) {
+            spawnSixthQuestBossPhase1Encounter();
+            return;
+        }
+        sixthQuestBossCalloutTimer += Math.max(0f, delta);
+        if (hudRenderer != null && sixthQuestBossCalloutTimer >= SIXTH_QUEST_BOSS_CALLOUT_SECONDS) {
+            sixthQuestBossCalloutTimer = 0f;
+            hudRenderer.showNotification(
+                    "Demon",
+                    SIXTH_QUEST_PHASE_1_CALLOUTS[sixthQuestBossCalloutIndex % SIXTH_QUEST_PHASE_1_CALLOUTS.length],
+                    1.3f);
+            sixthQuestBossCalloutIndex++;
+        }
+
+        FifthQuestDemonInstance boss = findFifthQuestEncounterLeader(SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_1);
+        if (boss == null) {
+            sixthQuestEncounterSpawned = false;
+            return;
+        }
+        if (boss.health <= boss.maxHealth * SIXTH_QUEST_BOSS_PHASE_TRANSITION_HEALTH_RATIO) {
+            sixthQuestEncounterSpawned = false;
+            clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_1);
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_PHASE_1_TRANSITION,
+                    SIXTH_QUEST_PHASE_1_TRANSITION_SPEAKERS,
+                    SIXTH_QUEST_PHASE_1_TRANSITION_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateSixthQuestFinalPhaseBattle(float delta) {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return;
+        }
+        ensureSixthQuestFinalArenaLayout();
+        if (!sixthQuestEncounterSpawned) {
+            spawnSixthQuestFinalPhaseEncounter();
+            return;
+        }
+        sixthQuestBossCalloutTimer += Math.max(0f, delta);
+        if (hudRenderer != null && sixthQuestBossCalloutTimer >= SIXTH_QUEST_BOSS_CALLOUT_SECONDS) {
+            sixthQuestBossCalloutTimer = 0f;
+            hudRenderer.showNotification(
+                    "Demon",
+                    SIXTH_QUEST_PHASE_2_CALLOUTS[sixthQuestBossCalloutIndex % SIXTH_QUEST_PHASE_2_CALLOUTS.length],
+                    1.25f);
+            sixthQuestBossCalloutIndex++;
+        }
+
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        if (boss == null) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification("Demon", "This... cannot be...", 1.8f);
+                hudRenderer.showNotification(characterName, "It already is.", 1.8f);
+            }
+            sixthQuestEncounterSpawned = false;
+            beginSixthQuestEnding();
+            return;
+        }
+        if (!sixthQuestLowHealthExchangePlayed && boss.health <= boss.maxHealth * 0.25f) {
+            sixthQuestLowHealthExchangePlayed = true;
+            if (hudRenderer != null) {
+                hudRenderer.showNotification("Demon", "I am fire eternal!", 1.7f);
+                hudRenderer.showNotification(characterName, "No. You were only the night. And night ends.", 2.2f);
+            }
+        }
+    }
+
+    private void spawnSixthQuestOuterAssaultEncounter() {
+        ensureSixthQuestCastleLayout();
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_OUTER);
+        float baseX = sixthQuestOuterCastleBounds.x + sixthQuestOuterCastleBounds.width * 0.5f;
+        float baseY = sixthQuestOuterCastleBounds.y + sixthQuestOuterCastleBounds.height * 0.5f;
+        Rectangle zoneBounds = new Rectangle(sixthQuestOuterCastleBounds);
+        addFifthQuestDemonAt(baseX - 54f, baseY + 18f, FifthQuestDemonType.DEMON_1, SIXTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 10f, FIFTH_QUEST_DEMON_1_DAMAGE + 3f, FIFTH_QUEST_DEMON_1_SPEED + 3f);
+        addFifthQuestDemonAt(baseX - 8f, baseY + 30f, FifthQuestDemonType.DEMON_1, SIXTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 10f, FIFTH_QUEST_DEMON_1_DAMAGE + 3f, FIFTH_QUEST_DEMON_1_SPEED + 3f);
+        addFifthQuestDemonAt(baseX + 42f, baseY + 10f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 16f, FIFTH_QUEST_DEMON_2_DAMAGE + 4f, FIFTH_QUEST_DEMON_2_SPEED + 3f);
+        addFifthQuestDemonAt(baseX + 76f, baseY - 18f, FifthQuestDemonType.DEMON_1, SIXTH_QUEST_ENCOUNTER_OUTER,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 12f, FIFTH_QUEST_DEMON_1_DAMAGE + 3f, FIFTH_QUEST_DEMON_1_SPEED + 4f);
+        sixthQuestEncounterSpawned = true;
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    "Final Reminder",
+                    "Use E Dash Attack to break through and Spatial Dash to reposition when the hall closes around you.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void spawnSixthQuestSealAEncounter() {
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_SEAL_A);
+        float baseX = sixthQuestSealABounds.x + sixthQuestSealABounds.width * 0.5f;
+        float baseY = sixthQuestSealABounds.y + sixthQuestSealABounds.height * 0.5f;
+        Rectangle zoneBounds = new Rectangle(sixthQuestSealABounds);
+        addFifthQuestDemonAt(baseX - 42f, baseY + 10f, FifthQuestDemonType.DEMON_1, SIXTH_QUEST_ENCOUNTER_SEAL_A,
+                zoneBounds, FIFTH_QUEST_DEMON_1_HEALTH + 12f, FIFTH_QUEST_DEMON_1_DAMAGE + 4f, FIFTH_QUEST_DEMON_1_SPEED + 3f);
+        addFifthQuestDemonAt(baseX + 12f, baseY + 24f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_SEAL_A,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 18f, FIFTH_QUEST_DEMON_2_DAMAGE + 4f, FIFTH_QUEST_DEMON_2_SPEED + 4f);
+        addFifthQuestDemonAt(baseX + 52f, baseY - 14f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_SEAL_A,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 14f, FIFTH_QUEST_DEMON_2_DAMAGE + 3f, FIFTH_QUEST_DEMON_2_SPEED + 4f);
+        sixthQuestEncounterSpawned = true;
+    }
+
+    private void spawnSixthQuestSealBEncounter() {
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_SEAL_B);
+        float baseX = sixthQuestSealBBounds.x + sixthQuestSealBBounds.width * 0.5f;
+        float baseY = sixthQuestSealBBounds.y + sixthQuestSealBBounds.height * 0.5f;
+        Rectangle zoneBounds = new Rectangle(sixthQuestSealBBounds);
+        addFifthQuestDemonAt(baseX - 48f, baseY + 12f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_SEAL_B,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 22f, FIFTH_QUEST_DEMON_2_DAMAGE + 5f, FIFTH_QUEST_DEMON_2_SPEED + 5f);
+        addFifthQuestDemonAt(baseX + 12f, baseY + 22f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_SEAL_B,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 18f, FIFTH_QUEST_DEMON_2_DAMAGE + 4f, FIFTH_QUEST_DEMON_2_SPEED + 4f);
+        addFifthQuestDemonAt(baseX + 56f, baseY - 10f, FifthQuestDemonType.DEMON_3, SIXTH_QUEST_ENCOUNTER_SEAL_B,
+                zoneBounds, FIFTH_QUEST_DEMON_3_HEALTH + 28f, FIFTH_QUEST_DEMON_3_DAMAGE + 6f, FIFTH_QUEST_DEMON_3_SPEED + 4f);
+        sixthQuestEncounterSpawned = true;
+    }
+
+    private void spawnSixthQuestThroneGuardEncounter() {
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS);
+        float baseX = sixthQuestThroneBounds.x + sixthQuestThroneBounds.width * 0.5f;
+        float baseY = sixthQuestThroneBounds.y + sixthQuestThroneBounds.height * 0.5f;
+        Rectangle zoneBounds = new Rectangle(sixthQuestThroneBounds);
+        addFifthQuestDemonAt(baseX - 64f, baseY + 12f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 22f, FIFTH_QUEST_DEMON_2_DAMAGE + 5f, FIFTH_QUEST_DEMON_2_SPEED + 5f);
+        addFifthQuestDemonAt(baseX - 18f, baseY + 28f, FifthQuestDemonType.DEMON_3, SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS,
+                zoneBounds, FIFTH_QUEST_DEMON_3_HEALTH + 24f, FIFTH_QUEST_DEMON_3_DAMAGE + 6f, FIFTH_QUEST_DEMON_3_SPEED + 4f);
+        addFifthQuestDemonAt(baseX + 34f, baseY + 6f, FifthQuestDemonType.DEMON_2, SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS,
+                zoneBounds, FIFTH_QUEST_DEMON_2_HEALTH + 24f, FIFTH_QUEST_DEMON_2_DAMAGE + 5f, FIFTH_QUEST_DEMON_2_SPEED + 5f);
+        addFifthQuestDemonAt(baseX + 82f, baseY - 18f, FifthQuestDemonType.DEMON_3, SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS,
+                zoneBounds, FIFTH_QUEST_DEMON_3_HEALTH + 26f, FIFTH_QUEST_DEMON_3_DAMAGE + 6f, FIFTH_QUEST_DEMON_3_SPEED + 4f);
+        sixthQuestEncounterSpawned = true;
+    }
+
+    private void spawnSixthQuestBossPhase1Encounter() {
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_1);
+        float spawnX = sixthQuestBossPhase1SpawnBounds.x + sixthQuestBossPhase1SpawnBounds.width * 0.5f;
+        float spawnY = sixthQuestBossPhase1SpawnBounds.y + sixthQuestBossPhase1SpawnBounds.height * 0.5f;
+        addFifthQuestDemonAt(
+                spawnX,
+                spawnY,
+                FifthQuestDemonType.COMMANDER,
+                SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_1,
+                new Rectangle(sixthQuestThroneBounds),
+                SIXTH_QUEST_BOSS_PHASE_1_HEALTH,
+                SIXTH_QUEST_BOSS_PHASE_1_DAMAGE,
+                SIXTH_QUEST_BOSS_PHASE_1_SPEED);
+        sixthQuestEncounterSpawned = true;
+    }
+
+    private void spawnSixthQuestFinalPhaseEncounter() {
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_2);
+        if (bossArenaPhase2Demons.size == 0) {
+            configureBossArenaPhase2Demons();
+        }
+        sixthQuestEncounterSpawned = bossArenaPhase2Demons.size > 0;
+    }
+
+    private FifthQuestDemonInstance findFifthQuestEncounterLeader(int encounterId) {
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.questEncounterId == encounterId && !demon.dying && demon.health > 0f) {
+                return demon;
+            }
+        }
+        return null;
+    }
+
+    private BossArenaPhase2DemonInstance findBossArenaPhase2Leader() {
+        for (int i = 0; i < bossArenaPhase2Demons.size; i++) {
+            BossArenaPhase2DemonInstance demon = bossArenaPhase2Demons.get(i);
+            if (demon.health > 0f) {
+                return demon;
+            }
+        }
+        return null;
+    }
+
+    private void ensureFourthQuestVillageLayout() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || fourthQuestVillageLayoutReady) {
+            return;
+        }
+        Rectangle cafeDoorBounds = firstQuestCafeDoorBounds();
+        Rectangle labEntranceBounds = objectLayerBounds(findLayerByName(FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME));
+        Rectangle innEntranceBounds = objectLayerBounds(findLayerByName(THIRD_QUEST_INN_ENTRANCE_LAYER_NAME));
+        Rectangle villageEdgeBounds = objectLayerBounds(findLayerByName(FOURTH_QUEST_VILLAGE_EDGE_LAYER_NAME));
+        if (cafeDoorBounds == null || labEntranceBounds == null || innEntranceBounds == null || villageEdgeBounds == null) {
+            return;
+        }
+
+        setCenteredRectangle(
+                fourthQuestCafeSiteBounds,
+                cafeDoorBounds.x + cafeDoorBounds.width * 0.5f,
+                cafeDoorBounds.y + cafeDoorBounds.height * 0.5f - 12f,
+                FOURTH_QUEST_SITE_WIDTH,
+                FOURTH_QUEST_SITE_HEIGHT);
+
+        float centerSiteX = (cafeDoorBounds.x + innEntranceBounds.x + labEntranceBounds.x) / 3f + 120f;
+        float centerSiteY = (cafeDoorBounds.y + innEntranceBounds.y + labEntranceBounds.y) / 3f + 20f;
+        setCenteredRectangle(
+                fourthQuestCenterSiteBounds,
+                centerSiteX,
+                centerSiteY,
+                FOURTH_QUEST_SITE_WIDTH + 8f,
+                FOURTH_QUEST_SITE_HEIGHT + 6f);
+
+        float edgeCenterX = villageEdgeBounds.x + villageEdgeBounds.width * 0.5f + 24f;
+        float edgeCenterY = villageEdgeBounds.y + villageEdgeBounds.height * 0.5f + 8f;
+        setCenteredRectangle(
+                fourthQuestEdgeSiteBounds,
+                edgeCenterX,
+                edgeCenterY,
+                FOURTH_QUEST_SITE_WIDTH + 14f,
+                FOURTH_QUEST_SITE_HEIGHT + 10f);
+        setCenteredRectangle(
+                fourthQuestBreachSiteBounds,
+                edgeCenterX + 16f,
+                edgeCenterY - 10f,
+                FOURTH_QUEST_BREACH_SITE_SIZE,
+                FOURTH_QUEST_BREACH_SITE_SIZE);
+
+        clampRectangleToMap(fourthQuestCafeSiteBounds);
+        clampRectangleToMap(fourthQuestCenterSiteBounds);
+        clampRectangleToMap(fourthQuestEdgeSiteBounds);
+        clampRectangleToMap(fourthQuestBreachSiteBounds);
+
+        fourthQuestVillageLayoutReady = true;
+    }
+
+    private void ensureFourthQuestFloor2Layout() {
+        if (!MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId) || fourthQuestFloor2LayoutReady) {
+            return;
+        }
+        Rectangle table1Bounds = secondQuestArchiveBounds();
+        Rectangle table2Bounds = tiledLayerBounds(findLayerByName("Table 2"));
+        Rectangle stairsBounds = objectLayerBounds(findLayerByName(FOURTH_QUEST_LAB_FLOOR_2_EXIT_LAYER_NAME));
+        Rectangle mapBounds = world.mapBounds;
+        if (mapBounds == null || mapBounds.width <= 0f || mapBounds.height <= 0f) {
+            return;
+        }
+
+        float centerX = mapBounds.x + mapBounds.width * 0.5f;
+        float centerY = mapBounds.y + mapBounds.height * 0.54f;
+        setCenteredRectangle(fourthQuestArrayConsoleBounds, centerX, centerY, 44f, 34f);
+
+        if (table1Bounds != null) {
+            setCenteredRectangle(
+                    fourthQuestArrayNodeBounds[0],
+                    table1Bounds.x + table1Bounds.width * 0.5f,
+                    table1Bounds.y + table1Bounds.height * 0.5f,
+                    26f,
+                    26f);
+        } else {
+            setCenteredRectangle(fourthQuestArrayNodeBounds[0], centerX - 72f, centerY + 30f, 26f, 26f);
+        }
+        if (table2Bounds != null) {
+            setCenteredRectangle(
+                    fourthQuestArrayNodeBounds[1],
+                    table2Bounds.x + table2Bounds.width * 0.5f,
+                    table2Bounds.y + table2Bounds.height * 0.5f,
+                    26f,
+                    26f);
+        } else {
+            setCenteredRectangle(fourthQuestArrayNodeBounds[1], centerX + 64f, centerY + 24f, 26f, 26f);
+        }
+        if (stairsBounds != null) {
+            setCenteredRectangle(
+                    fourthQuestArrayNodeBounds[2],
+                    stairsBounds.x + stairsBounds.width * 0.5f + 42f,
+                    stairsBounds.y + stairsBounds.height * 0.5f + 22f,
+                    26f,
+                    26f);
+        } else {
+            setCenteredRectangle(fourthQuestArrayNodeBounds[2], centerX + 8f, centerY - 54f, 26f, 26f);
+        }
+
+        fourthQuestFloor2LayoutReady = true;
+    }
+
+    private void setCenteredRectangle(Rectangle bounds, float centerX, float centerY, float width, float height) {
+        bounds.set(centerX - width * 0.5f, centerY - height * 0.5f, width, height);
+    }
+
+    private void startFourthQuest() {
+        fourthQuestStage = FOURTH_QUEST_REPORT_TO_SCIENTIST;
+        fourthQuestEncounterSpawned = false;
+        fourthQuestArrayDefenseTimer = 0f;
+        fourthQuestArrayDefenseWaveCount = 0;
+        fourthQuestBreachCalloutTimer = 0f;
+        fourthQuestBreachCalloutIndex = 0;
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Report to the Scientist at the Research Lab.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFourthQuestCafeBattle() {
+        fourthQuestStage = FOURTH_QUEST_CAFE_BATTLE;
+        fourthQuestEncounterSpawned = false;
+        showQuestNotification(
+                "Dash Attack",
+                "Press E to lunge forward with an attack.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFourthQuestCenterBattle() {
+        fourthQuestStage = FOURTH_QUEST_CENTER_BATTLE;
+        fourthQuestEncounterSpawned = false;
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Clear the corruption threatening the village center.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFourthQuestEdgeBattle() {
+        fourthQuestStage = FOURTH_QUEST_EDGE_BATTLE;
+        fourthQuestEncounterSpawned = false;
+        fourthQuestBreachCalloutTimer = 0f;
+        fourthQuestBreachCalloutIndex = 0;
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Destroy the strongest corrupted site near the outer road.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFourthQuestArraySequence() {
+        fourthQuestStage = FOURTH_QUEST_GO_TO_ARRAY;
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Activate the Resonance Array on Floor 2.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    "Scientist",
+                    "Realign the outer nodes first. The central array will not respond until all three are active.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void beginFourthQuestArrayDefense() {
+        fourthQuestStage = FOURTH_QUEST_ARRAY_DEFENSE;
+        fourthQuestEncounterSpawned = false;
+        fourthQuestArrayDefenseTimer = 0f;
+        fourthQuestArrayDefenseWaveCount = 0;
+        clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_ARRAY);
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Protect the Resonance Array until the scan is complete.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginFourthQuestBreachBattle() {
+        fourthQuestStage = FOURTH_QUEST_BREACH_BATTLE;
+        fourthQuestEncounterSpawned = false;
+        fourthQuestBreachCalloutTimer = 0f;
+        fourthQuestBreachCalloutIndex = 0;
+        showQuestNotification(
+                FOURTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Close the breach before it stabilizes.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void updateFourthQuestCafeBattle() {
+        if (fourthQuestStage != FOURTH_QUEST_CAFE_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fourthQuestEncounterSpawned) {
+            spawnFourthQuestCafeEncounter();
+        }
+        if (fourthQuestEncounterSpawned && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_CAFE) <= 0) {
+            fourthQuestEncounterSpawned = false;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "Ash Sample I obtained. Investigate the corrupted site in the village center.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        characterName,
+                        "This is more than residue. It is spreading.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            fourthQuestStage = FOURTH_QUEST_EXAMINE_CENTER_MARK;
+        }
+    }
+
+    private void updateFourthQuestCenterBattle() {
+        if (fourthQuestStage != FOURTH_QUEST_CENTER_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fourthQuestEncounterSpawned) {
+            spawnFourthQuestCenterEncounter();
+        }
+        if (fourthQuestEncounterSpawned && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_CENTER) <= 0) {
+            fourthQuestEncounterSpawned = false;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "Ash Sample II obtained. Investigate the final corrupted site near the outer road.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_CENTER_AFTER,
+                    FOURTH_QUEST_CENTER_AFTER_SPEAKERS,
+                    FOURTH_QUEST_CENTER_AFTER_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateFourthQuestEdgeBattle() {
+        if (fourthQuestStage != FOURTH_QUEST_EDGE_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fourthQuestEncounterSpawned) {
+            spawnFourthQuestEdgeEncounter();
+        }
+        if (fourthQuestEncounterSpawned && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_EDGE) <= 0) {
+            fourthQuestEncounterSpawned = false;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "Ash Sample III and a Broken Demon Horn were recovered.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_EDGE_AFTER,
+                    FOURTH_QUEST_EDGE_AFTER_SPEAKERS,
+                    FOURTH_QUEST_EDGE_AFTER_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateFourthQuestArrayDefense(float delta) {
+        if (fourthQuestStage != FOURTH_QUEST_ARRAY_DEFENSE || !MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            return;
+        }
+        fourthQuestArrayDefenseTimer += Math.max(0f, delta);
+        if (fourthQuestArrayDefenseWaveCount == 0) {
+            spawnFourthQuestArrayDefenseWave(0);
+        }
+        if (fourthQuestArrayDefenseTimer >= 4.5f && fourthQuestArrayDefenseWaveCount == 1) {
+            spawnFourthQuestArrayDefenseWave(1);
+        }
+        if (fourthQuestArrayDefenseTimer >= 9.5f && fourthQuestArrayDefenseWaveCount == 2) {
+            spawnFourthQuestArrayDefenseWave(2);
+        }
+        if (fourthQuestArrayDefenseTimer >= FOURTH_QUEST_ARRAY_DEFENSE_SECONDS
+                && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_ARRAY) <= 0) {
+            fourthQuestEncounterSpawned = false;
+            clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_ARRAY);
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_ARRAY_SCAN_COMPLETE,
+                    FOURTH_QUEST_ARRAY_SCAN_COMPLETE_SPEAKERS,
+                    FOURTH_QUEST_ARRAY_SCAN_COMPLETE_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateFourthQuestBreachBattle(float delta) {
+        if (fourthQuestStage != FOURTH_QUEST_BREACH_BATTLE || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!fourthQuestEncounterSpawned) {
+            spawnFourthQuestBreachEncounter();
+        }
+        fourthQuestBreachCalloutTimer += Math.max(0f, delta);
+        if (fourthQuestBreachCalloutTimer >= FOURTH_QUEST_BREACH_CALLOUT_SECONDS && hudRenderer != null) {
+            fourthQuestBreachCalloutTimer = 0f;
+            hudRenderer.showNotification(
+                    "Father",
+                    FOURTH_QUEST_BREACH_CALLOUTS[fourthQuestBreachCalloutIndex % FOURTH_QUEST_BREACH_CALLOUTS.length],
+                    1.5f);
+            fourthQuestBreachCalloutIndex++;
+        }
+        if (fourthQuestEncounterSpawned && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH) <= 0) {
+            fourthQuestEncounterSpawned = false;
+            clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH);
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_BREACH_AFTER,
+                    FOURTH_QUEST_BREACH_AFTER_SPEAKERS,
+                    FOURTH_QUEST_BREACH_AFTER_DIALOGUE_LINES);
+        }
+    }
+
+    private void spawnFourthQuestCafeEncounter() {
+        ensureFourthQuestVillageLayout();
+        clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_CAFE);
+        Rectangle combatBounds = createWalkableCombatZone(fourthQuestCafeSiteBounds, 116f, 88f);
+        Vector2 leftBat = questZonePoint(combatBounds, 0.18f, 0.44f);
+        Vector2 upperBat = questZonePoint(combatBounds, 0.50f, 0.72f);
+        Vector2 rightBat = questZonePoint(combatBounds, 0.82f, 0.34f);
+        addFourthQuestBat(leftBat.x, leftBat.y, FOURTH_QUEST_ENCOUNTER_CAFE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        addFourthQuestBat(upperBat.x, upperBat.y, FOURTH_QUEST_ENCOUNTER_CAFE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        addFourthQuestBat(rightBat.x, rightBat.y, FOURTH_QUEST_ENCOUNTER_CAFE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        fourthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFourthQuestCenterEncounter() {
+        ensureFourthQuestVillageLayout();
+        clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_CENTER);
+        Rectangle combatBounds = createWalkableCombatZone(fourthQuestCenterSiteBounds, 132f, 96f);
+        Vector2 leftBat = questZonePoint(combatBounds, 0.16f, 0.48f);
+        Vector2 upperBat = questZonePoint(combatBounds, 0.40f, 0.74f);
+        Vector2 eliteBat = questZonePoint(combatBounds, 0.68f, 0.46f);
+        Vector2 rightBat = questZonePoint(combatBounds, 0.84f, 0.24f);
+        addFourthQuestBat(leftBat.x, leftBat.y, FOURTH_QUEST_ENCOUNTER_CENTER,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        addFourthQuestBat(upperBat.x, upperBat.y, FOURTH_QUEST_ENCOUNTER_CENTER,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        addFourthQuestBat(eliteBat.x, eliteBat.y, FOURTH_QUEST_ENCOUNTER_CENTER,
+                FOURTH_QUEST_CENTER_ELITE_HEALTH, FOURTH_QUEST_CENTER_ELITE_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, true);
+        addFourthQuestBat(rightBat.x, rightBat.y, FOURTH_QUEST_ENCOUNTER_CENTER,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        fourthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFourthQuestEdgeEncounter() {
+        ensureFourthQuestVillageLayout();
+        clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_EDGE);
+        Rectangle combatBounds = createWalkableCombatZone(fourthQuestEdgeSiteBounds, 148f, 104f);
+        Vector2 leftBat = questZonePoint(combatBounds, 0.16f, 0.50f);
+        Vector2 upperBat = questZonePoint(combatBounds, 0.38f, 0.76f);
+        Vector2 eliteBat = questZonePoint(combatBounds, 0.66f, 0.56f);
+        Vector2 rightBat = questZonePoint(combatBounds, 0.86f, 0.28f);
+        addFourthQuestBat(leftBat.x, leftBat.y, FOURTH_QUEST_ENCOUNTER_EDGE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 8f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, false);
+        addFourthQuestBat(upperBat.x, upperBat.y, FOURTH_QUEST_ENCOUNTER_EDGE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 8f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, false);
+        addFourthQuestBat(eliteBat.x, eliteBat.y, FOURTH_QUEST_ENCOUNTER_EDGE,
+                FOURTH_QUEST_EDGE_ELITE_HEALTH, FOURTH_QUEST_EDGE_ELITE_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 4f, true);
+        addFourthQuestBat(rightBat.x, rightBat.y, FOURTH_QUEST_ENCOUNTER_EDGE,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 8f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, false);
+        fourthQuestEncounterSpawned = true;
+    }
+
+    private void spawnFourthQuestArrayDefenseWave(int waveIndex) {
+        ensureFourthQuestFloor2Layout();
+        float centerX = fourthQuestArrayConsoleBounds.x + fourthQuestArrayConsoleBounds.width * 0.5f;
+        float centerY = fourthQuestArrayConsoleBounds.y + fourthQuestArrayConsoleBounds.height * 0.5f;
+        if (waveIndex == 0) {
+            addFourthQuestBat(centerX - 96f, centerY + 34f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+            addFourthQuestBat(centerX + 88f, centerY + 28f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED, false);
+        } else if (waveIndex == 1) {
+            addFourthQuestBat(centerX - 102f, centerY - 24f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 6f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, false);
+            addFourthQuestBat(centerX + 96f, centerY - 18f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 6f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, false);
+            addFourthQuestBat(centerX - 10f, centerY + 82f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CENTER_ELITE_HEALTH, FOURTH_QUEST_CENTER_ELITE_DAMAGE, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 2f, true);
+        } else {
+            addFourthQuestBat(centerX - 112f, centerY + 62f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 10f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 3f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 3f, false);
+            addFourthQuestBat(centerX + 114f, centerY + 44f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 10f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 3f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 3f, false);
+            addFourthQuestBat(centerX + 18f, centerY - 82f, FOURTH_QUEST_ENCOUNTER_ARRAY,
+                    FOURTH_QUEST_CENTER_ELITE_HEALTH + 20f, FOURTH_QUEST_CENTER_ELITE_DAMAGE + 2f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 4f, true);
+        }
+        fourthQuestEncounterSpawned = true;
+        fourthQuestArrayDefenseWaveCount = Math.max(fourthQuestArrayDefenseWaveCount, waveIndex + 1);
+    }
+
+    private void spawnFourthQuestBreachEncounter() {
+        ensureFourthQuestVillageLayout();
+        clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH);
+        Rectangle combatBounds = createWalkableCombatZone(fourthQuestBreachSiteBounds, 176f, 132f);
+        Vector2 leftBat = questZonePoint(combatBounds, 0.18f, 0.48f);
+        Vector2 upperBat = questZonePoint(combatBounds, 0.40f, 0.76f);
+        Vector2 eliteBat = questZonePoint(combatBounds, 0.66f, 0.54f);
+        Vector2 rightBat = questZonePoint(combatBounds, 0.86f, 0.30f);
+        addFourthQuestBat(leftBat.x, leftBat.y, FOURTH_QUEST_ENCOUNTER_BREACH,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 14f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 4f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 3f, false);
+        addFourthQuestBat(upperBat.x, upperBat.y, FOURTH_QUEST_ENCOUNTER_BREACH,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 14f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 4f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 3f, false);
+        addFourthQuestBat(eliteBat.x, eliteBat.y, FOURTH_QUEST_ENCOUNTER_BREACH,
+                FOURTH_QUEST_BREACH_BOSS_HEALTH, FOURTH_QUEST_BREACH_BOSS_DAMAGE, FOURTH_QUEST_BREACH_BOSS_SPEED, true);
+        addFourthQuestBat(rightBat.x, rightBat.y, FOURTH_QUEST_ENCOUNTER_BREACH,
+                FOURTH_QUEST_CORRUPTED_BAT_HEALTH + 18f, FOURTH_QUEST_CORRUPTED_BAT_DAMAGE + 5f, FOURTH_QUEST_CORRUPTED_BAT_SPEED + 4f, false);
+        fourthQuestEncounterSpawned = true;
+    }
+
+    private void addFourthQuestBat(float x, float y, int encounterId, float maxHealth, float playerDamage,
+                                   float chaseSpeed, boolean elite) {
+        BatInstance bat = new BatInstance();
+        bat.position.set(x, y);
+        bat.questEncounterId = encounterId;
+        bat.elite = elite;
+        bat.maxHealth = maxHealth;
+        bat.health = maxHealth;
+        bat.playerDamage = playerDamage;
+        bat.chaseSpeed = chaseSpeed;
+        bat.attackIntervalSeconds = VILLAGE_BAT_ATTACK_INTERVAL_SECONDS;
+        bat.state = BatAnimationState.CHASING;
+        bat.stateTime = 0f;
+        bats.add(bat);
+    }
+
+    private void clearFourthQuestEncounterBats(int encounterId) {
+        for (int i = bats.size - 1; i >= 0; i--) {
+            if (bats.get(i).questEncounterId == encounterId) {
+                bats.removeIndex(i);
+            }
+        }
+    }
+
+    private int countFourthQuestEncounterBats(int encounterId) {
+        int count = 0;
+        for (int i = 0; i < bats.size; i++) {
+            if (bats.get(i).questEncounterId == encounterId) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void ensureThirdQuestTrainingLayout() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (thirdQuestTrainingLayoutReady) {
+            return;
+        }
+
+        Rectangle trainingAreaBounds = objectLayerBounds(findLayerByName(THIRD_QUEST_TRAINING_AREA_LAYER_NAME));
+        if (trainingAreaBounds == null) {
+            Rectangle innEntranceBounds = objectLayerBounds(findLayerByName(THIRD_QUEST_INN_ENTRANCE_LAYER_NAME));
+            if (innEntranceBounds == null) {
+                return;
+            }
+            float fallbackCenterX = innEntranceBounds.x + innEntranceBounds.width * 0.5f + 20f;
+            float fallbackCenterY = innEntranceBounds.y + innEntranceBounds.height * 0.5f + 208f;
+            trainingAreaBounds = new Rectangle(
+                    fallbackCenterX - THIRD_QUEST_TRAINING_ZONE_HALF_WIDTH,
+                    fallbackCenterY - THIRD_QUEST_TRAINING_ZONE_HALF_HEIGHT + THIRD_QUEST_TRAINING_ZONE_Y_OFFSET,
+                    THIRD_QUEST_TRAINING_ZONE_HALF_WIDTH * 2f,
+                    THIRD_QUEST_TRAINING_ZONE_HALF_HEIGHT * 2f);
+        }
+        thirdQuestTrainingZoneBounds.set(trainingAreaBounds);
+        float fatherCenterX = thirdQuestTrainingZoneBounds.x + thirdQuestTrainingZoneBounds.width * 0.5f;
+        float fatherCenterY = thirdQuestTrainingZoneBounds.y + thirdQuestTrainingZoneBounds.height - 24f;
+        thirdQuestFatherTrainingBounds.set(fatherCenterX - 16f, fatherCenterY - 24f, 32f, 48f);
+
+        thirdQuestAttackDummyBounds.set(
+                thirdQuestTrainingZoneBounds.x + thirdQuestTrainingZoneBounds.width * 0.56f,
+                thirdQuestTrainingZoneBounds.y + thirdQuestTrainingZoneBounds.height * 0.44f,
+                20f,
+                34f);
+        thirdQuestMovementMarkers[0].set(
+                thirdQuestTrainingZoneBounds.x + 42f,
+                thirdQuestTrainingZoneBounds.y + 34f);
+        thirdQuestMovementMarkers[1].set(
+                thirdQuestTrainingZoneBounds.x + thirdQuestTrainingZoneBounds.width - 54f,
+                thirdQuestTrainingZoneBounds.y + 46f);
+        thirdQuestMovementMarkers[2].set(
+                thirdQuestTrainingZoneBounds.x + thirdQuestTrainingZoneBounds.width * 0.5f,
+                thirdQuestTrainingZoneBounds.y + thirdQuestTrainingZoneBounds.height - 36f);
+        thirdQuestSparZoneBounds.set(
+                thirdQuestTrainingZoneBounds.x - 20f,
+                thirdQuestTrainingZoneBounds.y - 16f,
+                thirdQuestTrainingZoneBounds.width + 40f,
+                thirdQuestTrainingZoneBounds.height + 32f);
+        thirdQuestTrainingLayoutReady = true;
+    }
+
+    private void resetThirdQuestMovementTutorial() {
+        Arrays.fill(thirdQuestMovementMarkerReached, false);
+        thirdQuestMovementMarkersReached = 0;
+    }
+
+    private void beginThirdQuestMovementTutorial() {
+        thirdQuestStage = THIRD_QUEST_MOVEMENT_TUTORIAL;
+        resetThirdQuestMovementTutorial();
+        showQuestNotification(
+                THIRD_QUEST_NOTIFICATION_TITLE,
+                "Movement Tutorial: Use W, A, S, and D to reach all 3 training markers.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginThirdQuestAttackTutorial() {
+        thirdQuestStage = THIRD_QUEST_ATTACK_TUTORIAL;
+        thirdQuestAttackDummyHitCount = 0;
+        thirdQuestAttackDummyBroken = false;
+        thirdQuestDummyHitRegistered = false;
+        showQuestNotification(
+                THIRD_QUEST_NOTIFICATION_TITLE,
+                "Basic Attack Tutorial: Left click to strike the training dummy 5 times.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginThirdQuestCombatTutorial() {
+        thirdQuestStage = THIRD_QUEST_COMBAT_TUTORIAL;
+        clearThirdQuestTutorialBats();
+        thirdQuestTutorialEnemiesSpawned = false;
+        showQuestNotification(
+                THIRD_QUEST_NOTIFICATION_TITLE,
+                "Combat Tutorial: Defeat the training shades and attack only when their movement opens a window.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginThirdQuestFatherSpar() {
+        thirdQuestSparActive = true;
+        thirdQuestFatherHitRegistered = false;
+        thirdQuestFatherSparHealth = THIRD_QUEST_SPAR_FATHER_MAX_HEALTH;
+        thirdQuestFatherSparAttackCooldownTimer = 0.35f;
+        thirdQuestFatherSparHitCooldownTimer = 0f;
+        thirdQuestFatherSparElapsed = 0f;
+        thirdQuestFatherSparCalloutTimer = 0f;
+        thirdQuestFatherSparCalloutIndex = 0;
+        thirdQuestFatherSparHitsTaken = 0;
+        showQuestNotification(
+                THIRD_QUEST_NOTIFICATION_TITLE,
+                "Final Sparring Match: Stay alive, watch Father, and strike with intent.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void startThirdQuest() {
+        thirdQuestStage = THIRD_QUEST_RETURN_TO_FATHER;
+        thirdQuestAvailable = true;
+        showQuestNotification(
+                THIRD_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Return to Father in the inn room.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void updateThirdQuestMovementTutorial() {
+        if (thirdQuestStage != THIRD_QUEST_MOVEMENT_TUTORIAL
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || !thirdQuestTrainingLayoutReady) {
+            return;
+        }
+
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float reachDistanceSq = THIRD_QUEST_TRAINING_MARKER_REACH_DISTANCE * THIRD_QUEST_TRAINING_MARKER_REACH_DISTANCE;
+        for (int i = 0; i < thirdQuestMovementMarkers.length; i++) {
+            if (thirdQuestMovementMarkerReached[i]) {
+                continue;
+            }
+            float dx = thirdQuestMovementMarkers[i].x - playerCenterX;
+            float dy = thirdQuestMovementMarkers[i].y - playerCenterY;
+            if (dx * dx + dy * dy > reachDistanceSq) {
+                continue;
+            }
+            thirdQuestMovementMarkerReached[i] = true;
+            thirdQuestMovementMarkersReached++;
+        }
+
+        if (thirdQuestMovementMarkersReached >= thirdQuestMovementMarkers.length) {
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_AFTER_MOVEMENT,
+                    THIRD_QUEST_FATHER_AFTER_MOVEMENT_SPEAKERS,
+                    THIRD_QUEST_FATHER_AFTER_MOVEMENT_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateThirdQuestAttackTutorial() {
+        if (thirdQuestStage != THIRD_QUEST_ATTACK_TUTORIAL
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || !thirdQuestTrainingLayoutReady) {
+            thirdQuestDummyHitRegistered = false;
+            return;
+        }
+        if (!player.attacking || activeAttackAnim == null) {
+            thirdQuestDummyHitRegistered = false;
+            return;
+        }
+        if (player.attackTimer < 0.05f) {
+            thirdQuestDummyHitRegistered = false;
+        }
+        if (thirdQuestDummyHitRegistered || !isThirdQuestTargetWithinPlayerAttackRange(thirdQuestAttackDummyBounds)) {
+            return;
+        }
+        thirdQuestDummyHitRegistered = true;
+        thirdQuestAttackDummyHitCount = Math.min(THIRD_QUEST_DUMMY_HITS_REQUIRED, thirdQuestAttackDummyHitCount + 1);
+        if (thirdQuestAttackDummyHitCount >= THIRD_QUEST_DUMMY_HITS_REQUIRED) {
+            thirdQuestAttackDummyBroken = true;
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_AFTER_ATTACK,
+                    THIRD_QUEST_FATHER_AFTER_ATTACK_SPEAKERS,
+                    THIRD_QUEST_FATHER_AFTER_ATTACK_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateThirdQuestCombatTutorial() {
+        if (thirdQuestStage != THIRD_QUEST_COMBAT_TUTORIAL || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        if (!thirdQuestTutorialEnemiesSpawned) {
+            spawnThirdQuestTutorialBats();
+        }
+        if (countThirdQuestTutorialBats() <= 0) {
+            thirdQuestStage = THIRD_QUEST_SPAR_WITH_FATHER;
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_PRE_SPAR,
+                    THIRD_QUEST_FATHER_PRE_SPAR_SPEAKERS,
+                    THIRD_QUEST_FATHER_PRE_SPAR_DIALOGUE_LINES);
+        }
+    }
+
+    private void updateThirdQuestFatherSpar(float delta) {
+        if (thirdQuestStage != THIRD_QUEST_SPAR_WITH_FATHER
+                || !thirdQuestSparActive
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || !thirdQuestTrainingLayoutReady) {
+            thirdQuestFatherHitRegistered = false;
+            return;
+        }
+
+        thirdQuestFatherSparAttackCooldownTimer = Math.max(0f, thirdQuestFatherSparAttackCooldownTimer - Math.max(0f, delta));
+        thirdQuestFatherSparHitCooldownTimer = Math.max(0f, thirdQuestFatherSparHitCooldownTimer - Math.max(0f, delta));
+        thirdQuestFatherSparElapsed += Math.max(0f, delta);
+        thirdQuestFatherSparCalloutTimer += Math.max(0f, delta);
+
+        if (thirdQuestFatherSparCalloutTimer >= THIRD_QUEST_SPAR_CALL_OUT_SECONDS && hudRenderer != null) {
+            thirdQuestFatherSparCalloutTimer = 0f;
+            hudRenderer.showNotification(
+                    "Father",
+                    THIRD_QUEST_SPAR_CALLOUTS[thirdQuestFatherSparCalloutIndex % THIRD_QUEST_SPAR_CALLOUTS.length],
+                    1.6f);
+            thirdQuestFatherSparCalloutIndex++;
+        }
+
+        if (!player.attacking || activeAttackAnim == null) {
+            thirdQuestFatherHitRegistered = false;
+        } else {
+            if (player.attackTimer < 0.05f) {
+                thirdQuestFatherHitRegistered = false;
+            }
+            if (!thirdQuestFatherHitRegistered
+                    && thirdQuestFatherSparHitCooldownTimer <= 0f
+                    && isThirdQuestTargetWithinPlayerAttackRange(thirdQuestFatherTrainingBounds)) {
+                thirdQuestFatherHitRegistered = true;
+                thirdQuestFatherSparHitCooldownTimer = THIRD_QUEST_SPAR_FATHER_HIT_COOLDOWN;
+                thirdQuestFatherSparHitsTaken++;
+                thirdQuestFatherSparHealth = Math.max(0f, thirdQuestFatherSparHealth - BAT_HIT_DAMAGE);
+            }
+        }
+
+        float fatherCenterX = thirdQuestFatherTrainingBounds.x + thirdQuestFatherTrainingBounds.width * 0.5f;
+        float fatherCenterY = thirdQuestFatherTrainingBounds.y + thirdQuestFatherTrainingBounds.height * 0.5f;
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float dx = playerCenterX - fatherCenterX;
+        float dy = playerCenterY - fatherCenterY;
+        float distanceSq = dx * dx + dy * dy;
+
+        if (distanceSq <= THIRD_QUEST_SPAR_FATHER_ATTACK_RANGE * THIRD_QUEST_SPAR_FATHER_ATTACK_RANGE
+                && thirdQuestFatherSparAttackCooldownTimer <= 0f
+                && player.currentHealth > 0f
+                && !isPlayerHazardHitReactionActive()) {
+            applyDamageToPlayer(THIRD_QUEST_SPAR_FATHER_DAMAGE);
+            thirdQuestFatherSparAttackCooldownTimer = THIRD_QUEST_SPAR_FATHER_ATTACK_COOLDOWN;
+        }
+
+        boolean sparThresholdReached = thirdQuestFatherSparHealth <= THIRD_QUEST_SPAR_FATHER_MAX_HEALTH * 0.35f
+                || thirdQuestFatherSparHitsTaken >= THIRD_QUEST_SPAR_HITS_TO_WIN
+                || (thirdQuestFatherSparElapsed >= THIRD_QUEST_SPAR_SURVIVE_SECONDS && thirdQuestFatherSparHitsTaken >= 3);
+        if (sparThresholdReached) {
+            thirdQuestSparActive = false;
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_COMPLETE,
+                    THIRD_QUEST_FATHER_COMPLETE_SPEAKERS,
+                    THIRD_QUEST_FATHER_COMPLETE_DIALOGUE_LINES);
+        }
+    }
+
+    private boolean isThirdQuestTargetWithinPlayerAttackRange(Rectangle targetBounds) {
+        if (targetBounds == null || !player.attacking || activeAttackAnim == null) {
+            return false;
+        }
+        float hitRange = playerBatHitRange();
+        float hitRangeSq = hitRange * hitRange;
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float targetCenterX = targetBounds.x + targetBounds.width * 0.5f;
+        float targetCenterY = targetBounds.y + targetBounds.height * 0.5f;
+        float dx = playerCenterX - targetCenterX;
+        float dy = playerCenterY - targetCenterY;
+        return dx * dx + dy * dy <= hitRangeSq;
+    }
+
+    private void spawnThirdQuestTutorialBats() {
+        if (!thirdQuestTrainingLayoutReady) {
+            return;
+        }
+        clearThirdQuestTutorialBats();
+        float baseX = thirdQuestTrainingZoneBounds.x + thirdQuestTrainingZoneBounds.width * 0.5f;
+        float baseY = thirdQuestTrainingZoneBounds.y + thirdQuestTrainingZoneBounds.height * 0.58f;
+        addTutorialBatAt(baseX - 54f, baseY + 12f);
+        addTutorialBatAt(baseX + 18f, baseY + 24f);
+        addTutorialBatAt(baseX + 68f, baseY - 10f);
+        thirdQuestTutorialEnemiesSpawned = true;
+    }
+
+    private void clearThirdQuestTutorialBats() {
+        for (int i = bats.size - 1; i >= 0; i--) {
+            if (bats.get(i).tutorialEnemy) {
+                bats.removeIndex(i);
+            }
+        }
+        thirdQuestTutorialEnemiesSpawned = false;
+    }
+
+    private int countThirdQuestTutorialBats() {
+        int count = 0;
+        for (int i = 0; i < bats.size; i++) {
+            if (bats.get(i).tutorialEnemy) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private boolean isFirstQuestOverlayActive() {
+        return firstQuestDialogueActive || firstQuestItemCardVisible;
+    }
+
+    private boolean handleFirstQuestOverlayInput() {
+        if (!isFirstQuestOverlayActive()) {
+            return false;
+        }
+        boolean advancePressed = Gdx.input.isKeyJustPressed(Input.Keys.E)
+                || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+                || Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        if (!advancePressed) {
+            return true;
+        }
+
+        if (firstQuestDialogueActive) {
+            firstQuestDialogueLineIndex++;
+            if (firstQuestDialogueLineIndex >= activeQuestDialogueLines.length) {
+                firstQuestDialogueActive = false;
+                handleCompletedQuestDialogue();
+            }
+            return true;
+        }
+
+        if (firstQuestItemCardVisible) {
+            firstQuestItemCardVisible = false;
+            handleCompletedQuestItemCard();
+            return true;
+        }
+
+        return true;
+    }
+
+    private void startQuestDialogue(QuestDialogueId dialogueId, String[] speakers, String[] lines) {
+        activeQuestDialogueId = dialogueId == null ? QuestDialogueId.NONE : dialogueId;
+        activeQuestDialogueSpeakers = speakers == null ? new String[0] : speakers;
+        activeQuestDialogueLines = lines == null ? new String[0] : lines;
+        firstQuestDialogueLineIndex = 0;
+        firstQuestItemCardVisible = false;
+        activeQuestItemCardId = QuestItemCardId.NONE;
+        firstQuestDialogueActive = activeQuestDialogueLines.length > 0;
+    }
+
+    private void showQuestItemCard(QuestItemCardId itemCardId, String title, String description, Texture texture,
+                                   float titleScale, float imageScaleMultiplier,
+                                   float titleOffsetY, float descriptionOffsetY, float hintOffsetY) {
+        activeQuestItemCardId = itemCardId == null ? QuestItemCardId.NONE : itemCardId;
+        activeQuestItemTitle = title == null ? "" : title;
+        activeQuestItemDescription = description == null ? "" : description;
+        activeQuestItemTexture = texture;
+        activeQuestItemTitleScale = titleScale <= 0f ? 1f : titleScale;
+        activeQuestItemImageScaleMultiplier = imageScaleMultiplier <= 0f ? 1f : imageScaleMultiplier;
+        activeQuestItemTitleOffsetY = titleOffsetY;
+        activeQuestItemDescriptionOffsetY = descriptionOffsetY;
+        activeQuestItemHintOffsetY = hintOffsetY;
+        firstQuestDialogueActive = false;
+        firstQuestItemCardVisible = true;
+    }
+
+    private void showQuestNotification(String title, String message, float durationSeconds) {
+        questGuidanceSuppressTimer = Math.max(questGuidanceSuppressTimer, Math.max(0f, durationSeconds));
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(title, message, durationSeconds);
+        }
+    }
+
+    private void handleCompletedQuestDialogue() {
+        QuestDialogueId completedDialogue = activeQuestDialogueId;
+        activeQuestDialogueId = QuestDialogueId.NONE;
+        activeQuestDialogueSpeakers = new String[0];
+        activeQuestDialogueLines = new String[0];
+
+        switch (completedDialogue) {
+            case FIRST_QUEST_FATHER -> showQuestItemCard(
+                    QuestItemCardId.FIRST_QUEST_HERB_AND_SPICE,
+                    "Herb and Spice",
+                    "Father asked you to bring this bundle to the cafe.",
+                    firstQuestItemTex,
+                    0.5f,
+                    6f,
+                    0f,
+                    -20f,
+                    0f);
+            case SECOND_QUEST_CAFE_OWNER -> showQuestItemCard(
+                    QuestItemCardId.SECOND_QUEST_SCORCHED_FRAGMENT,
+                    "",
+                    "The cafe owner found a warm, soot-black fragment and asked you to bring it to the scientist.",
+                    secondQuestFragmentTex,
+                    1f,
+                    3.7f,
+                    0f,
+                    -10f,
+                    0f);
+            case SECOND_QUEST_SCIENTIST_INTRO -> {
+                secondQuestStage = SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES;
+                refreshFirstQuestGuidance();
+                showQuestNotification(
+                        SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Retrieve the Archive Notes from Research Lab Floor 2.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case SECOND_QUEST_SCIENTIST_RETURN -> {
+                finishSecondQuest();
+                startQuestDialogue(
+                        QuestDialogueId.THIRD_QUEST_SCIENTIST_SENDOFF,
+                        THIRD_QUEST_SCIENTIST_SENDOFF_SPEAKERS,
+                        THIRD_QUEST_SCIENTIST_SENDOFF_DIALOGUE_LINES);
+            }
+            case THIRD_QUEST_SCIENTIST_SENDOFF -> startThirdQuest();
+            case THIRD_QUEST_FATHER_RETURN -> {
+                thirdQuestStage = THIRD_QUEST_MEET_FATHER_OUTSIDE;
+                showQuestNotification(
+                        THIRD_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Meet Father at the training ground behind the inn.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case THIRD_QUEST_FATHER_TRAINING_INTRO -> beginThirdQuestMovementTutorial();
+            case THIRD_QUEST_FATHER_AFTER_MOVEMENT -> beginThirdQuestAttackTutorial();
+            case THIRD_QUEST_FATHER_AFTER_ATTACK -> beginThirdQuestCombatTutorial();
+            case THIRD_QUEST_FATHER_PRE_SPAR -> beginThirdQuestFatherSpar();
+            case THIRD_QUEST_FATHER_COMPLETE -> {
+                finishThirdQuest();
+                showQuestItemCard(
+                        QuestItemCardId.THIRD_QUEST_DASH_ATTACK_UNLOCKED,
+                        "Dash Attack Unlocked",
+                        "Press E to lunge forward with an attack.",
+                        null,
+                        0.9f,
+                        1f,
+                        0f,
+                        52f,
+                        0f);
+            }
+            case FOURTH_QUEST_INTERRUPTION -> startFourthQuest();
+            case FOURTH_QUEST_SCIENTIST_REPORT -> {
+                fourthQuestStage = FOURTH_QUEST_TALK_TO_CAFE_OWNER;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Investigate the corrupted site outside the cafe.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_CAFE_OWNER -> {
+                fourthQuestStage = FOURTH_QUEST_EXAMINE_CAFE_MARK;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Examine the corrupted mark outside the cafe.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_CAFE_MARK -> beginFourthQuestCafeBattle();
+            case FOURTH_QUEST_CENTER_MARK -> beginFourthQuestCenterBattle();
+            case FOURTH_QUEST_CENTER_AFTER -> {
+                fourthQuestStage = FOURTH_QUEST_EXAMINE_EDGE_MARK;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Investigate the final corrupted site near the outer road.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_EDGE_MARK -> beginFourthQuestEdgeBattle();
+            case FOURTH_QUEST_EDGE_AFTER -> {
+                fourthQuestStage = FOURTH_QUEST_RETURN_TO_SCIENTIST;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Return the samples to the scientist.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_SAMPLE_ANALYSIS -> beginFourthQuestArraySequence();
+            case FOURTH_QUEST_ARRAY_SCAN_COMPLETE -> {
+                fourthQuestStage = FOURTH_QUEST_GO_TO_BREACH;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Go to the breach site near the outer road.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_BREACH_INTRO -> beginFourthQuestBreachBattle();
+            case FOURTH_QUEST_BREACH_AFTER -> {
+                fourthQuestStage = FOURTH_QUEST_RETURN_RIFT_CORE;
+                showQuestNotification(
+                        FOURTH_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Bring the Rift Core to the scientist.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case FOURTH_QUEST_SPATIAL_UNLOCK -> {
+                fourthQuestStage = FOURTH_QUEST_EPILOGUE;
+                levelPlayerToCap(QUEST_4_LEVEL_CAP);
+                showQuestItemCard(
+                        QuestItemCardId.FOURTH_QUEST_SPATIAL_DASH_UNLOCKED,
+                        "Spatial Dash Unlocked",
+                        "Use Spatial Dash to cross gaps, evade danger, and move through unstable space.",
+                        null,
+                        0.9f,
+                        1f,
+                        0f,
+                        52f,
+                        0f);
+            }
+            case FOURTH_QUEST_EPILOGUE -> {
+                finishFourthQuest();
+                startQuestDialogue(
+                        QuestDialogueId.FIFTH_QUEST_LAB_ALARM,
+                        FIFTH_QUEST_LAB_ALARM_SPEAKERS,
+                        FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES);
+            }
+            case FIFTH_QUEST_LAB_ALARM -> startFifthQuest();
+            case FIFTH_QUEST_RUINS_INTRO -> beginFifthQuestOuterRuinsBattle();
+            case FIFTH_QUEST_PORTAL_AFTER -> {
+                finishFifthQuest();
+                startQuestDialogue(
+                        QuestDialogueId.SIXTH_QUEST_PORTAL_BRIEFING,
+                        SIXTH_QUEST_PORTAL_BRIEFING_SPEAKERS,
+                        SIXTH_QUEST_PORTAL_BRIEFING_DIALOGUE_LINES);
+            }
+            case SIXTH_QUEST_PORTAL_BRIEFING -> startSixthQuest();
+            case SIXTH_QUEST_CASTLE_ARRIVAL -> beginSixthQuestOuterAssault();
+            case SIXTH_QUEST_PHASE_1_INTRO -> beginSixthQuestBossPhase1();
+            case SIXTH_QUEST_PHASE_1_TRANSITION -> beginSixthQuestFinalPhaseIntro();
+            case SIXTH_QUEST_FINAL_PHASE_INTRO -> beginSixthQuestFinalPhaseBattle();
+            case SIXTH_QUEST_ENDING -> showQuestItemCard(
+                    QuestItemCardId.SIXTH_QUEST_CLEAR,
+                    "The Last Ember",
+                    "The fire that once took everything from her was finally extinguished.\nFrom grief, she found strength. From ashes, she found a home. And from the last ember, a new dawn was born.",
+                    null,
+                    0.92f,
+                    1f,
+                    0f,
+                    44f,
+                    0f);
+            default -> {
+            }
+        }
+    }
+
+    private void handleCompletedQuestItemCard() {
+        QuestItemCardId completedItemCard = activeQuestItemCardId;
+        activeQuestItemCardId = QuestItemCardId.NONE;
+        activeQuestItemTitle = "";
+        activeQuestItemDescription = "";
+        activeQuestItemTexture = null;
+        activeQuestItemTitleScale = 1f;
+        activeQuestItemImageScaleMultiplier = 1f;
+        activeQuestItemTitleOffsetY = 0f;
+        activeQuestItemDescriptionOffsetY = 0f;
+        activeQuestItemHintOffsetY = 0f;
+
+        switch (completedItemCard) {
+            case FIRST_QUEST_HERB_AND_SPICE -> {
+                if (firstQuestStage < FIRST_QUEST_DELIVER_TO_CAFE) {
+                    firstQuestStage = FIRST_QUEST_DELIVER_TO_CAFE;
+                }
+            }
+            case SECOND_QUEST_SCORCHED_FRAGMENT -> {
+                secondQuestStage = SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST;
+                showQuestNotification(
+                        SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Bring the Scorched Fragment to the Scientist at the Research Lab.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case SECOND_QUEST_ARCHIVE_NOTES -> {
+                secondQuestStage = SECOND_QUEST_RETURN_TO_SCIENTIST;
+                showQuestNotification(
+                        SECOND_QUEST_NOTIFICATION_TITLE,
+                        "Objective Updated: Return to the Scientist.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            case THIRD_QUEST_DASH_ATTACK_UNLOCKED -> startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_INTERRUPTION,
+                    FOURTH_QUEST_INTERRUPTION_SPEAKERS,
+                    FOURTH_QUEST_INTERRUPTION_DIALOGUE_LINES);
+            case FOURTH_QUEST_SPATIAL_DASH_UNLOCKED -> startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_EPILOGUE,
+                    FOURTH_QUEST_EPILOGUE_SPEAKERS,
+                    FOURTH_QUEST_EPILOGUE_DIALOGUE_LINES);
+            case SIXTH_QUEST_CLEAR -> finishSixthQuest();
+            default -> {
+            }
+        }
+        refreshFirstQuestGuidance();
     }
 
     private void forceDayTime() {
@@ -4991,6 +9479,15 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void handleMainMenuInput() {
+        if (hudRenderer == null || !hudRenderer.isMainMenuVisible()) {
+            return;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            hudRenderer.closeMainMenu();
+        }
+    }
+
     private void handleInput(float delta) {
         if (hudRenderer != null && hudRenderer.isChatOpen()) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -5000,6 +9497,11 @@ public class GameScreen extends ScreenAdapter {
             } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 hudRenderer.closeChat(true);
             }
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
+        }
+        if (handleFirstQuestOverlayInput()) {
             player.moving = false;
             centerCameraOnPlayer();
             return;
@@ -5036,7 +9538,10 @@ public class GameScreen extends ScreenAdapter {
             setDayNightSpeed(1f);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.M) && hudRenderer != null) {
-            hudRenderer.toggleMainMenu();
+            hudRenderer.openMainMenu();
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
         }
 
         boolean leftPressed = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
@@ -5071,7 +9576,21 @@ public class GameScreen extends ScreenAdapter {
             centerCameraOnPlayer();
             return;
         }
-        boolean dashAttackPressed = interactPressed;
+        boolean combatEnabled = isPlayerCombatEnabledOnCurrentMap();
+        boolean dashAttackUnlocked = isDashAttackUnlocked();
+        boolean spatialDashUnlocked = isSpatialDashUnlocked();
+        boolean dashAttackPressed = combatEnabled && interactPressed && dashAttackUnlocked;
+
+        if (combatEnabled && interactPressed && !dashAttackUnlocked) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        "Technique Locked",
+                        "E Dash Attack unlocks at Level " + DASH_ATTACK_UNLOCK_LEVEL + ".",
+                        TECHNIQUE_LOCKED_NOTIFICATION_SECONDS);
+            }
+            centerCameraOnPlayer();
+            return;
+        }
 
         if (dashAttackPressed && !player.attacking && !player.dashing && player.attackCooldownTimer <= 0f && player.dashCooldownTimer <= 0f) {
             player.dashAttackFollowupQueued = false;
@@ -5094,7 +9613,19 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (rightPressed && !player.attacking && !player.dashing && player.attackCooldownTimer <= 0f && player.dashCooldownTimer <= 0f) {
+        if (combatEnabled && rightPressed && !spatialDashUnlocked) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        "Technique Locked",
+                        "Spatial Dash unlocks at Level " + SPATIAL_DASH_UNLOCK_LEVEL + ".",
+                        TECHNIQUE_LOCKED_NOTIFICATION_SECONDS);
+            }
+            centerCameraOnPlayer();
+            return;
+        }
+
+        if (combatEnabled && rightPressed && !player.attacking && !player.dashing
+                && player.attackCooldownTimer <= 0f && player.dashCooldownTimer <= 0f) {
             activeAttackAnim = spetialDashAnim;
             if (activeAttackAnim != null) {
                 player.attacking = true;
@@ -5108,7 +9639,7 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        if (leftPressed && !player.attacking && player.attackCooldownTimer <= 0f) {
+        if (combatEnabled && leftPressed && !player.attacking && player.attackCooldownTimer <= 0f) {
             Sound attackSound = null;
             if (upPressed) {
                 activeAttackAnim = jumpUpAttackAnim;
@@ -5175,7 +9706,7 @@ public class GameScreen extends ScreenAdapter {
             player.lastMoveY = dy;
         }
 
-        float step = PLAYER_SPEED * delta;
+        float step = currentPlayerMoveSpeed() * delta;
         player.moving = false;
         if (tryMove(dx * step, 0)) {
             player.moving = player.moving || dx != 0;
@@ -5186,6 +9717,14 @@ public class GameScreen extends ScreenAdapter {
         }
         // zoom locked
         centerCameraOnPlayer();
+    }
+
+    private float currentPlayerMoveSpeed() {
+        float moveSpeed = PLAYER_SPEED;
+        if (PlayerLevelStats.clampLevel(player.playerLevel) >= PlayerLevelStats.MAX_LEVEL) {
+            moveSpeed *= MAX_LEVEL_MOVE_SPEED_MULTIPLIER;
+        }
+        return moveSpeed;
     }
 
     private void handleChatCommand(String submittedMessage) {
@@ -5203,11 +9742,26 @@ public class GameScreen extends ScreenAdapter {
         }
 
         String[] tokens = normalized.split("\\s+");
+        String command = tokens[0].toLowerCase(Locale.ROOT);
+        if ("/health".equals(command)) {
+            infiniteHealthEnabled = false;
+            if (hudRenderer != null) {
+                hudRenderer.showNotification("System", "Health is back to normal.", 2.4f);
+            }
+            return;
+        }
+        if ("/inf".equals(command) && tokens.length >= 2 && "health".equalsIgnoreCase(tokens[1])) {
+            infiniteHealthEnabled = true;
+            if (hudRenderer != null) {
+                hudRenderer.showNotification("System", "Infinite health enabled.", 2.4f);
+            }
+            return;
+        }
+
         if (tokens.length < 2) {
             return;
         }
 
-        String command = tokens[0].toLowerCase(Locale.ROOT);
         if ("/to".equals(command)) {
             String destination = tokens[1].toLowerCase(Locale.ROOT);
             if ("castle".equals(destination)) {
@@ -5264,6 +9818,10 @@ public class GameScreen extends ScreenAdapter {
 
     private void clearSpawnedBossArenaPhase2Demons() {
         bossArenaPhase2Demons.clear();
+    }
+
+    private void clearSpawnedFifthQuestDemons() {
+        fifthQuestDemons.clear();
     }
 
     private void disposeBossArenaPhase2DemonFrameTextures() {
@@ -5378,8 +9936,715 @@ public class GameScreen extends ScreenAdapter {
         clearEvilWizardAttackHazard();
     }
 
+    private boolean tryHandleFirstQuestInteraction() {
+        if (isFirstQuestOverlayActive() || world.activeMapId == null) {
+            return false;
+        }
+        if (firstQuestStage == FIRST_QUEST_TALK_TO_FATHER
+                && MAP_ID_INN_ROOM.equals(world.activeMapId)
+                && isPlayerNearFirstQuestFather()) {
+            startQuestDialogue(
+                    QuestDialogueId.FIRST_QUEST_FATHER,
+                    repeatSpeaker("Father", FIRST_QUEST_FATHER_DIALOGUE_LINES.length),
+                    FIRST_QUEST_FATHER_DIALOGUE_LINES);
+            return true;
+        }
+        if (firstQuestStage >= FIRST_QUEST_DELIVER_TO_CAFE
+                && firstQuestStage < FIRST_QUEST_COMPLETE
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            firstQuestStage = FIRST_QUEST_COMPLETE;
+            if (secondQuestStage < SECOND_QUEST_TALK_TO_CAFE_OWNER) {
+                secondQuestStage = SECOND_QUEST_TALK_TO_CAFE_OWNER;
+            }
+            showQuestNotification(
+                    "Quest Complete",
+                    "You delivered the Herb-and-Spice to the cafe owner.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            refreshFirstQuestGuidance();
+            return true;
+        }
+        if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.SECOND_QUEST_CAFE_OWNER,
+                    SECOND_QUEST_CAFE_OWNER_SPEAKERS,
+                    SECOND_QUEST_CAFE_OWNER_DIALOGUE_LINES);
+            return true;
+        }
+        if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.SECOND_QUEST_SCIENTIST_INTRO,
+                    SECOND_QUEST_SCIENTIST_INTRO_SPEAKERS,
+                    SECOND_QUEST_SCIENTIST_INTRO_DIALOGUE_LINES);
+            return true;
+        }
+        if (secondQuestStage == SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearSecondQuestArchive()) {
+            showQuestItemCard(
+                    QuestItemCardId.SECOND_QUEST_ARCHIVE_NOTES,
+                    "Archive Notes",
+                    "You found the Archive Notes the scientist asked for.",
+                    secondQuestArchiveNotesTex,
+                    0.75f,
+                    1.35f,
+                    0f,
+                    -8f,
+                    0f);
+            return true;
+        }
+        if (secondQuestStage == SECOND_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.SECOND_QUEST_SCIENTIST_RETURN,
+                    SECOND_QUEST_SCIENTIST_RETURN_SPEAKERS,
+                    SECOND_QUEST_SCIENTIST_RETURN_DIALOGUE_LINES);
+            return true;
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER
+                && MAP_ID_INN_ROOM.equals(world.activeMapId)
+                && isPlayerNearFirstQuestFather()) {
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_RETURN,
+                    THIRD_QUEST_FATHER_RETURN_SPEAKERS,
+                    THIRD_QUEST_FATHER_RETURN_DIALOGUE_LINES);
+            return true;
+        }
+        if (thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearThirdQuestVillageFather()) {
+            startQuestDialogue(
+                    QuestDialogueId.THIRD_QUEST_FATHER_TRAINING_INTRO,
+                    THIRD_QUEST_FATHER_TRAINING_INTRO_SPEAKERS,
+                    THIRD_QUEST_FATHER_TRAINING_INTRO_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_REPORT_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_SCIENTIST_REPORT,
+                    FOURTH_QUEST_SCIENTIST_REPORT_SPEAKERS,
+                    FOURTH_QUEST_SCIENTIST_REPORT_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_TALK_TO_CAFE_OWNER
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_CAFE_OWNER,
+                    FOURTH_QUEST_CAFE_OWNER_SPEAKERS,
+                    FOURTH_QUEST_CAFE_OWNER_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestCafeMark()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_CAFE_MARK,
+                    FOURTH_QUEST_CAFE_MARK_SPEAKERS,
+                    FOURTH_QUEST_CAFE_MARK_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestCenterMark()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_CENTER_MARK,
+                    FOURTH_QUEST_CENTER_MARK_SPEAKERS,
+                    FOURTH_QUEST_CENTER_MARK_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_EDGE_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestEdgeMark()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_EDGE_MARK,
+                    FOURTH_QUEST_EDGE_MARK_SPEAKERS,
+                    FOURTH_QUEST_EDGE_MARK_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_SAMPLE_ANALYSIS,
+                    FOURTH_QUEST_SAMPLE_ANALYSIS_SPEAKERS,
+                    FOURTH_QUEST_SAMPLE_ANALYSIS_DIALOGUE_LINES);
+            return true;
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_GO_TO_ARRAY || fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_1)
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(0)) {
+            fourthQuestStage = FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "First array node aligned. Activate the second node.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(1)) {
+            fourthQuestStage = FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "Second array node aligned. Activate the third node.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(2)) {
+            fourthQuestStage = FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE;
+            showQuestNotification(
+                    FOURTH_QUEST_NOTIFICATION_TITLE,
+                    "All outer nodes are active. Return to the main console.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayConsole()) {
+            beginFourthQuestArrayDefense();
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestBreachSite()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_BREACH_INTRO,
+                    FOURTH_QUEST_BREACH_INTRO_SPEAKERS,
+                    FOURTH_QUEST_BREACH_INTRO_DIALOGUE_LINES);
+            return true;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_SPATIAL_UNLOCK,
+                    FOURTH_QUEST_SPATIAL_UNLOCK_SPEAKERS,
+                    FOURTH_QUEST_SPATIAL_UNLOCK_DIALOGUE_LINES);
+            return true;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFifthQuestAnchor(0)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(characterName, "One down.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginFifthQuestAnchorBattle(1);
+            return true;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFifthQuestAnchor(1)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(characterName, "The portal is weakening.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginFifthQuestAnchorBattle(2);
+            return true;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_3_DESTROY
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFifthQuestAnchor(2)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(characterName, "One more guardian remains.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginFifthQuestPortalBoss();
+            return true;
+        }
+        if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
+                && sixthQuestStage < SIXTH_QUEST_ENDING
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isVillagePortalActive()
+                && isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
+            if (sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_INTRO) {
+                startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+            } else {
+                startMapTransition(MAP_ID_DEMON_CASTLE, "Spawn");
+            }
+            return true;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY
+                && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && isPlayerNearSixthQuestSeal(true)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(characterName, "One seal broken.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginSixthQuestSealBBattle();
+            return true;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY
+                && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && isPlayerNearSixthQuestSeal(false)) {
+            if (hudRenderer != null) {
+                hudRenderer.showNotification(characterName, "The path is opening.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            beginSixthQuestThroneGuards();
+            return true;
+        }
+        if (secondQuestStage == SECOND_QUEST_COMPLETE
+                && scientistProgressionUnlocked
+                && (fourthQuestStage <= FOURTH_QUEST_DISABLED || fourthQuestStage >= FOURTH_QUEST_COMPLETE)
+                && (fifthQuestStage <= FIFTH_QUEST_DISABLED || fifthQuestStage >= FIFTH_QUEST_COMPLETE)
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            if (player.playerLevel < progressionLevelCap) {
+                levelPlayerToCap(progressionLevelCap);
+                showQuestNotification(
+                        "Progression",
+                        "The scientist helps you reach Level " + player.playerLevel + ".",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            } else if (hudRenderer != null) {
+                hudRenderer.showNotification(
+                        "Scientist",
+                        "Return when your training deepens. Level 3 unlocks E Dash Attack. Level 4 unlocks Spatial Dash.",
+                        FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isPlayerCombatEnabledOnCurrentMap() {
+        if (world.activeMapId == null) {
+            return false;
+        }
+        return MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                || MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)
+                || (MAP_ID_VILLAGE.equals(world.activeMapId)
+                && (thirdQuestStage == THIRD_QUEST_ATTACK_TUTORIAL
+                || thirdQuestStage == THIRD_QUEST_COMBAT_TUTORIAL
+                || thirdQuestStage == THIRD_QUEST_SPAR_WITH_FATHER
+                || fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_CENTER_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_EDGE_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_BREACH_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_OUTER_RUINS_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_MID_RUINS_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_1_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_PORTAL_BOSS))
+                || (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && fourthQuestStage == FOURTH_QUEST_ARRAY_DEFENSE);
+    }
+
+    private boolean isDashAttackUnlocked() {
+        return player.playerLevel >= DASH_ATTACK_UNLOCK_LEVEL;
+    }
+
+    private boolean isSpatialDashUnlocked() {
+        return player.playerLevel >= SPATIAL_DASH_UNLOCK_LEVEL;
+    }
+
+    private boolean isPlayerNearFirstQuestFather() {
+        Rectangle fatherBounds = firstQuestFatherBounds();
+        if (fatherBounds == null) {
+            return false;
+        }
+        Rectangle expandedBounds = new Rectangle(
+                fatherBounds.x - FIRST_QUEST_INTERACT_RANGE * 0.5f,
+                fatherBounds.y - FIRST_QUEST_INTERACT_RANGE * 0.25f,
+                fatherBounds.width + FIRST_QUEST_INTERACT_RANGE,
+                fatherBounds.height + FIRST_QUEST_INTERACT_RANGE * 0.75f);
+        return expandedBounds.overlaps(player.bounds);
+    }
+
+    private Rectangle firstQuestFatherBounds() {
+        MapLayer fatherLayer = findLayerByName(FIRST_QUEST_FATHER_LAYER_NAME);
+        if (fatherLayer instanceof MapGroupLayer groupLayer) {
+            MapLayer nestedFatherLayer = findLayerByName(groupLayer.getLayers(), FIRST_QUEST_FATHER_LAYER_NAME);
+            if (nestedFatherLayer != null) {
+                fatherLayer = nestedFatherLayer;
+            } else if (groupLayer.getLayers().getCount() > 0) {
+                fatherLayer = groupLayer.getLayers().get(0);
+            }
+        }
+        return tiledLayerBounds(fatherLayer);
+    }
+
+    private Rectangle firstQuestCafeDoorBounds() {
+        return objectLayerBounds(findLayerByName(FIRST_QUEST_CAFE_ENTRANCE_LAYER_NAME));
+    }
+
+    private Vector2 firstQuestCafeNpcPosition() {
+        Rectangle cafeDoorBounds = firstQuestCafeDoorBounds();
+        if (cafeDoorBounds == null) {
+            return null;
+        }
+        return new Vector2(
+                cafeDoorBounds.x + cafeDoorBounds.width * 0.5f,
+                cafeDoorBounds.y + cafeDoorBounds.height * 0.5f + FIRST_QUEST_CAFE_NPC_Y_OFFSET);
+    }
+
+    private boolean isPlayerNearFirstQuestCafeNpc() {
+        Vector2 npcPosition = firstQuestCafeNpcPosition();
+        if (npcPosition == null) {
+            return false;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float dx = npcPosition.x - playerCenterX;
+        float dy = npcPosition.y - playerCenterY;
+        return dx * dx + dy * dy <= FIRST_QUEST_CAFE_NPC_INTERACT_RANGE * FIRST_QUEST_CAFE_NPC_INTERACT_RANGE;
+    }
+
+    private boolean isPlayerNearThirdQuestVillageFather() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return false;
+        }
+        ensureThirdQuestTrainingLayout();
+        return overlapsPlayerExpanded(thirdQuestFatherTrainingBounds);
+    }
+
+    private Rectangle scientistNpcBounds() {
+        if (!MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId) || world.npcAnimationFrames.size == 0) {
+            return null;
+        }
+        return doorAnimationVisualBounds(world.npcAnimationFrames);
+    }
+
+    private boolean isPlayerNearScientistNpc() {
+        return overlapsPlayerExpanded(scientistNpcBounds());
+    }
+
+    private Rectangle secondQuestArchiveBounds() {
+        if (!MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            return null;
+        }
+        return tiledLayerBounds(findLayerByName(SECOND_QUEST_ARCHIVE_LAYER_NAME));
+    }
+
+    private boolean isPlayerNearSecondQuestArchive() {
+        return overlapsPlayerExpanded(secondQuestArchiveBounds());
+    }
+
+    private boolean isPlayerNearFourthQuestCafeMark() {
+        ensureFourthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId) && overlapsPlayerExpanded(fourthQuestCafeSiteBounds);
+    }
+
+    private boolean isPlayerNearFourthQuestCenterMark() {
+        ensureFourthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId) && overlapsPlayerExpanded(fourthQuestCenterSiteBounds);
+    }
+
+    private boolean isPlayerNearFourthQuestEdgeMark() {
+        ensureFourthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId) && overlapsPlayerExpanded(fourthQuestEdgeSiteBounds);
+    }
+
+    private boolean isPlayerNearFourthQuestArrayNode(int nodeIndex) {
+        if (nodeIndex < 0 || nodeIndex >= fourthQuestArrayNodeBounds.length) {
+            return false;
+        }
+        ensureFourthQuestFloor2Layout();
+        return MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && overlapsPlayerExpanded(fourthQuestArrayNodeBounds[nodeIndex]);
+    }
+
+    private boolean isPlayerNearFourthQuestArrayConsole() {
+        ensureFourthQuestFloor2Layout();
+        return MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && overlapsPlayerExpanded(fourthQuestArrayConsoleBounds);
+    }
+
+    private boolean isPlayerNearFourthQuestBreachSite() {
+        ensureFourthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId)
+                && overlapsPlayerExpanded(fourthQuestBreachSiteBounds);
+    }
+
+    private boolean isPlayerNearFifthQuestAnchor(int anchorIndex) {
+        ensureFifthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId)
+                && anchorIndex >= 0
+                && anchorIndex < fifthQuestAnchorBounds.length
+                && overlapsPlayerExpanded(fifthQuestAnchorBounds[anchorIndex]);
+    }
+
+    private boolean isPlayerNearFifthQuestPortal() {
+        ensureFifthQuestVillageLayout();
+        return MAP_ID_VILLAGE.equals(world.activeMapId)
+                && overlapsPlayerExpanded(fifthQuestPortalBounds);
+    }
+
+    private boolean isPlayerNearSixthQuestSeal(boolean firstSeal) {
+        ensureSixthQuestCastleLayout();
+        Rectangle bounds = firstSeal ? sixthQuestSealAInteractBounds : sixthQuestSealBInteractBounds;
+        return MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && bounds != null
+                && overlapsPlayerExpanded(bounds);
+    }
+
+    private String[] repeatSpeaker(String speaker, int count) {
+        int safeCount = Math.max(0, count);
+        String[] speakers = new String[safeCount];
+        Arrays.fill(speakers, speaker == null ? "" : speaker);
+        return speakers;
+    }
+
+    private void levelPlayerToCap(int targetLevelCap) {
+        int nextLevel = clampProgressionLevelCap(targetLevelCap);
+        progressionLevelCap = Math.max(progressionLevelCap, nextLevel);
+        applyPlayerLevelStats(nextLevel,
+                PlayerLevelStats.maxHealthForLevel(nextLevel),
+                PlayerLevelStats.maxStaminaForLevel(nextLevel));
+    }
+
+    private void finishSecondQuest() {
+        secondQuestStage = SECOND_QUEST_COMPLETE;
+        scientistProgressionUnlocked = true;
+        thirdQuestAvailable = true;
+        levelPlayerToCap(QUEST_2_LEVEL_CAP);
+        showQuestNotification(
+                "Quest Complete",
+                "Ashes That Remain is complete. The scientist can now guide your progression.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private void finishThirdQuest() {
+        thirdQuestStage = THIRD_QUEST_COMPLETE;
+        thirdQuestAvailable = true;
+        scientistProgressionUnlocked = true;
+        levelPlayerToCap(QUEST_3_LEVEL_CAP);
+        showQuestNotification(
+                "Quest Complete",
+                "Lessons of Survival is complete. E Dash Attack is now ready.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private void finishFourthQuest() {
+        fourthQuestStage = FOURTH_QUEST_COMPLETE;
+        scientistProgressionUnlocked = true;
+        levelPlayerToCap(QUEST_4_LEVEL_CAP);
+        showQuestNotification(
+                "Quest Complete",
+                "The Mark Returns is complete. Spatial Dash is now ready.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private void finishFifthQuest() {
+        fifthQuestStage = FIFTH_QUEST_COMPLETE;
+        scientistProgressionUnlocked = true;
+        levelPlayerToCap(QUEST_4_LEVEL_CAP);
+        applyVillagePortalVisualState();
+        showQuestNotification(
+                "Quest Complete",
+                "Embers at the Gate is complete. The path to the Demon Castle is open.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private void startSixthQuest() {
+        sixthQuestStage = SIXTH_QUEST_ENTER_PORTAL;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        applyVillagePortalVisualState();
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Enter the Portal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private void beginSixthQuestOuterAssault() {
+        sixthQuestStage = SIXTH_QUEST_OUTER_ASSAULT;
+        sixthQuestEncounterSpawned = false;
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_OUTER);
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Defeat the demons blocking the route to the inner gate.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginSixthQuestSealABattle() {
+        sixthQuestStage = SIXTH_QUEST_SEAL_A_BATTLE;
+        sixthQuestEncounterSpawned = false;
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_SEAL_A);
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Break the first Castle Seal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginSixthQuestSealBBattle() {
+        sixthQuestStage = SIXTH_QUEST_SEAL_B_BATTLE;
+        sixthQuestEncounterSpawned = false;
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_SEAL_B);
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Break the second Castle Seal.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginSixthQuestThroneGuards() {
+        sixthQuestStage = SIXTH_QUEST_THRONE_GUARDS;
+        sixthQuestEncounterSpawned = false;
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_THRONE_GUARDS);
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Advance to the Throne Hall and defeat the throne guards.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginSixthQuestBossPhase1() {
+        sixthQuestStage = SIXTH_QUEST_BOSS_PHASE_1;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Confront the Demon.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+    }
+
+    private void beginSixthQuestFinalPhaseIntro() {
+        sixthQuestStage = SIXTH_QUEST_FINAL_PHASE_INTRO;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+    }
+
+    private void beginSixthQuestFinalPhaseBattle() {
+        sixthQuestStage = SIXTH_QUEST_FINAL_PHASE_BATTLE;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_BOSS_PHASE_2);
+        showQuestNotification(
+                SIXTH_QUEST_NOTIFICATION_TITLE,
+                "Objective Updated: Defeat the Demon.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    "Final Battle",
+                    "Use E Dash Attack to punish openings and Spatial Dash to evade the demon's heaviest attacks.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void beginSixthQuestEnding() {
+        sixthQuestStage = SIXTH_QUEST_ENDING;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        startMapTransition(MAP_ID_VILLAGE, FIFTH_QUEST_PORTAL_LAYER_NAME);
+    }
+
+    private void finishSixthQuest() {
+        sixthQuestStage = SIXTH_QUEST_COMPLETE;
+        gameCompleted = true;
+        applyVillagePortalVisualState();
+        showQuestNotification(
+                "Game Complete",
+                "The Last Ember is complete. The demon's fire is gone.",
+                FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        refreshFirstQuestGuidance();
+    }
+
+    private boolean isVillagePortalActive() {
+        if (gameCompleted || sixthQuestStage >= SIXTH_QUEST_ENDING) {
+            return false;
+        }
+        return fifthQuestStage >= FIFTH_QUEST_COMPLETE || sixthQuestStage > SIXTH_QUEST_DISABLED;
+    }
+
+    private void applyVillagePortalVisualState() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || world.map == null) {
+            return;
+        }
+        boolean active = isVillagePortalActive();
+        MapLayer portalRootLayer = findLayerByName(VILLAGE_PORTAL_GROUP_NAME);
+        if (portalRootLayer instanceof MapGroupLayer portalGroup) {
+            portalGroup.setVisible(true);
+            applyPortalVariantVisibility(portalGroup.getLayers(), VILLAGE_PORTAL_ACTIVE_LAYER_NAME, active);
+            applyPortalVariantVisibility(portalGroup.getLayers(), VILLAGE_PORTAL_INACTIVE_LAYER_NAME, !active);
+            return;
+        }
+
+        MapLayer activeLayer = findLayerByName(VILLAGE_PORTAL_ACTIVE_LAYER_NAME);
+        MapLayer inactiveLayer = findLayerByName(VILLAGE_PORTAL_INACTIVE_LAYER_NAME);
+        setLayerTreeVisible(activeLayer, active);
+        setLayerTreeVisible(inactiveLayer, !active);
+    }
+
+    private void applyPortalVariantVisibility(MapLayers layers, String targetName, boolean visible) {
+        if (layers == null || targetName == null || targetName.isBlank()) {
+            return;
+        }
+        for (MapLayer layer : layers) {
+            if (layer == null) {
+                continue;
+            }
+            if (targetName.equalsIgnoreCase(layer.getName())) {
+                setLayerTreeVisible(layer, visible);
+            }
+            if (layer instanceof MapGroupLayer groupLayer) {
+                applyPortalVariantVisibility(groupLayer.getLayers(), targetName, visible);
+            }
+        }
+    }
+
+    private void setLayerTreeVisible(MapLayer layer, boolean visible) {
+        if (layer == null) {
+            return;
+        }
+        layer.setVisible(visible);
+        if (layer instanceof MapGroupLayer groupLayer) {
+            for (MapLayer childLayer : groupLayer.getLayers()) {
+                setLayerTreeVisible(childLayer, visible);
+            }
+        }
+    }
+
+    private void handleQuestMapLoadEvents() {
+        if (world.activeMapId == null || activeQuestDialogueId != QuestDialogueId.NONE || firstQuestDialogueActive) {
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_CASTLE_ARRIVAL,
+                    SIXTH_QUEST_CASTLE_ARRIVAL_SPEAKERS,
+                    SIXTH_QUEST_CASTLE_ARRIVAL_DIALOGUE_LINES);
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_FINAL_PHASE_INTRO,
+                    SIXTH_QUEST_FINAL_PHASE_INTRO_SPEAKERS,
+                    SIXTH_QUEST_FINAL_PHASE_INTRO_DIALOGUE_LINES);
+            return;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_ENDING && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_ENDING,
+                    SIXTH_QUEST_ENDING_SPEAKERS,
+                    SIXTH_QUEST_ENDING_DIALOGUE_LINES);
+        }
+    }
+
     private boolean tryHandleMapInteraction() {
-        return tryMapTransition(
+        return tryHandleFirstQuestInteraction()
+                || trySixthQuestPortalTransition()
+                || tryMapTransition(
                 MAP_ID_VILLAGE,
                 "ENTRANCE-Research-Lab",
                 MAP_ID_RESEARCH_LAB_FLOOR_1,
@@ -5419,6 +10684,22 @@ public class GameScreen extends ScreenAdapter {
                         "EXIT-Research-Lab-Floor-2",
                         MAP_ID_RESEARCH_LAB_FLOOR_1,
                         "ENTRANCE-Research-Lab-Floor-2");
+    }
+
+    private boolean trySixthQuestPortalTransition() {
+        if (sixthQuestStage < SIXTH_QUEST_ENTER_PORTAL
+                || sixthQuestStage >= SIXTH_QUEST_ENDING
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || !isVillagePortalActive()
+                || !isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
+            return false;
+        }
+        if (sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_INTRO) {
+            startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+        } else {
+            startMapTransition(MAP_ID_DEMON_CASTLE, "Spawn");
+        }
+        return true;
     }
 
     private boolean tryMapTransition(String fromMapId, String triggerLayerName, String toMapId, String targetSpawnLayer) {
@@ -5641,9 +10922,13 @@ public class GameScreen extends ScreenAdapter {
         if (len == 0f) {
             return;
         }
+        if (player.currentMana < DASH_STAMINA_COST) {
+            return;
+        }
         player.dashDirX = dx / len;
         player.dashDirY = dy / len;
         if (player.dashDirX != 0f) player.facingLeft = player.dashDirX < 0f;
+        player.currentMana = Math.max(0f, player.currentMana - DASH_STAMINA_COST);
         player.dashing = true;
         player.dashTimer = 0f;
         player.dashCooldownTimer = DASH_COOLDOWN;
@@ -5763,7 +11048,8 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void applyDashAttackSweepDamage(float startBoundsX, float startBoundsY, float endBoundsX, float endBoundsY) {
-        if (bats.size == 0 && evilWizards.size == 0 && golem1s.size == 0 && bossArenaPhase2Demons.size == 0) {
+        if (bats.size == 0 && evilWizards.size == 0 && golem1s.size == 0
+                && bossArenaPhase2Demons.size == 0 && fifthQuestDemons.size == 0) {
             return;
         }
         float startCenterX = startBoundsX + player.bounds.width * 0.5f;
@@ -5866,6 +11152,34 @@ public class GameScreen extends ScreenAdapter {
             if (distanceSq <= demonHitRadiusSq) {
                 demon.lastDashAttackHitId = activeDashAttackHitId;
                 applyHitToBossArenaPhase2DemonFromPlayer(demon);
+            }
+        }
+
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.lastDashAttackHitId == activeDashAttackHitId
+                    || demon.dying
+                    || demon.health <= 0f
+                    || demon.playerHitCooldownTimer > 0f) {
+                continue;
+            }
+            float demonHitboxWidth = fifthQuestDemonHitboxHalfWidth() * 2f;
+            float demonHitboxHeight = fifthQuestDemonHitboxHalfHeight() * 2f;
+            float demonHitboxAverageSize = (demonHitboxWidth + demonHitboxHeight) * 0.5f;
+            float demonHitRadius = hitRadius + demonHitboxAverageSize * 0.25f;
+            float demonHitRadiusSq = demonHitRadius * demonHitRadius;
+            float demonHitboxCenterX = fifthQuestDemonHitboxCenterX(demon);
+            float demonHitboxCenterY = fifthQuestDemonHitboxCenterY(demon);
+            float distanceSq = pointSegmentDistanceSquared(
+                    demonHitboxCenterX,
+                    demonHitboxCenterY,
+                    startCenterX,
+                    startCenterY,
+                    endCenterX,
+                    endCenterY);
+            if (distanceSq <= demonHitRadiusSq) {
+                demon.lastDashAttackHitId = activeDashAttackHitId;
+                applyHitToFifthQuestDemonFromPlayer(demon);
             }
         }
     }
@@ -6176,8 +11490,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        player.currentHealth = Math.max(0f, player.currentHealth - GOLEM_1_EXPLOSION_DAMAGE);
-        triggerPlayerHazardHitReaction();
+        applyDamageToPlayer(GOLEM_1_EXPLOSION_DAMAGE);
     }
 
     private void loadAnimations() {
@@ -6191,6 +11504,7 @@ public class GameScreen extends ScreenAdapter {
         jumpDownAttackTex = new Texture(Gdx.files.internal("images/huntress/6 - Jump Down Attack.png"));
         idleUpAttackTex = new Texture(Gdx.files.internal("images/huntress/7 - Idle Up Attack.png"));
         playerHitTex = loadPlayerHitTexture();
+        playerDeathTex = loadPlayerDeathTexture();
         attack1Sfx = Gdx.audio.newSound(Gdx.files.internal("sounds/attack 1.mp3"));
         attack3Sfx = Gdx.audio.newSound(Gdx.files.internal("sounds/attack 3.mp3"));
         attackSpecialSfx = Gdx.audio.newSound(Gdx.files.internal("sounds/attacks.mp3"));
@@ -6210,6 +11524,9 @@ public class GameScreen extends ScreenAdapter {
         idleUpAttackTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         if (playerHitTex != null) {
             playerHitTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        }
+        if (playerDeathTex != null) {
+            playerDeathTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         }
 
         // Trim transparent margins to avoid clipping artifacts during animation.
@@ -6245,12 +11562,26 @@ public class GameScreen extends ScreenAdapter {
                     hitFrameCount,
                     (int) SPRITE_FRAME_WIDTH,
                     (int) SPRITE_FRAME_HEIGHT,
-                    PLAYER_HIT_FRAME_DURATION,
+                    PLAYER_HAZARD_HIT_REACTION_SECONDS / hitFrameCount,
                     0,
                     1);
             playerHitAnim.setPlayMode(Animation.PlayMode.NORMAL);
         } else {
             playerHitAnim = null;
+        }
+        if (playerDeathTex != null) {
+            int deathFrameCount = Math.max(1, playerDeathTex.getWidth() / (int) SPRITE_FRAME_WIDTH);
+            playerDeathAnim = buildAnimation(
+                    playerDeathTex,
+                    deathFrameCount,
+                    (int) SPRITE_FRAME_WIDTH,
+                    (int) SPRITE_FRAME_HEIGHT,
+                    PLAYER_DEATH_ANIMATION_SECONDS / deathFrameCount,
+                    0,
+                    1);
+            playerDeathAnim.setPlayMode(Animation.PlayMode.NORMAL);
+        } else {
+            playerDeathAnim = null;
         }
         loadBatAssets();
         loadEvilWizardAssets();
@@ -6270,6 +11601,105 @@ public class GameScreen extends ScreenAdapter {
                 Gdx.app.error("PixelRpgGame", "Failed to load texture: " + absolutePath, error);
             }
             return null;
+        }
+    }
+
+    private Texture loadOptionalTexture(String internalPath) {
+        if (internalPath == null || internalPath.isBlank()) {
+            return null;
+        }
+        FileHandle file = Gdx.files.internal(internalPath);
+        if (!file.exists()) {
+            return null;
+        }
+        try {
+            return new Texture(file);
+        } catch (RuntimeException error) {
+            if (Gdx.app != null) {
+                Gdx.app.error("PixelRpgGame", "Failed to load texture: " + internalPath, error);
+            }
+            return null;
+        }
+    }
+
+    private Texture createScorchedFragmentTexture() {
+        Pixmap pixmap = new Pixmap(96, 96, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.10f, 0.07f, 0.05f, 1f);
+        pixmap.fill();
+
+        pixmap.setColor(0.43f, 0.26f, 0.10f, 1f);
+        for (int i = 0; i < 5; i++) {
+            pixmap.drawRectangle(i, i, 96 - i * 2, 96 - i * 2);
+        }
+
+        pixmap.setColor(0.82f, 0.27f, 0.10f, 0.55f);
+        pixmap.fillCircle(48, 44, 20);
+        pixmap.setColor(0.95f, 0.54f, 0.18f, 0.40f);
+        pixmap.fillCircle(48, 44, 12);
+
+        pixmap.setColor(0.14f, 0.10f, 0.09f, 1f);
+        pixmap.fillTriangle(48, 76, 26, 40, 42, 16);
+        pixmap.fillTriangle(48, 76, 68, 40, 42, 16);
+        pixmap.fillTriangle(42, 16, 68, 40, 56, 12);
+        pixmap.fillTriangle(34, 44, 48, 76, 60, 50);
+
+        pixmap.setColor(1.00f, 0.68f, 0.25f, 1f);
+        pixmap.drawLine(48, 72, 54, 38);
+        pixmap.drawLine(45, 54, 35, 34);
+        pixmap.drawLine(50, 30, 58, 18);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private Texture createArchiveNotesTexture() {
+        Pixmap pixmap = new Pixmap(128, 128, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.14f, 0.09f, 0.05f, 1f);
+        pixmap.fill();
+
+        pixmap.setColor(0.84f, 0.74f, 0.57f, 1f);
+        pixmap.fillRectangle(22, 16, 84, 96);
+        pixmap.setColor(0.54f, 0.39f, 0.23f, 1f);
+        pixmap.drawRectangle(22, 16, 84, 96);
+        pixmap.drawRectangle(23, 17, 82, 94);
+
+        pixmap.setColor(0.32f, 0.21f, 0.12f, 1f);
+        for (int y = 0; y < 10; y++) {
+            int lineY = 30 + y * 8;
+            pixmap.drawLine(34, lineY, 94, lineY);
+        }
+        pixmap.setColor(0.63f, 0.18f, 0.10f, 1f);
+        pixmap.fillTriangle(88, 16, 106, 16, 106, 34);
+        pixmap.setColor(0.76f, 0.55f, 0.22f, 1f);
+        pixmap.drawRectangle(18, 12, 92, 100);
+
+        Texture texture = new Texture(pixmap);
+        pixmap.dispose();
+        return texture;
+    }
+
+    private void setNearestFilter(Texture texture) {
+        if (texture != null) {
+            texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        }
+    }
+
+    private BitmapFont loadQuestFont(String fontPath, int size) {
+        FileHandle fontFile = Gdx.files.internal(fontPath);
+        if (!fontFile.exists()) {
+            return new BitmapFont();
+        }
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(fontFile);
+        try {
+            FreeTypeFontGenerator.FreeTypeFontParameter parameter =
+                    new FreeTypeFontGenerator.FreeTypeFontParameter();
+            parameter.size = size;
+            parameter.magFilter = Texture.TextureFilter.Linear;
+            parameter.minFilter = Texture.TextureFilter.Linear;
+            return generator.generateFont(parameter);
+        } finally {
+            generator.dispose();
         }
     }
 
@@ -6384,6 +11814,30 @@ public class GameScreen extends ScreenAdapter {
                                 + PLAYER_HIT_TEXTURE_ABSOLUTE_PATH
                                 + "' and fallback internal path '"
                                 + PLAYER_HIT_TEXTURE_INTERNAL_PATH + "'.",
+                        absoluteError != null ? absoluteError : internalError);
+            }
+            return null;
+        }
+    }
+
+    private Texture loadPlayerDeathTexture() {
+        RuntimeException absoluteError = null;
+        try {
+            return new Texture(Gdx.files.absolute(PLAYER_DEATH_TEXTURE_ABSOLUTE_PATH));
+        } catch (RuntimeException error) {
+            absoluteError = error;
+        }
+
+        try {
+            return new Texture(Gdx.files.internal(PLAYER_DEATH_TEXTURE_INTERNAL_PATH));
+        } catch (RuntimeException internalError) {
+            if (Gdx.app != null) {
+                Gdx.app.error(
+                        "PixelRpgGame",
+                        "Failed to load player death texture from absolute path '"
+                                + PLAYER_DEATH_TEXTURE_ABSOLUTE_PATH
+                                + "' and fallback internal path '"
+                                + PLAYER_DEATH_TEXTURE_INTERNAL_PATH + "'.",
                         absoluteError != null ? absoluteError : internalError);
             }
             return null;
@@ -6853,6 +12307,20 @@ public class GameScreen extends ScreenAdapter {
         batch.end();
     }
 
+    private void drawScreenFadeOverlay() {
+        if (screenFadeAlpha <= 0f || dayNightOverlayTex == null || uiCamera == null) {
+            return;
+        }
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(null);
+        batch.setColor(0f, 0f, 0f, screenFadeAlpha);
+        batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.end();
+    }
+
     private void drawPlayerColorAura(float nightBlend) {
         if (playerAuraTex == null || nightBlend <= 0.001f) {
             return;
@@ -6877,18 +12345,18 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void updateQuestBlur(float delta) {
-        boolean mainMenuVisible = hudRenderer != null && hudRenderer.isMainMenuVisible();
-        if (!mainMenuVisible) {
-            questBlurProgress = 0f;
-            return;
-        }
+        boolean blurVisible = (hudRenderer != null && hudRenderer.isMainMenuVisible()) || isFirstQuestOverlayActive();
         if (QUEST_BLUR_TRANSITION_SECONDS <= 0f) {
-            questBlurProgress = 1f;
+            questBlurProgress = blurVisible ? 1f : 0f;
             return;
         }
 
         float step = Math.max(0f, delta) / QUEST_BLUR_TRANSITION_SECONDS;
-        questBlurProgress = Math.min(1f, questBlurProgress + step);
+        if (blurVisible) {
+            questBlurProgress = Math.min(1f, questBlurProgress + step);
+        } else {
+            questBlurProgress = Math.max(0f, questBlurProgress - step);
+        }
     }
 
     private void renderWorldWithOptionalQuestBlur(float nightBlend, float worldSaturation,
@@ -6939,13 +12407,23 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+        drawThirdQuestTrainingGround(batch);
+        drawFourthQuestWorldHints(batch);
+        drawFifthQuestWorldHints(batch);
         drawEvilWizards(characterSaturation, true);
         drawGolem1s(characterSaturation, true);
         drawBossArenaPhase2Demons(characterSaturation, true);
+        drawFifthQuestDemons(characterSaturation, true);
         drawRewardChests(characterSaturation, true);
+        drawFirstQuestCafeNpc(characterSaturation, true);
+        drawFifthQuestLabVillagers(characterSaturation, true);
+        drawThirdQuestVillageFather(batch);
         drawPlayer(characterSaturation);
         drawSpawnedBat(characterSaturation);
+        drawFifthQuestLabVillagers(characterSaturation, false);
+        drawFirstQuestCafeNpc(characterSaturation, false);
         drawRewardChests(characterSaturation, false);
+        drawFifthQuestDemons(characterSaturation, false);
         drawBossArenaPhase2Demons(characterSaturation, false);
         drawGolem1s(characterSaturation, false);
         drawEvilWizards(characterSaturation, false);
@@ -6956,6 +12434,1698 @@ public class GameScreen extends ScreenAdapter {
         renderMapWithSaturation(foregroundRenderLayers, worldSaturation);
         drawDayNightOverlay();
         drawVignette();
+    }
+
+    private void drawThirdQuestTrainingGround(SpriteBatch batch) {
+        if (batch == null
+                || dayNightOverlayTex == null
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || fourthQuestStage > FOURTH_QUEST_DISABLED
+                || thirdQuestStage < THIRD_QUEST_MEET_FATHER_OUTSIDE
+                || !thirdQuestTrainingLayoutReady) {
+            return;
+        }
+
+        batch.setColor(0.30f, 0.22f, 0.12f, 0.24f);
+        batch.draw(
+                dayNightOverlayTex,
+                thirdQuestTrainingZoneBounds.x,
+                thirdQuestTrainingZoneBounds.y,
+                thirdQuestTrainingZoneBounds.width,
+                thirdQuestTrainingZoneBounds.height);
+        batch.setColor(0.72f, 0.58f, 0.30f, 0.72f);
+        drawQuestRectOutline(batch, thirdQuestTrainingZoneBounds, 3f);
+
+        if (thirdQuestStage == THIRD_QUEST_MOVEMENT_TUTORIAL) {
+            for (int i = 0; i < thirdQuestMovementMarkers.length; i++) {
+                Vector2 marker = thirdQuestMovementMarkers[i];
+                float size = thirdQuestMovementMarkerReached[i] ? 16f : 20f;
+                float colorBoost = thirdQuestMovementMarkerReached[i] ? 0.55f : 0.88f;
+                batch.setColor(0.36f, colorBoost, 0.42f, thirdQuestMovementMarkerReached[i] ? 0.46f : 0.82f);
+                batch.draw(dayNightOverlayTex, marker.x - size * 0.5f, marker.y - size * 0.5f, size, size);
+            }
+        }
+
+        if (thirdQuestStage >= THIRD_QUEST_ATTACK_TUTORIAL) {
+            batch.setColor(thirdQuestAttackDummyBroken ? 0.20f : 0.47f, 0.28f, 0.10f, 0.95f);
+            batch.draw(
+                    dayNightOverlayTex,
+                    thirdQuestAttackDummyBounds.x + thirdQuestAttackDummyBounds.width * 0.3f,
+                    thirdQuestAttackDummyBounds.y,
+                    thirdQuestAttackDummyBounds.width * 0.4f,
+                    thirdQuestAttackDummyBounds.height);
+            batch.setColor(thirdQuestAttackDummyBroken ? 0.25f : 0.62f, 0.42f, 0.18f, 0.95f);
+            batch.draw(
+                    dayNightOverlayTex,
+                    thirdQuestAttackDummyBounds.x,
+                    thirdQuestAttackDummyBounds.y + thirdQuestAttackDummyBounds.height * 0.55f,
+                    thirdQuestAttackDummyBounds.width,
+                    thirdQuestAttackDummyBounds.height * 0.25f);
+        }
+
+        if (thirdQuestSparActive) {
+            float hpRatio = THIRD_QUEST_SPAR_FATHER_MAX_HEALTH <= 0f
+                    ? 0f
+                    : clamp01(thirdQuestFatherSparHealth / THIRD_QUEST_SPAR_FATHER_MAX_HEALTH);
+            float hpWidth = 28f;
+            float hpX = thirdQuestFatherTrainingBounds.x + thirdQuestFatherTrainingBounds.width * 0.5f - hpWidth * 0.5f;
+            float hpY = thirdQuestFatherTrainingBounds.y + thirdQuestFatherTrainingBounds.height + 10f;
+            batch.setColor(0f, 0f, 0f, 0.9f);
+            batch.draw(dayNightOverlayTex, hpX - 1f, hpY - 1f, hpWidth + 2f, 6f);
+            batch.setColor(0.22f, 0.14f, 0.14f, 1f);
+            batch.draw(dayNightOverlayTex, hpX, hpY, hpWidth, 4f);
+            batch.setColor(0.82f, 0.24f, 0.24f, 1f);
+            batch.draw(dayNightOverlayTex, hpX, hpY, hpWidth * hpRatio, 4f);
+        }
+
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawThirdQuestVillageFather(SpriteBatch batch) {
+        if (batch == null
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || fourthQuestStage > FOURTH_QUEST_DISABLED
+                || thirdQuestStage < THIRD_QUEST_MEET_FATHER_OUTSIDE
+                || !thirdQuestTrainingLayoutReady
+                || thirdQuestFatherVillageTiles == null
+                || thirdQuestFatherVillageTiles.length < 4) {
+            return;
+        }
+
+        int frame = ((int) (firstQuestCafeNpcStateTime / FIRST_QUEST_CAFE_NPC_FRAME_DURATION)) % 5;
+        int baseColumn = 2 + frame * 5;
+        int[] sourceRows = {3, 2, 1};
+        for (int row = 0; row < sourceRows.length; row++) {
+            int sourceRow = sourceRows[row];
+            if (sourceRow < 0 || sourceRow >= thirdQuestFatherVillageTiles.length) {
+                continue;
+            }
+            TextureRegion[] rowRegions = thirdQuestFatherVillageTiles[sourceRow];
+            if (rowRegions == null || baseColumn + 1 >= rowRegions.length) {
+                continue;
+            }
+            for (int col = 0; col < 2; col++) {
+                TextureRegion region = rowRegions[baseColumn + col];
+                if (region == null) {
+                    continue;
+                }
+                batch.draw(
+                        region,
+                        thirdQuestFatherTrainingBounds.x + col * DEFAULT_TILE_SIZE,
+                        thirdQuestFatherTrainingBounds.y + row * DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE);
+            }
+        }
+    }
+
+    private void drawFourthQuestWorldHints(SpriteBatch batch) {
+        if (batch == null || dayNightOverlayTex == null || world.activeMapId == null) {
+            return;
+        }
+        if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+            if (!fourthQuestVillageLayoutReady || fourthQuestStage <= FOURTH_QUEST_DISABLED) {
+                return;
+            }
+            if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK || fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE) {
+                drawFourthQuestSigil(batch, fourthQuestCafeSiteBounds, 0.86f, 0.28f, 0.22f, 0.72f);
+            }
+            if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK || fourthQuestStage == FOURTH_QUEST_CENTER_BATTLE) {
+                drawFourthQuestSigil(batch, fourthQuestCenterSiteBounds, 0.90f, 0.34f, 0.24f, 0.76f);
+            }
+            if (fourthQuestStage == FOURTH_QUEST_EXAMINE_EDGE_MARK || fourthQuestStage == FOURTH_QUEST_EDGE_BATTLE) {
+                drawFourthQuestSigil(batch, fourthQuestEdgeSiteBounds, 0.96f, 0.30f, 0.18f, 0.82f);
+            }
+            if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH
+                    || fourthQuestStage == FOURTH_QUEST_EXAMINE_BREACH
+                    || fourthQuestStage == FOURTH_QUEST_BREACH_BATTLE
+                    || fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE) {
+                drawFourthQuestSigil(batch, fourthQuestBreachSiteBounds, 0.98f, 0.20f, 0.20f, 0.88f);
+            }
+            batch.setColor(1f, 1f, 1f, 1f);
+            return;
+        }
+        if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && fourthQuestStage >= FOURTH_QUEST_GO_TO_ARRAY
+                && fourthQuestStage <= FOURTH_QUEST_ARRAY_DEFENSE) {
+            ensureFourthQuestFloor2Layout();
+            if (!fourthQuestFloor2LayoutReady) {
+                return;
+            }
+            for (int i = 0; i < fourthQuestArrayNodeBounds.length; i++) {
+                Rectangle nodeBounds = fourthQuestArrayNodeBounds[i];
+                boolean active = (fourthQuestStage > FOURTH_QUEST_GO_TO_ARRAY && i == 0)
+                        || (fourthQuestStage > FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2 && i == 1)
+                        || (fourthQuestStage > FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3 && i == 2)
+                        || fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE;
+                batch.setColor(active ? 0.26f : 0.10f, active ? 0.92f : 0.42f, 0.98f, active ? 0.94f : 0.64f);
+                batch.draw(dayNightOverlayTex, nodeBounds.x, nodeBounds.y, nodeBounds.width, nodeBounds.height);
+                batch.setColor(0.08f, 0.14f, 0.18f, 0.92f);
+                drawQuestRectOutline(batch, nodeBounds, 2f);
+            }
+            batch.setColor(
+                    fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE ? 0.24f : 0.14f,
+                    fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE ? 0.78f : 0.34f,
+                    0.98f,
+                    fourthQuestStage == FOURTH_QUEST_ARRAY_DEFENSE ? 0.96f : 0.72f);
+            batch.draw(
+                    dayNightOverlayTex,
+                    fourthQuestArrayConsoleBounds.x,
+                    fourthQuestArrayConsoleBounds.y,
+                    fourthQuestArrayConsoleBounds.width,
+                    fourthQuestArrayConsoleBounds.height);
+            batch.setColor(0.10f, 0.12f, 0.16f, 0.92f);
+            drawQuestRectOutline(batch, fourthQuestArrayConsoleBounds, 2f);
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+    }
+
+    private void drawFifthQuestWorldHints(SpriteBatch batch) {
+        if (batch == null || dayNightOverlayTex == null || !MAP_ID_VILLAGE.equals(world.activeMapId) || fifthQuestStage <= FIFTH_QUEST_DISABLED) {
+            return;
+        }
+        ensureFifthQuestVillageLayout();
+        if (!fifthQuestVillageLayoutReady) {
+            return;
+        }
+
+        if (fifthQuestStage <= FIFTH_QUEST_OUTER_RUINS_BATTLE) {
+            batch.setColor(0.16f, 0.08f, 0.08f, 0.42f);
+            batch.draw(dayNightOverlayTex,
+                    fifthQuestOuterRuinsBounds.x,
+                    fifthQuestOuterRuinsBounds.y,
+                    fifthQuestOuterRuinsBounds.width,
+                    fifthQuestOuterRuinsBounds.height);
+            batch.setColor(0.54f, 0.24f, 0.18f, 0.84f);
+            drawQuestRectOutline(batch, fifthQuestOuterRuinsBounds, 2.5f);
+        }
+
+        if (fifthQuestStage >= FIFTH_QUEST_ADVANCE_TO_PORTAL && fifthQuestStage < FIFTH_QUEST_COMPLETE) {
+            batch.setColor(0.18f, 0.06f, 0.06f, 0.48f);
+            batch.draw(dayNightOverlayTex,
+                    fifthQuestMidRuinsBounds.x,
+                    fifthQuestMidRuinsBounds.y,
+                    fifthQuestMidRuinsBounds.width,
+                    fifthQuestMidRuinsBounds.height);
+            batch.setColor(0.58f, 0.20f, 0.18f, 0.88f);
+            drawQuestRectOutline(batch, fifthQuestMidRuinsBounds, 2.5f);
+        }
+
+        if (fifthQuestStage < FIFTH_QUEST_COMPLETE) {
+            for (int i = 0; i < fifthQuestAnchorBounds.length; i++) {
+                Rectangle anchorBounds = fifthQuestAnchorBounds[i];
+                boolean destroyed = (i == 0 && fifthQuestStage > FIFTH_QUEST_ANCHOR_1_DESTROY)
+                        || (i == 1 && fifthQuestStage > FIFTH_QUEST_ANCHOR_2_DESTROY)
+                        || (i == 2 && fifthQuestStage > FIFTH_QUEST_ANCHOR_3_DESTROY);
+                if (destroyed) {
+                    batch.setColor(0.20f, 0.20f, 0.20f, 0.44f);
+                } else {
+                    float pulse = 0.72f + 0.20f * (float) Math.sin(firstQuestMarkerTimer * 4.1f + i * 0.9f);
+                    batch.setColor(0.86f, 0.22f, 0.18f, 0.55f * pulse);
+                }
+                batch.draw(dayNightOverlayTex, anchorBounds.x, anchorBounds.y, anchorBounds.width, anchorBounds.height);
+                batch.setColor(destroyed ? 0.34f : 0.92f, destroyed ? 0.34f : 0.34f, destroyed ? 0.34f : 0.18f, 0.92f);
+                drawQuestRectOutline(batch, anchorBounds, 2f);
+            }
+        }
+
+        if (sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL || sixthQuestStage == SIXTH_QUEST_DISABLED) {
+            float portalPulse = 0.74f + 0.22f * (float) Math.sin(firstQuestMarkerTimer * 3.3f);
+            Rectangle highlightBounds = fifthQuestStage >= FIFTH_QUEST_COMPLETE
+                    ? fifthQuestPortalBounds
+                    : (fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds);
+            batch.setColor(0.34f, 0.02f, 0.02f, fifthQuestStage >= FIFTH_QUEST_COMPLETE ? 0.50f : 0.68f);
+            batch.draw(dayNightOverlayTex,
+                    highlightBounds.x - 16f,
+                    highlightBounds.y - 12f,
+                    highlightBounds.width + 32f,
+                    highlightBounds.height + 24f);
+            batch.setColor(
+                    fifthQuestStage >= FIFTH_QUEST_COMPLETE ? 0.88f : 0.98f,
+                    fifthQuestStage >= FIFTH_QUEST_COMPLETE ? 0.18f : 0.10f,
+                    fifthQuestStage >= FIFTH_QUEST_COMPLETE ? 0.22f : 0.14f,
+                    0.86f * portalPulse);
+            drawQuestRectOutline(batch, highlightBounds, 3f);
+            batch.draw(
+                    dayNightOverlayTex,
+                    highlightBounds.x + highlightBounds.width * 0.46f,
+                    highlightBounds.y - 10f,
+                    6f,
+                    highlightBounds.height + 18f);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawFifthQuestLabVillagers(float saturation, boolean drawBehindPlayer) {
+        if (!MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                || (fifthQuestStage != FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE
+                && activeQuestDialogueId != QuestDialogueId.FIFTH_QUEST_LAB_ALARM)) {
+            return;
+        }
+        Rectangle scientistBounds = scientistNpcBounds();
+        if (scientistBounds == null) {
+            return;
+        }
+        float scientistCenterX = scientistBounds.x + scientistBounds.width * 0.5f;
+        float scientistCenterY = scientistBounds.y + scientistBounds.height * 0.5f;
+        drawFifthQuestVillager(
+                fifthQuestAdultManIdleAnim,
+                scientistCenterX - 72f,
+                scientistCenterY - 10f,
+                saturation,
+                drawBehindPlayer);
+        drawFifthQuestVillager(
+                fifthQuestOldWomanIdleAnim,
+                scientistCenterX + 76f,
+                scientistCenterY - 16f,
+                saturation,
+                drawBehindPlayer);
+    }
+
+    private void drawFifthQuestVillager(Animation<TextureRegion> animation, float centerX, float centerY,
+                                        float saturation, boolean drawBehindPlayer) {
+        if (animation == null) {
+            return;
+        }
+        TextureRegion frame = animation.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return;
+        }
+        float drawW = frame.getRegionWidth() * FIFTH_QUEST_VILLAGER_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * FIFTH_QUEST_VILLAGER_DRAW_SCALE;
+        float depthBasisY = centerY - drawH * 0.35f;
+        boolean villagerBehindPlayer = depthBasisY > player.bounds.y;
+        if (villagerBehindPlayer != drawBehindPlayer) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        batch.draw(frame, centerX - drawW * 0.5f, centerY - drawH * 0.5f, drawW, drawH);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private void drawFifthQuestDemons(float saturation, boolean drawBehindPlayer) {
+        if (fifthQuestDemons.size == 0) {
+            return;
+        }
+        float playerDepthBasisY = player.bounds.y;
+        if (shadowRegion != null) {
+            float shadowW = FIFTH_QUEST_DEMON_SHADOW_WIDTH_TILES * DEFAULT_TILE_SIZE;
+            float shadowH = FIFTH_QUEST_DEMON_SHADOW_HEIGHT_TILES * DEFAULT_TILE_SIZE;
+            float shadowDownOffset = FIFTH_QUEST_DEMON_SHADOW_DOWN_OFFSET_TILES * DEFAULT_TILE_SIZE;
+            batch.setShader(null);
+            batch.setColor(1f, 1f, 1f, FIFTH_QUEST_DEMON_SHADOW_ALPHA);
+            for (int i = 0; i < fifthQuestDemons.size; i++) {
+                FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+                float demonDepthBasisY = demon.position.y;
+                boolean demonBehindPlayer = demonDepthBasisY > playerDepthBasisY;
+                if (demonBehindPlayer != drawBehindPlayer || demon.dying) {
+                    continue;
+                }
+                batch.draw(
+                        shadowRegion,
+                        demon.position.x - shadowW * 0.5f,
+                        demonDepthBasisY - shadowH * 0.25f - shadowDownOffset,
+                        shadowW,
+                        shadowH);
+            }
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            float demonDepthBasisY = demon.position.y;
+            boolean demonBehindPlayer = demonDepthBasisY > playerDepthBasisY;
+            if (demonBehindPlayer != drawBehindPlayer) {
+                continue;
+            }
+            Animation<TextureRegion> activeAnimation;
+            boolean loop = true;
+            float animationTime;
+            if (demon.dying && fifthQuestDemonDeadAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonDeadAnimation(demon.type);
+                animationTime = demon.dieStateTime;
+                loop = false;
+            } else if (demon.hurting && fifthQuestDemonHurtAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonHurtAnimation(demon.type);
+                animationTime = demon.hurtStateTime;
+                loop = false;
+            } else if (demon.attacking && fifthQuestDemonAttackAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonAttackAnimation(demon.type);
+                animationTime = demon.attackStateTime;
+                loop = false;
+            } else if (demon.moving && fifthQuestDemonWalkAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonWalkAnimation(demon.type);
+                animationTime = demon.stateTime;
+            } else {
+                activeAnimation = fifthQuestDemonIdleAnimation(demon.type);
+                animationTime = demon.stateTime;
+            }
+            if (activeAnimation == null) {
+                continue;
+            }
+            TextureRegion frame = activeAnimation.getKeyFrame(animationTime, loop);
+            if (frame == null) {
+                continue;
+            }
+            float drawW = frame.getRegionWidth() * FIFTH_QUEST_DEMON_DRAW_SCALE;
+            float drawH = frame.getRegionHeight() * FIFTH_QUEST_DEMON_DRAW_SCALE;
+            float drawX = demon.position.x - drawW * 0.5f;
+            float drawY = demon.position.y - drawH * 0.5f;
+            float originX = drawW * 0.5f;
+            float originY = drawH * 0.5f;
+            float scaleX = demon.facingLeft ? -1f : 1f;
+            batch.draw(frame, drawX, drawY, originX, originY, drawW, drawH, scaleX, 1f, 0f);
+        }
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+
+        if (dayNightOverlayTex == null) {
+            return;
+        }
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            float demonDepthBasisY = demon.position.y;
+            boolean demonBehindPlayer = demonDepthBasisY > playerDepthBasisY;
+            if (demonBehindPlayer != drawBehindPlayer || demon.dying) {
+                continue;
+            }
+            float hpRatio = demon.maxHealth > 0f ? clamp01(demon.health / demon.maxHealth) : 0f;
+            float hpX = demon.position.x - BAT_HP_BAR_WIDTH * 0.5f;
+            float hpY = demon.position.y + fifthQuestDemonFrameHeight(demon.type) * FIFTH_QUEST_DEMON_DRAW_SCALE * 0.52f;
+            batch.setShader(null);
+            batch.setColor(0f, 0f, 0f, 0.85f);
+            batch.draw(dayNightOverlayTex, hpX - 0.5f, hpY - 0.5f, BAT_HP_BAR_WIDTH + 1f, BAT_HP_BAR_HEIGHT + 1f);
+            batch.setColor(0.15f, 0.15f, 0.15f, 1f);
+            batch.draw(dayNightOverlayTex, hpX, hpY, BAT_HP_BAR_WIDTH, BAT_HP_BAR_HEIGHT);
+            if (hpRatio > 0f) {
+                batch.setColor(0.88f, 0.22f, 0.18f, 1f);
+                batch.draw(dayNightOverlayTex, hpX, hpY, BAT_HP_BAR_WIDTH * hpRatio, BAT_HP_BAR_HEIGHT);
+            }
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawFourthQuestSigil(SpriteBatch batch, Rectangle bounds, float r, float g, float b, float alpha) {
+        if (batch == null || bounds == null || dayNightOverlayTex == null) {
+            return;
+        }
+        float pulse = 0.82f + 0.18f * (float) Math.sin(firstQuestMarkerTimer * 3.7f);
+        batch.setColor(r * 0.34f, g * 0.18f, b * 0.18f, alpha * 0.36f);
+        batch.draw(dayNightOverlayTex, bounds.x - 12f, bounds.y - 10f, bounds.width + 24f, bounds.height + 20f);
+        batch.setColor(r, g, b, alpha * pulse);
+        drawQuestRectOutline(batch, bounds, 3f);
+        batch.draw(
+                dayNightOverlayTex,
+                bounds.x + bounds.width * 0.2f,
+                bounds.y + bounds.height * 0.45f,
+                bounds.width * 0.6f,
+                3f);
+        batch.draw(
+                dayNightOverlayTex,
+                bounds.x + bounds.width * 0.45f,
+                bounds.y + bounds.height * 0.15f,
+                3f,
+                bounds.height * 0.7f);
+    }
+
+    private void drawQuestRectOutline(SpriteBatch batch, Rectangle bounds, float thickness) {
+        if (batch == null || bounds == null || thickness <= 0f || dayNightOverlayTex == null) {
+            return;
+        }
+        batch.draw(dayNightOverlayTex, bounds.x, bounds.y, bounds.width, thickness);
+        batch.draw(dayNightOverlayTex, bounds.x, bounds.y + bounds.height - thickness, bounds.width, thickness);
+        batch.draw(dayNightOverlayTex, bounds.x, bounds.y, thickness, bounds.height);
+        batch.draw(dayNightOverlayTex, bounds.x + bounds.width - thickness, bounds.y, thickness, bounds.height);
+    }
+
+    private void drawFirstQuestUi() {
+        if (uiCamera == null || batch == null || dayNightOverlayTex == null) {
+            return;
+        }
+        if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
+            return;
+        }
+
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(null);
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (isFirstQuestOverlayActive()) {
+            batch.setColor(0f, 0f, 0f, FIRST_QUEST_OVERLAY_DIM_ALPHA);
+            batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
+            batch.setColor(1f, 1f, 1f, 1f);
+            if (firstQuestDialogueActive) {
+                drawFirstQuestDialogueOverlay(batch);
+            } else {
+                drawFirstQuestItemCardOverlay(batch);
+            }
+        } else {
+            drawFirstQuestMarkers(batch);
+            drawFirstQuestPrompt(batch);
+        }
+        batch.end();
+    }
+
+    private void drawFirstQuestMarkers(SpriteBatch batch) {
+        if (firstQuestTitleFont == null || camera == null || world.activeMapId == null) {
+            return;
+        }
+        float bobOffset = (float) Math.sin(firstQuestMarkerTimer * FIRST_QUEST_MARKER_BOB_SPEED)
+                * FIRST_QUEST_MARKER_BOB_AMPLITUDE;
+        if (firstQuestStage == FIRST_QUEST_TALK_TO_FATHER && MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+            Rectangle fatherBounds = firstQuestFatherBounds();
+            if (fatherBounds != null) {
+                drawQuestMarker(batch,
+                        fatherBounds.x + fatherBounds.width * 0.5f,
+                        fatherBounds.y + fatherBounds.height + 22f + bobOffset,
+                        "!",
+                        false,
+                        0.98f, 0.85f, 0.35f);
+            }
+            return;
+        }
+        if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            Vector2 cafeNpcPosition = firstQuestCafeNpcPosition();
+            if (cafeNpcPosition != null) {
+                drawQuestMarker(batch,
+                        cafeNpcPosition.x,
+                        cafeNpcPosition.y + 36f + bobOffset,
+                        "v",
+                        true,
+                        0.90f, 0.80f, 0.34f);
+            }
+            return;
+        }
+        if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            Vector2 cafeNpcPosition = firstQuestCafeNpcPosition();
+            if (cafeNpcPosition != null) {
+                drawQuestMarker(batch,
+                        cafeNpcPosition.x,
+                        cafeNpcPosition.y + 36f + bobOffset,
+                        "!",
+                        false,
+                        0.98f, 0.85f, 0.35f);
+            }
+            return;
+        }
+        if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, "ENTRANCE-Research-Lab", bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                Rectangle scientistBounds = scientistNpcBounds();
+                if (scientistBounds != null) {
+                    drawQuestMarker(batch,
+                            scientistBounds.x + scientistBounds.width * 0.5f,
+                            scientistBounds.y + scientistBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (secondQuestStage == SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, "ENTRANCE-Research-Lab-Floor-2", bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                Rectangle archiveBounds = secondQuestArchiveBounds();
+                if (archiveBounds != null) {
+                    drawQuestMarker(batch,
+                            archiveBounds.x + archiveBounds.width * 0.5f,
+                            archiveBounds.y + archiveBounds.height + 18f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (secondQuestStage == SECOND_QUEST_RETURN_TO_SCIENTIST) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, "EXIT-Research-Lab-Floor-2", bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                Rectangle scientistBounds = scientistNpcBounds();
+                if (scientistBounds != null) {
+                    drawQuestMarker(batch,
+                            scientistBounds.x + scientistBounds.width * 0.5f,
+                            scientistBounds.y + scientistBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+            }
+            return;
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, THIRD_QUEST_LAB_EXIT_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, THIRD_QUEST_INN_ENTRANCE_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_INN.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, THIRD_QUEST_INN_ROOM_ENTRANCE_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+                Rectangle fatherBounds = firstQuestFatherBounds();
+                if (fatherBounds != null) {
+                    drawQuestMarker(batch,
+                            fatherBounds.x + fatherBounds.width * 0.5f,
+                            fatherBounds.y + fatherBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE) {
+            if (MAP_ID_INN_ROOM.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, "EXIT-Inn-Room", bobOffset, true);
+                return;
+            }
+            if (MAP_ID_INN.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, "EXIT-Inn", bobOffset, true);
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                ensureThirdQuestTrainingLayout();
+                if (thirdQuestTrainingLayoutReady) {
+                    drawQuestMarker(batch,
+                            thirdQuestFatherTrainingBounds.x + thirdQuestFatherTrainingBounds.width * 0.5f,
+                            thirdQuestFatherTrainingBounds.y + thirdQuestFatherTrainingBounds.height + 22f + bobOffset,
+                            "v",
+                            true,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if ((thirdQuestStage == THIRD_QUEST_MOVEMENT_TUTORIAL
+                || thirdQuestStage == THIRD_QUEST_ATTACK_TUTORIAL
+                || thirdQuestStage == THIRD_QUEST_COMBAT_TUTORIAL
+                || thirdQuestStage == THIRD_QUEST_SPAR_WITH_FATHER)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureThirdQuestTrainingLayout();
+            if (!thirdQuestTrainingLayoutReady) {
+                return;
+            }
+            if (thirdQuestStage == THIRD_QUEST_MOVEMENT_TUTORIAL) {
+                for (int i = 0; i < thirdQuestMovementMarkers.length; i++) {
+                    if (thirdQuestMovementMarkerReached[i]) {
+                        continue;
+                    }
+                    drawQuestMarker(batch,
+                            thirdQuestMovementMarkers[i].x,
+                            thirdQuestMovementMarkers[i].y + 16f + bobOffset,
+                            "!",
+                            false,
+                            0.72f, 0.95f, 0.48f);
+                }
+                return;
+            }
+            if (thirdQuestStage == THIRD_QUEST_ATTACK_TUTORIAL) {
+                drawQuestMarker(batch,
+                        thirdQuestAttackDummyBounds.x + thirdQuestAttackDummyBounds.width * 0.5f,
+                        thirdQuestAttackDummyBounds.y + thirdQuestAttackDummyBounds.height + 18f + bobOffset,
+                        "!",
+                        false,
+                        0.98f, 0.85f, 0.35f);
+                return;
+            }
+            if (thirdQuestStage == THIRD_QUEST_COMBAT_TUTORIAL) {
+                return;
+            }
+            drawQuestMarker(batch,
+                    thirdQuestFatherTrainingBounds.x + thirdQuestFatherTrainingBounds.width * 0.5f,
+                    thirdQuestFatherTrainingBounds.y + thirdQuestFatherTrainingBounds.height + 22f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.85f, 0.35f);
+        }
+        if (fourthQuestStage == FOURTH_QUEST_REPORT_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                Rectangle scientistBounds = scientistNpcBounds();
+                if (scientistBounds != null) {
+                    drawQuestMarker(batch,
+                            scientistBounds.x + scientistBounds.width * 0.5f,
+                            scientistBounds.y + scientistBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_TALK_TO_CAFE_OWNER && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            Vector2 cafeNpcPosition = firstQuestCafeNpcPosition();
+            if (cafeNpcPosition != null) {
+                drawQuestMarker(batch,
+                        cafeNpcPosition.x,
+                        cafeNpcPosition.y + 36f + bobOffset,
+                        "!",
+                        false,
+                        0.98f, 0.85f, 0.35f);
+            }
+            return;
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK
+                || fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fourthQuestCafeSiteBounds.x + fourthQuestCafeSiteBounds.width * 0.5f,
+                    fourthQuestCafeSiteBounds.y + fourthQuestCafeSiteBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.92f, 0.48f, 0.28f);
+            return;
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK
+                || fourthQuestStage == FOURTH_QUEST_CENTER_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fourthQuestCenterSiteBounds.x + fourthQuestCenterSiteBounds.width * 0.5f,
+                    fourthQuestCenterSiteBounds.y + fourthQuestCenterSiteBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.92f, 0.48f, 0.28f);
+            return;
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_EXAMINE_EDGE_MARK
+                || fourthQuestStage == FOURTH_QUEST_EDGE_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fourthQuestEdgeSiteBounds.x + fourthQuestEdgeSiteBounds.width * 0.5f,
+                    fourthQuestEdgeSiteBounds.y + fourthQuestEdgeSiteBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.92f, 0.48f, 0.28f);
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_TO_SCIENTIST) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                Rectangle scientistBounds = scientistNpcBounds();
+                if (scientistBounds != null) {
+                    drawQuestMarker(batch,
+                            scientistBounds.x + scientistBounds.width * 0.5f,
+                            scientistBounds.y + scientistBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_ARRAY) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, FOURTH_QUEST_LAB_FLOOR_2_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                ensureFourthQuestFloor2Layout();
+                drawQuestMarker(batch,
+                        fourthQuestArrayNodeBounds[0].x + fourthQuestArrayNodeBounds[0].width * 0.5f,
+                        fourthQuestArrayNodeBounds[0].y + fourthQuestArrayNodeBounds[0].height + 18f + bobOffset,
+                        "!",
+                        false,
+                        0.64f, 0.94f, 0.98f);
+                return;
+            }
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2 && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            ensureFourthQuestFloor2Layout();
+            drawQuestMarker(batch,
+                    fourthQuestArrayNodeBounds[1].x + fourthQuestArrayNodeBounds[1].width * 0.5f,
+                    fourthQuestArrayNodeBounds[1].y + fourthQuestArrayNodeBounds[1].height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.64f, 0.94f, 0.98f);
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3 && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            ensureFourthQuestFloor2Layout();
+            drawQuestMarker(batch,
+                    fourthQuestArrayNodeBounds[2].x + fourthQuestArrayNodeBounds[2].width * 0.5f,
+                    fourthQuestArrayNodeBounds[2].y + fourthQuestArrayNodeBounds[2].height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.64f, 0.94f, 0.98f);
+            return;
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE
+                || fourthQuestStage == FOURTH_QUEST_ARRAY_DEFENSE)
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+            ensureFourthQuestFloor2Layout();
+            drawQuestMarker(batch,
+                    fourthQuestArrayConsoleBounds.x + fourthQuestArrayConsoleBounds.width * 0.5f,
+                    fourthQuestArrayConsoleBounds.y + fourthQuestArrayConsoleBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.64f, 0.94f, 0.98f);
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, FOURTH_QUEST_LAB_FLOOR_2_EXIT_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, THIRD_QUEST_LAB_EXIT_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                ensureFourthQuestVillageLayout();
+                drawQuestMarker(batch,
+                        fourthQuestBreachSiteBounds.x + fourthQuestBreachSiteBounds.width * 0.5f,
+                        fourthQuestBreachSiteBounds.y + fourthQuestBreachSiteBounds.height + 18f + bobOffset,
+                        "!",
+                        false,
+                        0.96f, 0.42f, 0.34f);
+                return;
+            }
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_EXAMINE_BREACH
+                || fourthQuestStage == FOURTH_QUEST_BREACH_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFourthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fourthQuestBreachSiteBounds.x + fourthQuestBreachSiteBounds.width * 0.5f,
+                    fourthQuestBreachSiteBounds.y + fourthQuestBreachSiteBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.96f, 0.42f, 0.34f);
+            return;
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE) {
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                Rectangle scientistBounds = scientistNpcBounds();
+                if (scientistBounds != null) {
+                    drawQuestMarker(batch,
+                            scientistBounds.x + scientistBounds.width * 0.5f,
+                            scientistBounds.y + scientistBounds.height + 22f + bobOffset,
+                            "!",
+                            false,
+                            0.98f, 0.85f, 0.35f);
+                }
+                return;
+            }
+        }
+        if (fifthQuestStage == FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE) {
+            if (MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)) {
+                drawQuestMarkerForObjectLayer(batch, THIRD_QUEST_LAB_EXIT_LAYER_NAME, bobOffset, true);
+                return;
+            }
+            if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
+                ensureFifthQuestVillageLayout();
+                drawQuestMarker(batch,
+                        fifthQuestRuinsIntroBounds.x + fifthQuestRuinsIntroBounds.width * 0.5f,
+                        fifthQuestRuinsIntroBounds.y + fifthQuestRuinsIntroBounds.height + 18f + bobOffset,
+                        "v",
+                        true,
+                        0.98f, 0.46f, 0.34f);
+                return;
+            }
+        }
+        if (fifthQuestStage == FIFTH_QUEST_OUTER_RUINS_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFifthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fifthQuestOuterRuinsBounds.x + fifthQuestOuterRuinsBounds.width * 0.5f,
+                    fifthQuestOuterRuinsBounds.y + fifthQuestOuterRuinsBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ADVANCE_TO_PORTAL || fifthQuestStage == FIFTH_QUEST_MID_RUINS_BATTLE)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            ensureFifthQuestVillageLayout();
+            drawQuestMarker(batch,
+                    fifthQuestMidRuinsBounds.x + fifthQuestMidRuinsBounds.width * 0.5f,
+                    fifthQuestMidRuinsBounds.y + fifthQuestMidRuinsBounds.height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_1_BATTLE || fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            drawQuestMarker(batch,
+                    fifthQuestAnchorBounds[0].x + fifthQuestAnchorBounds[0].width * 0.5f,
+                    fifthQuestAnchorBounds[0].y + fifthQuestAnchorBounds[0].height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_2_BATTLE || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            drawQuestMarker(batch,
+                    fifthQuestAnchorBounds[1].x + fifthQuestAnchorBounds[1].width * 0.5f,
+                    fifthQuestAnchorBounds[1].y + fifthQuestAnchorBounds[1].height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_3_BATTLE || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_DESTROY)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            drawQuestMarker(batch,
+                    fifthQuestAnchorBounds[2].x + fifthQuestAnchorBounds[2].width * 0.5f,
+                    fifthQuestAnchorBounds[2].y + fifthQuestAnchorBounds[2].height + 18f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_PORTAL_BOSS
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            Rectangle questBounds = fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds;
+            drawQuestMarker(batch,
+                    questBounds.x + questBounds.width * 0.5f,
+                    questBounds.y + questBounds.height + 18f + bobOffset,
+                    "v",
+                    true,
+                    0.98f, 0.46f, 0.34f);
+            return;
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_COMPLETE && sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            drawQuestMarkerForObjectLayer(batch, FIFTH_QUEST_PORTAL_LAYER_NAME, bobOffset, true);
+            return;
+        }
+        if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
+                && sixthQuestStage < SIXTH_QUEST_ENDING
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            drawQuestMarkerForObjectLayer(batch, FIFTH_QUEST_PORTAL_LAYER_NAME, bobOffset, true);
+            return;
+        }
+        if (MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+            ensureSixthQuestCastleLayout();
+            if (sixthQuestStage == SIXTH_QUEST_OUTER_ASSAULT) {
+                drawQuestMarker(batch,
+                        sixthQuestOuterCastleBounds.x + sixthQuestOuterCastleBounds.width * 0.5f,
+                        sixthQuestOuterCastleBounds.y + sixthQuestOuterCastleBounds.height + 18f + bobOffset,
+                        "!",
+                        false,
+                        0.96f, 0.48f, 0.28f);
+                return;
+            }
+            if ((sixthQuestStage == SIXTH_QUEST_SEAL_A_BATTLE || sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY)) {
+                drawQuestMarker(batch,
+                        sixthQuestSealAInteractBounds.x + sixthQuestSealAInteractBounds.width * 0.5f,
+                        sixthQuestSealAInteractBounds.y + sixthQuestSealAInteractBounds.height + 18f + bobOffset,
+                        sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY ? "!" : "v",
+                        sixthQuestStage == SIXTH_QUEST_SEAL_A_BATTLE,
+                        0.96f, 0.36f, 0.24f);
+                return;
+            }
+            if ((sixthQuestStage == SIXTH_QUEST_SEAL_B_BATTLE || sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY)) {
+                drawQuestMarker(batch,
+                        sixthQuestSealBInteractBounds.x + sixthQuestSealBInteractBounds.width * 0.5f,
+                        sixthQuestSealBInteractBounds.y + sixthQuestSealBInteractBounds.height + 18f + bobOffset,
+                        sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY ? "!" : "v",
+                        sixthQuestStage == SIXTH_QUEST_SEAL_B_BATTLE,
+                        0.96f, 0.36f, 0.24f);
+                return;
+            }
+            if (sixthQuestStage == SIXTH_QUEST_THRONE_GUARDS || sixthQuestStage == SIXTH_QUEST_BOSS_PHASE_1) {
+                drawQuestMarker(batch,
+                        sixthQuestBossPhase1SpawnBounds.x + sixthQuestBossPhase1SpawnBounds.width * 0.5f,
+                        sixthQuestBossPhase1SpawnBounds.y + sixthQuestBossPhase1SpawnBounds.height + 22f + bobOffset,
+                        "!",
+                        false,
+                        0.98f, 0.28f, 0.22f);
+                return;
+            }
+        }
+        if ((sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO || sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_BATTLE)
+                && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            ensureSixthQuestFinalArenaLayout();
+            drawQuestMarker(batch,
+                    sixthQuestFinalPhaseSpawnBounds.x + sixthQuestFinalPhaseSpawnBounds.width * 0.5f,
+                    sixthQuestFinalPhaseSpawnBounds.y + sixthQuestFinalPhaseSpawnBounds.height + 22f + bobOffset,
+                    "!",
+                    false,
+                    0.98f, 0.30f, 0.22f);
+        }
+    }
+
+    private void drawQuestMarkerForObjectLayer(SpriteBatch batch, String layerName, float bobOffset, boolean directional) {
+        Rectangle targetBounds = objectLayerBounds(findLayerByName(layerName));
+        if (targetBounds == null) {
+            return;
+        }
+        drawQuestMarker(batch,
+                targetBounds.x + targetBounds.width * 0.5f,
+                targetBounds.y + targetBounds.height + 20f + bobOffset,
+                directional ? "v" : "!",
+                directional,
+                0.98f, 0.85f, 0.35f);
+    }
+
+    private void drawQuestMarker(SpriteBatch batch, float worldX, float worldY, String markerText,
+                                 boolean directional, float r, float g, float b) {
+        if (firstQuestTitleFont == null || uiCamera == null || camera == null) {
+            return;
+        }
+        questMarkerProjection.set(worldX, worldY, 0f);
+        camera.project(questMarkerProjection);
+        float screenX = questMarkerProjection.x;
+        float screenY = questMarkerProjection.y;
+        float marginX = 32f;
+        float marginY = 64f;
+        boolean offscreen = screenX < -marginX || screenX > uiCamera.viewportWidth + marginX
+                || screenY < -marginY || screenY > uiCamera.viewportHeight + marginY;
+        if (directional || offscreen) {
+            float clampedX = Math.max(marginX, Math.min(uiCamera.viewportWidth - marginX, screenX));
+            float clampedY = Math.max(marginY, Math.min(uiCamera.viewportHeight - marginY, screenY));
+            if (clampedX != screenX || clampedY != screenY) {
+                float deltaX = screenX - uiCamera.viewportWidth * 0.5f;
+                float deltaY = screenY - uiCamera.viewportHeight * 0.5f;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    markerText = deltaX >= 0f ? ">" : "<";
+                } else {
+                    markerText = deltaY >= 0f ? "^" : "v";
+                }
+            }
+            screenX = clampedX;
+            screenY = clampedY;
+        }
+        boolean arrowMarker = isQuestArrowMarker(markerText);
+        float baseScaleX = firstQuestTitleFont.getData().scaleX;
+        float baseScaleY = firstQuestTitleFont.getData().scaleY;
+        if (arrowMarker) {
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * QUEST_ARROW_MARKER_SCALE,
+                    baseScaleY * QUEST_ARROW_MARKER_SCALE);
+            drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
+                    screenX - QUEST_ARROW_MARKER_OUTLINE_OFFSET, screenY,
+                    0f, 0f, 0f, 0.95f);
+            drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
+                    screenX + QUEST_ARROW_MARKER_OUTLINE_OFFSET, screenY,
+                    0f, 0f, 0f, 0.95f);
+            drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
+                    screenX, screenY - QUEST_ARROW_MARKER_OUTLINE_OFFSET,
+                    0f, 0f, 0f, 0.95f);
+            drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
+                    screenX, screenY + QUEST_ARROW_MARKER_OUTLINE_OFFSET,
+                    0f, 0f, 0f, 0.95f);
+        }
+        drawCenteredQuestText(batch, firstQuestTitleFont, markerText, screenX, screenY, r, g, b, 1f);
+        if (arrowMarker) {
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+    }
+
+    private boolean isQuestArrowMarker(String markerText) {
+        return ">".equals(markerText)
+                || "<".equals(markerText)
+                || "^".equals(markerText)
+                || "v".equals(markerText);
+    }
+
+    private void drawFirstQuestPrompt(SpriteBatch batch) {
+        String promptText = currentFirstQuestPrompt();
+        if (promptText == null || firstQuestHintFont == null || uiCamera == null || firstQuestLayout == null) {
+            return;
+        }
+        firstQuestLayout.setText(firstQuestHintFont, promptText);
+        float paddingX = 18f;
+        float paddingY = 10f;
+        float boxWidth = firstQuestLayout.width + paddingX * 2f;
+        float boxHeight = firstQuestLayout.height + paddingY * 2f;
+        float boxX = (uiCamera.viewportWidth - boxWidth) * 0.5f;
+        float boxY = 104f;
+        batch.setColor(0f, 0f, 0f, 0.58f);
+        batch.draw(dayNightOverlayTex, boxX, boxY, boxWidth, boxHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        drawCenteredQuestText(batch, firstQuestHintFont, promptText,
+                uiCamera.viewportWidth * 0.5f,
+                boxY + paddingY + firstQuestLayout.height,
+                0.95f, 0.92f, 0.83f, 1f);
+    }
+
+    private String currentMainMenuQuestTitle() {
+        if (gameCompleted || sixthQuestStage == SIXTH_QUEST_COMPLETE) {
+            return "Game Complete";
+        }
+        if (sixthQuestStage > SIXTH_QUEST_DISABLED) {
+            return SIXTH_QUEST_NOTIFICATION_TITLE;
+        }
+        if (fifthQuestStage == FIFTH_QUEST_COMPLETE) {
+            return SIXTH_QUEST_NOTIFICATION_TITLE;
+        }
+        if (fifthQuestStage > FIFTH_QUEST_DISABLED && fifthQuestStage < FIFTH_QUEST_COMPLETE) {
+            return FIFTH_QUEST_NOTIFICATION_TITLE;
+        }
+        if (fourthQuestStage > FOURTH_QUEST_DISABLED && fourthQuestStage < FOURTH_QUEST_COMPLETE) {
+            return FOURTH_QUEST_NOTIFICATION_TITLE;
+        }
+        if (thirdQuestStage > THIRD_QUEST_DISABLED && thirdQuestStage < THIRD_QUEST_COMPLETE) {
+            return THIRD_QUEST_NOTIFICATION_TITLE;
+        }
+        if (secondQuestStage > SECOND_QUEST_DISABLED && secondQuestStage < SECOND_QUEST_COMPLETE) {
+            return SECOND_QUEST_NOTIFICATION_TITLE;
+        }
+        if (firstQuestStage > FIRST_QUEST_DISABLED && firstQuestStage < FIRST_QUEST_COMPLETE) {
+            return FIRST_QUEST_NOTIFICATION_TITLE;
+        }
+        return "No active quest";
+    }
+
+    private String currentMainMenuQuestObjective() {
+        if (gameCompleted || sixthQuestStage == SIXTH_QUEST_COMPLETE) {
+            return "The demon is defeated. The story is complete.";
+        }
+        if (sixthQuestStage > SIXTH_QUEST_DISABLED) {
+            return switch (sixthQuestStage) {
+                case SIXTH_QUEST_ENTER_PORTAL -> "Enter the Portal.";
+                case SIXTH_QUEST_OUTER_ASSAULT -> "Defeat the demons blocking the route to the inner gate.";
+                case SIXTH_QUEST_SEAL_A_BATTLE, SIXTH_QUEST_SEAL_A_DESTROY -> "Break the first Castle Seal.";
+                case SIXTH_QUEST_SEAL_B_BATTLE, SIXTH_QUEST_SEAL_B_DESTROY -> "Break the second Castle Seal.";
+                case SIXTH_QUEST_THRONE_GUARDS -> "Advance to the Throne Hall and defeat the throne guards.";
+                case SIXTH_QUEST_BOSS_PHASE_1 -> "Confront the Demon.";
+                case SIXTH_QUEST_FINAL_PHASE_INTRO, SIXTH_QUEST_FINAL_PHASE_BATTLE -> "Survive the final phase and end the demon.";
+                case SIXTH_QUEST_ENDING -> "See the final aftermath.";
+                default -> "Enter the castle and finish the demon.";
+            };
+        }
+        if (fifthQuestStage == FIFTH_QUEST_COMPLETE) {
+            return "Enter the Portal and raid the Demon Castle.";
+        }
+        if (fifthQuestStage > FIFTH_QUEST_DISABLED) {
+            return switch (fifthQuestStage) {
+                case FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE -> "Go to the abandoned village by the portal.";
+                case FIFTH_QUEST_OUTER_RUINS_BATTLE -> "Defeat all demons in the outer ruins.";
+                case FIFTH_QUEST_ADVANCE_TO_PORTAL, FIFTH_QUEST_MID_RUINS_BATTLE -> "Advance deeper toward the portal.";
+                case FIFTH_QUEST_ANCHOR_1_BATTLE, FIFTH_QUEST_ANCHOR_1_DESTROY,
+                     FIFTH_QUEST_ANCHOR_2_BATTLE, FIFTH_QUEST_ANCHOR_2_DESTROY,
+                     FIFTH_QUEST_ANCHOR_3_BATTLE, FIFTH_QUEST_ANCHOR_3_DESTROY ->
+                        "Destroy the portal anchors (" + currentFifthQuestDestroyedAnchorCount() + "/3).";
+                case FIFTH_QUEST_PORTAL_BOSS -> "Defeat the demon guarding the portal.";
+                default -> "Push back the demonic invasion near the portal.";
+            };
+        }
+        if (fourthQuestStage > FOURTH_QUEST_DISABLED) {
+            return switch (fourthQuestStage) {
+                case FOURTH_QUEST_REPORT_TO_SCIENTIST -> "Report the fresh burn marks to the scientist.";
+                case FOURTH_QUEST_TALK_TO_CAFE_OWNER, FOURTH_QUEST_EXAMINE_CAFE_MARK, FOURTH_QUEST_CAFE_BATTLE ->
+                        "Investigate the corruption outside the cafe.";
+                case FOURTH_QUEST_EXAMINE_CENTER_MARK, FOURTH_QUEST_CENTER_BATTLE ->
+                        "Investigate the corruption in the village center.";
+                case FOURTH_QUEST_EXAMINE_EDGE_MARK, FOURTH_QUEST_EDGE_BATTLE ->
+                        "Investigate the corruption near the outer road.";
+                case FOURTH_QUEST_RETURN_TO_SCIENTIST -> "Bring the ash samples back to the scientist.";
+                case FOURTH_QUEST_GO_TO_ARRAY -> "Go to Floor 2 and activate the Resonance Array.";
+                case FOURTH_QUEST_ACTIVATE_ARRAY_NODE_1, FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2, FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3 ->
+                        "Activate the outer array nodes (" + currentFourthQuestActivatedArrayNodeCount() + "/3).";
+                case FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE -> "Return to the main console and begin the scan.";
+                case FOURTH_QUEST_ARRAY_DEFENSE -> "Protect the Resonance Array until the scan completes.";
+                case FOURTH_QUEST_GO_TO_BREACH, FOURTH_QUEST_EXAMINE_BREACH, FOURTH_QUEST_BREACH_BATTLE ->
+                        "Go to the breach site and stop it.";
+                case FOURTH_QUEST_RETURN_RIFT_CORE, FOURTH_QUEST_EPILOGUE ->
+                        "Bring the Rift Core back to the scientist.";
+                default -> "Investigate the demonic marks threatening the village.";
+            };
+        }
+        if (thirdQuestStage > THIRD_QUEST_DISABLED) {
+            return switch (thirdQuestStage) {
+                case THIRD_QUEST_RETURN_TO_FATHER -> "Return to Father in the inn room.";
+                case THIRD_QUEST_MEET_FATHER_OUTSIDE -> "Meet Father at the training ground.";
+                case THIRD_QUEST_MOVEMENT_TUTORIAL ->
+                        "Reach all training markers (" + thirdQuestMovementMarkersReached + "/" + thirdQuestMovementMarkers.length + ").";
+                case THIRD_QUEST_ATTACK_TUTORIAL ->
+                        "Hit the training dummy (" + thirdQuestAttackDummyHitCount + "/" + THIRD_QUEST_DUMMY_HITS_REQUIRED + ").";
+                case THIRD_QUEST_COMBAT_TUTORIAL -> "Defeat the training enemies.";
+                case THIRD_QUEST_SPAR_WITH_FATHER -> "Spar with Father and prove your control.";
+                default -> "Train with Father behind the inn.";
+            };
+        }
+        if (secondQuestStage > SECOND_QUEST_DISABLED) {
+            return switch (secondQuestStage) {
+                case SECOND_QUEST_TALK_TO_CAFE_OWNER -> "Speak with the cafe owner outside the cafe.";
+                case SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST -> "Bring the Scorched Fragment to the scientist.";
+                case SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES -> "Retrieve the Archive Notes from Floor 2.";
+                case SECOND_QUEST_RETURN_TO_SCIENTIST -> "Return the Archive Notes to the scientist.";
+                default -> "Follow the ash trail to the Research Lab.";
+            };
+        }
+        if (firstQuestStage > FIRST_QUEST_DISABLED) {
+            return switch (firstQuestStage) {
+                case FIRST_QUEST_TALK_TO_FATHER -> "Speak with Father in the inn room.";
+                case FIRST_QUEST_DELIVER_TO_CAFE -> "Deliver the Herb-and-Spice to the cafe owner.";
+                default -> "Help Father with his request.";
+            };
+        }
+        return "Explore the world.";
+    }
+
+    private int currentFourthQuestActivatedArrayNodeCount() {
+        if (fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE) {
+            return 3;
+        }
+        if (fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3) {
+            return 2;
+        }
+        if (fourthQuestStage >= FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private int currentFifthQuestDestroyedAnchorCount() {
+        int destroyedCount = 0;
+        if (fifthQuestStage > FIFTH_QUEST_ANCHOR_1_DESTROY) {
+            destroyedCount++;
+        }
+        if (fifthQuestStage > FIFTH_QUEST_ANCHOR_2_DESTROY) {
+            destroyedCount++;
+        }
+        if (fifthQuestStage > FIFTH_QUEST_ANCHOR_3_DESTROY) {
+            destroyedCount++;
+        }
+        return destroyedCount;
+    }
+
+    private String currentMainMenuRegionName() {
+        if (world.activeMapId == null) {
+            return "Unknown";
+        }
+        return switch (world.activeMapId) {
+            case MAP_ID_VILLAGE -> "Hagi Village";
+            case MAP_ID_INN, MAP_ID_INN_ROOM -> "Hagi Inn";
+            case MAP_ID_RESEARCH_LAB_FLOOR_1, MAP_ID_RESEARCH_LAB_FLOOR_2 -> "Research Lab";
+            case MAP_ID_DEMON_CASTLE -> "Demon Castle";
+            case MAP_ID_BOSS_ARENA_PHASE_2 -> "Boss Arena";
+            default -> world.activeMapId;
+        };
+    }
+
+    private String currentFirstQuestPrompt() {
+        if (world.activeMapId == null) {
+            return null;
+        }
+        if (firstQuestStage == FIRST_QUEST_TALK_TO_FATHER
+                && MAP_ID_INN_ROOM.equals(world.activeMapId)
+                && isPlayerNearFirstQuestFather()) {
+            return "Press E to talk";
+        }
+        if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            return "Press E to deliver the Herb and Spice";
+        }
+        if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            return "Press E to talk";
+        }
+        if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer("ENTRANCE-Research-Lab")) {
+            return "Press E to enter the Research Lab";
+        }
+        if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            return "Press E to talk";
+        }
+        if (secondQuestStage == SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer("ENTRANCE-Research-Lab-Floor-2")) {
+            return "Press E to go upstairs";
+        }
+        if (secondQuestStage == SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearSecondQuestArchive()) {
+            return "Press E to inspect";
+        }
+        if (secondQuestStage == SECOND_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer("EXIT-Research-Lab-Floor-2")) {
+            return "Press E to go downstairs";
+        }
+        if (secondQuestStage == SECOND_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            return "Press E to talk";
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(THIRD_QUEST_LAB_EXIT_LAYER_NAME)) {
+            return "Press E to leave the Research Lab";
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(THIRD_QUEST_INN_ENTRANCE_LAYER_NAME)) {
+            return "Press E to enter the inn";
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER
+                && MAP_ID_INN.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(THIRD_QUEST_INN_ROOM_ENTRANCE_LAYER_NAME)) {
+            return "Press E to enter the inn room";
+        }
+        if (thirdQuestStage == THIRD_QUEST_RETURN_TO_FATHER
+                && MAP_ID_INN_ROOM.equals(world.activeMapId)
+                && isPlayerNearFirstQuestFather()) {
+            return "Press E to talk";
+        }
+        if (thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE
+                && MAP_ID_INN_ROOM.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer("EXIT-Inn-Room")) {
+            return "Press E to leave the room";
+        }
+        if (thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE
+                && MAP_ID_INN.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer("EXIT-Inn")) {
+            return "Press E to leave the inn";
+        }
+        if ((thirdQuestStage == THIRD_QUEST_MEET_FATHER_OUTSIDE
+                || (thirdQuestStage == THIRD_QUEST_SPAR_WITH_FATHER && !thirdQuestSparActive))
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearThirdQuestVillageFather()) {
+            return "Press E to talk";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_REPORT_TO_SCIENTIST
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME)) {
+            return "Use the interact key/button to enter the Research Lab";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_REPORT_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            return "Use the interact key/button to speak";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_TALK_TO_CAFE_OWNER
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFirstQuestCafeNpc()) {
+            return "Use the interact key/button to speak";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestCafeMark()) {
+            return "Use the interact key/button to examine the mark";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestCenterMark()) {
+            return "Use the interact key/button to examine the mark";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_EDGE_MARK
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestEdgeMark()) {
+            return "Use the interact key/button to examine the mark";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME)) {
+            return "Use the interact key/button to enter the Research Lab";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_TO_SCIENTIST
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            return "Use the interact key/button to speak";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_ARRAY
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FOURTH_QUEST_LAB_FLOOR_2_LAYER_NAME)) {
+            return "Use the interact key/button to go upstairs";
+        }
+        if ((fourthQuestStage == FOURTH_QUEST_GO_TO_ARRAY || fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_1)
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(0)) {
+            return "Use the interact key/button to activate the node";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_2
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(1)) {
+            return "Use the interact key/button to activate the node";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_NODE_3
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayNode(2)) {
+            return "Use the interact key/button to activate the node";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_ACTIVATE_ARRAY_CONSOLE
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerNearFourthQuestArrayConsole()) {
+            return "Use the interact key/button to begin the scan";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH
+                && MAP_ID_RESEARCH_LAB_FLOOR_2.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FOURTH_QUEST_LAB_FLOOR_2_EXIT_LAYER_NAME)) {
+            return "Use the interact key/button to go downstairs";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_GO_TO_BREACH
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(THIRD_QUEST_LAB_EXIT_LAYER_NAME)) {
+            return "Use the interact key/button to leave the Research Lab";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_EXAMINE_BREACH
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerNearFourthQuestBreachSite()) {
+            return "Use the interact key/button to examine the breach";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME)) {
+            return "Use the interact key/button to enter the Research Lab";
+        }
+        if (fourthQuestStage == FOURTH_QUEST_RETURN_RIFT_CORE
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerNearScientistNpc()) {
+            return "Use the interact key/button to speak";
+        }
+        if (fifthQuestStage == FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE
+                && MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(THIRD_QUEST_LAB_EXIT_LAYER_NAME)) {
+            return "Use the interact key/button to leave the Research Lab";
+        }
+        if ((fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_DESTROY)
+                && MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            int anchorIndex = fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY
+                    ? 0
+                    : (fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY ? 1 : 2);
+            if (isPlayerNearFifthQuestAnchor(anchorIndex)) {
+                return "Use the interact key/button to destroy the anchor";
+            }
+        }
+        if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
+                && sixthQuestStage < SIXTH_QUEST_ENDING
+                && MAP_ID_VILLAGE.equals(world.activeMapId)
+                && isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
+            return "Use the interact key/button to enter the Portal";
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY
+                && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && isPlayerNearSixthQuestSeal(true)) {
+            return "Use the interact key/button to shatter the seal";
+        }
+        if (sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY
+                && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && isPlayerNearSixthQuestSeal(false)) {
+            return "Use the interact key/button to shatter the seal";
+        }
+        return null;
+    }
+
+    private boolean isWallCollisionLayer(MapLayer layer) {
+        if (layer == null || layer.getName() == null) {
+            return false;
+        }
+        return layer.getName().toUpperCase(Locale.ROOT).contains("WALL-COLLISION");
+    }
+
+    private Animation<TextureRegion> fifthQuestDemonIdleAnimation(FifthQuestDemonType type) {
+        return switch (type) {
+            case DEMON_2 -> fifthQuestDemon2IdleAnim;
+            case DEMON_3, COMMANDER -> fifthQuestDemon3IdleAnim;
+            default -> fifthQuestDemon1IdleAnim;
+        };
+    }
+
+    private Animation<TextureRegion> fifthQuestDemonWalkAnimation(FifthQuestDemonType type) {
+        return switch (type) {
+            case DEMON_2 -> fifthQuestDemon2WalkAnim;
+            case DEMON_3, COMMANDER -> fifthQuestDemon3WalkAnim;
+            default -> fifthQuestDemon1WalkAnim;
+        };
+    }
+
+    private Animation<TextureRegion> fifthQuestDemonAttackAnimation(FifthQuestDemonType type) {
+        return switch (type) {
+            case DEMON_2 -> fifthQuestDemon2AttackAnim;
+            case DEMON_3, COMMANDER -> fifthQuestDemon3AttackAnim;
+            default -> fifthQuestDemon1AttackAnim;
+        };
+    }
+
+    private Animation<TextureRegion> fifthQuestDemonHurtAnimation(FifthQuestDemonType type) {
+        return switch (type) {
+            case DEMON_2 -> fifthQuestDemon2HurtAnim;
+            case DEMON_3, COMMANDER -> fifthQuestDemon3HurtAnim;
+            default -> fifthQuestDemon1HurtAnim;
+        };
+    }
+
+    private Animation<TextureRegion> fifthQuestDemonDeadAnimation(FifthQuestDemonType type) {
+        return switch (type) {
+            case DEMON_2 -> fifthQuestDemon2DeadAnim;
+            case DEMON_3, COMMANDER -> fifthQuestDemon3DeadAnim;
+            default -> fifthQuestDemon1DeadAnim;
+        };
+    }
+
+    private TextureRegion firstFifthQuestDemonReferenceFrame(FifthQuestDemonType type) {
+        Animation<TextureRegion> idle = fifthQuestDemonIdleAnimation(type);
+        if (idle != null) {
+            return idle.getKeyFrame(0f, true);
+        }
+        Animation<TextureRegion> walk = fifthQuestDemonWalkAnimation(type);
+        if (walk != null) {
+            return walk.getKeyFrame(0f, true);
+        }
+        Animation<TextureRegion> attack = fifthQuestDemonAttackAnimation(type);
+        if (attack != null) {
+            return attack.getKeyFrame(0f, false);
+        }
+        Animation<TextureRegion> hurt = fifthQuestDemonHurtAnimation(type);
+        if (hurt != null) {
+            return hurt.getKeyFrame(0f, false);
+        }
+        Animation<TextureRegion> dead = fifthQuestDemonDeadAnimation(type);
+        if (dead != null) {
+            return dead.getKeyFrame(0f, false);
+        }
+        return null;
+    }
+
+    private float fifthQuestDemonFrameWidth(FifthQuestDemonType type) {
+        TextureRegion referenceFrame = firstFifthQuestDemonReferenceFrame(type);
+        if (referenceFrame != null && referenceFrame.getRegionWidth() > 0) {
+            return referenceFrame.getRegionWidth();
+        }
+        return FIFTH_QUEST_DEMON_FRAME_WIDTH;
+    }
+
+    private float fifthQuestDemonFrameHeight(FifthQuestDemonType type) {
+        TextureRegion referenceFrame = firstFifthQuestDemonReferenceFrame(type);
+        if (referenceFrame != null && referenceFrame.getRegionHeight() > 0) {
+            return referenceFrame.getRegionHeight();
+        }
+        return FIFTH_QUEST_DEMON_FRAME_HEIGHT;
+    }
+
+    private float fifthQuestDemonHitboxCenterX(FifthQuestDemonInstance demon) {
+        return demon != null ? demon.position.x : 0f;
+    }
+
+    private float fifthQuestDemonHitboxCenterY(FifthQuestDemonInstance demon) {
+        if (demon == null) {
+            return 0f;
+        }
+        return demon.position.y - FIFTH_QUEST_DEMON_HITBOX_DOWN_OFFSET_TILES * DEFAULT_TILE_SIZE;
+    }
+
+    private float fifthQuestDemonHitboxHalfWidth() {
+        float frameWidth = FIFTH_QUEST_DEMON_FRAME_WIDTH * FIFTH_QUEST_DEMON_DRAW_SCALE;
+        return frameWidth * FIFTH_QUEST_DEMON_HITBOX_WIDTH_SCALE;
+    }
+
+    private float fifthQuestDemonHitboxHalfHeight() {
+        float frameHeight = FIFTH_QUEST_DEMON_FRAME_HEIGHT * FIFTH_QUEST_DEMON_DRAW_SCALE;
+        return frameHeight * FIFTH_QUEST_DEMON_HITBOX_HEIGHT_SCALE;
+    }
+
+    private void drawFirstQuestDialogueOverlay(SpriteBatch batch) {
+        if (uiCamera == null) {
+            return;
+        }
+        float panelWidth = Math.min(uiCamera.viewportWidth * 0.72f, 760f);
+        float panelHeight = Math.min(uiCamera.viewportHeight * 0.42f, 320f);
+        float panelX = (uiCamera.viewportWidth - panelWidth) * 0.5f;
+        float panelY = (uiCamera.viewportHeight - panelHeight) * 0.5f - 20f;
+        drawQuestPanel(batch, panelX, panelY, panelWidth, panelHeight);
+        String speaker = activeQuestDialogueSpeakers.length == 0
+                ? ""
+                : activeQuestDialogueSpeakers[Math.max(0,
+                Math.min(activeQuestDialogueSpeakers.length - 1, firstQuestDialogueLineIndex))];
+        speaker = resolveStorySpeaker(speaker);
+        if (firstQuestTitleFont != null) {
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * FIRST_QUEST_OVERLAY_HEADER_SCALE,
+                    baseScaleY * FIRST_QUEST_OVERLAY_HEADER_SCALE);
+            drawCenteredQuestText(batch, firstQuestTitleFont, speaker,
+                    uiCamera.viewportWidth * 0.5f,
+                    panelY + panelHeight - 36f + FIRST_QUEST_DIALOGUE_HEADER_OFFSET_Y,
+                    0.88f, 0.76f, 0.40f, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+
+        String line = activeQuestDialogueLines.length == 0
+                ? ""
+                : activeQuestDialogueLines[Math.max(0,
+                Math.min(activeQuestDialogueLines.length - 1, firstQuestDialogueLineIndex))];
+        drawWrappedQuestText(batch, firstQuestBodyFont, line,
+                panelX + 60f, panelY + panelHeight - 90f, panelWidth - 120f,
+                0.92f, 0.90f, 0.86f, 1f);
+        drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
+                uiCamera.viewportWidth * 0.5f,
+                panelY + 34f,
+                0.76f, 0.72f, 0.66f, 1f);
+    }
+
+    private String resolveStorySpeaker(String speaker) {
+        if (speaker == null || speaker.isBlank()) {
+            return "";
+        }
+        return DEFAULT_CHARACTER_NAME.equalsIgnoreCase(speaker.trim()) ? characterName : speaker;
+    }
+
+    private void drawFirstQuestItemCardOverlay(SpriteBatch batch) {
+        if (uiCamera == null) {
+            return;
+        }
+        float panelWidth = Math.min(uiCamera.viewportWidth * 0.58f, 580f);
+        float panelHeight = Math.min(uiCamera.viewportHeight * 0.72f, 540f);
+        float panelX = (uiCamera.viewportWidth - panelWidth) * 0.5f;
+        float panelY = (uiCamera.viewportHeight - panelHeight) * 0.5f - 12f;
+        drawQuestPanel(batch, panelX, panelY, panelWidth, panelHeight);
+        boolean hasItemTitle = activeQuestItemTitle != null && !activeQuestItemTitle.isBlank();
+        if (firstQuestTitleFont != null && hasItemTitle) {
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            float titleScaleMultiplier = itemCardTitleScaleMultiplier();
+            float titleOffsetY = itemCardTitleOffsetY();
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * activeQuestItemTitleScale * titleScaleMultiplier,
+                    baseScaleY * activeQuestItemTitleScale * titleScaleMultiplier);
+            drawCenteredQuestText(batch, firstQuestTitleFont, activeQuestItemTitle,
+                    uiCamera.viewportWidth * 0.5f,
+                    panelY + panelHeight - 64f + activeQuestItemTitleOffsetY + titleOffsetY,
+                    0.88f, 0.76f, 0.40f, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+
+        if (activeQuestItemTexture != null) {
+            float maxImageWidth = hasItemTitle ? panelWidth * 0.42f : panelWidth * 0.68f;
+            float maxImageHeight = hasItemTitle ? panelHeight * 0.44f : panelHeight * 0.54f;
+            float scale = Math.min(maxImageWidth / activeQuestItemTexture.getWidth(),
+                    maxImageHeight / activeQuestItemTexture.getHeight());
+            float drawWidth = activeQuestItemTexture.getWidth() * scale;
+            float drawHeight = activeQuestItemTexture.getHeight() * scale;
+            float drawCenterX = panelX + panelWidth * 0.5f;
+            float drawCenterY = panelY + panelHeight * (hasItemTitle ? 0.42f : 0.48f) + drawHeight * 0.5f;
+            drawWidth *= activeQuestItemImageScaleMultiplier;
+            drawHeight *= activeQuestItemImageScaleMultiplier;
+            float drawX = drawCenterX - drawWidth * 0.5f;
+            float drawY = drawCenterY - drawHeight * 0.5f + itemCardImageOffsetY();
+            batch.setColor(1f, 1f, 1f, 1f);
+            batch.draw(activeQuestItemTexture, drawX, drawY, drawWidth, drawHeight);
+        }
+
+        drawWrappedQuestText(batch, firstQuestBodyFont, activeQuestItemDescription,
+                panelX + 52f, panelY + panelHeight * 0.36f + activeQuestItemDescriptionOffsetY, panelWidth - 104f,
+                0.92f, 0.90f, 0.86f, 1f);
+        drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
+                uiCamera.viewportWidth * 0.5f,
+                panelY + 54f + activeQuestItemHintOffsetY,
+                0.76f, 0.72f, 0.66f, 1f);
+    }
+
+    private float itemCardTitleScaleMultiplier() {
+        if (activeQuestItemCardId == QuestItemCardId.FIRST_QUEST_HERB_AND_SPICE) {
+            return 1f;
+        }
+        return FIRST_QUEST_OVERLAY_HEADER_SCALE;
+    }
+
+    private float itemCardTitleOffsetY() {
+        if (activeQuestItemCardId == QuestItemCardId.FIRST_QUEST_HERB_AND_SPICE) {
+            return 0f;
+        }
+        return FIRST_QUEST_ITEM_CARD_HEADER_OFFSET_Y;
+    }
+
+    private float itemCardImageOffsetY() {
+        if (activeQuestItemCardId == QuestItemCardId.SECOND_QUEST_SCORCHED_FRAGMENT) {
+            return SECOND_QUEST_FRAGMENT_CARD_IMAGE_OFFSET_Y;
+        }
+        return 0f;
+    }
+
+    private void drawQuestPanel(SpriteBatch batch, float x, float y, float width, float height) {
+        if (firstQuestPanelTex != null) {
+            batch.setColor(1f, 1f, 1f, 0.97f);
+            batch.draw(firstQuestPanelTex, x, y, width, height);
+            batch.setColor(1f, 1f, 1f, 1f);
+            return;
+        }
+        batch.setColor(0f, 0f, 0f, 0.88f);
+        batch.draw(dayNightOverlayTex, x, y, width, height);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawCenteredQuestText(SpriteBatch batch, BitmapFont font, String text,
+                                       float centerX, float baselineY,
+                                       float r, float g, float b, float a) {
+        if (font == null || text == null || firstQuestLayout == null) {
+            return;
+        }
+        font.setColor(r, g, b, a);
+        firstQuestLayout.setText(font, text);
+        font.draw(batch, firstQuestLayout, centerX - firstQuestLayout.width * 0.5f, baselineY);
+        font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawWrappedQuestText(SpriteBatch batch, BitmapFont font, String text,
+                                      float x, float topY, float width,
+                                      float r, float g, float b, float a) {
+        if (font == null || text == null) {
+            return;
+        }
+        font.setColor(r, g, b, a);
+        font.draw(batch, text, x, topY, width, Align.center, true);
+        font.setColor(1f, 1f, 1f, 1f);
     }
 
     private void ensureQuestBlurFrameBufferUpToDate() {
@@ -7538,6 +14708,9 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private TextureRegion currentFrame() {
+        if (isPlayerDead() && playerDeathAnim != null) {
+            return playerDeathAnim.getKeyFrame(playerDeathStateTime, false);
+        }
         if (isPlayerHazardHitReactionActive() && playerHitAnim != null) {
             return playerHitAnim.getKeyFrame(playerHazardHitStateTime, false);
         }
@@ -7736,6 +14909,40 @@ public class GameScreen extends ScreenAdapter {
             float drawY = chest.position.y - drawH * 0.5f;
             batch.draw(frame, drawX, drawY, drawW, drawH);
         }
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private void drawFirstQuestCafeNpc(float saturation, boolean drawBehindPlayer) {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)
+                || firstQuestStage < FIRST_QUEST_DELIVER_TO_CAFE
+                || firstQuestCafeNpcIdleAnim == null) {
+            return;
+        }
+        Vector2 npcPosition = firstQuestCafeNpcPosition();
+        if (npcPosition == null) {
+            return;
+        }
+        TextureRegion frame = firstQuestCafeNpcIdleAnim.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return;
+        }
+        float playerDepthBasisY = player.bounds.y;
+        float drawW = frame.getRegionWidth() * FIRST_QUEST_CAFE_NPC_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * FIRST_QUEST_CAFE_NPC_DRAW_SCALE;
+        float npcDepthBasisY = npcPosition.y - drawH * 0.35f;
+        boolean npcBehindPlayer = npcDepthBasisY > playerDepthBasisY;
+        if (npcBehindPlayer != drawBehindPlayer) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        float drawX = npcPosition.x - drawW * 0.5f;
+        float drawY = npcPosition.y - drawH * 0.5f;
+        batch.draw(frame, drawX, drawY, drawW, drawH);
         if (saturationShader != null) {
             batch.setShader(null);
         }
