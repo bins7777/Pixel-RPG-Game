@@ -1,6 +1,11 @@
 package com.pixelrpg.game.desktop;
 
+import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
@@ -19,7 +24,7 @@ public class DesktopLauncher {
         boolean resizable = parseBoolean(props.getProperty("resizable"), true);
         boolean vsync = parseBoolean(props.getProperty("vsync"), true);
         int foregroundFps = parseInt(props.getProperty("foregroundFps"), 60);
-        String introVideoPath = props.getProperty("introVideoPath", "").trim();
+        String introVideoPath = resolveIntroVideoPath(props.getProperty("introVideoPath", "").trim());
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle(title);
@@ -33,6 +38,47 @@ public class DesktopLauncher {
         JavaFxIntroPlaybackService introPlaybackService =
                 new JavaFxIntroPlaybackService(introVideoPath, title, width, height);
         new Lwjgl3Application(new PixelRpgGame(introPlaybackService), config);
+    }
+
+    private static String resolveIntroVideoPath(String configuredPath) {
+        if (configuredPath == null) {
+            return "";
+        }
+        String normalizedPath = configuredPath.trim();
+        if (normalizedPath.isBlank()) {
+            return "";
+        }
+
+        File configuredFile = new File(normalizedPath);
+        if (configuredFile.isFile()) {
+            return configuredFile.getAbsolutePath();
+        }
+
+        URL resource = DesktopLauncher.class.getClassLoader().getResource(normalizedPath);
+        if (resource == null) {
+            return normalizedPath;
+        }
+
+        try {
+            if ("file".equalsIgnoreCase(resource.getProtocol())) {
+                return Path.of(resource.toURI()).toFile().getAbsolutePath();
+            }
+
+            String fileName = Path.of(normalizedPath).getFileName().toString();
+            String suffix = "";
+            int extensionIndex = fileName.lastIndexOf('.');
+            if (extensionIndex >= 0) {
+                suffix = fileName.substring(extensionIndex);
+            }
+            Path tempFile = Files.createTempFile("pixelrpg-intro-", suffix);
+            tempFile.toFile().deleteOnExit();
+            try (InputStream in = resource.openStream()) {
+                Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return tempFile.toAbsolutePath().toString();
+        } catch (Exception ignored) {
+            return normalizedPath;
+        }
     }
 
     private static Properties loadProperties() {

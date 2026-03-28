@@ -3,6 +3,7 @@ package com.pixelrpg.game;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.pixelrpg.game.intro.IntroPlaybackService;
+import com.pixelrpg.game.settings.GameSettingsService;
 import com.pixelrpg.game.screens.CharacterNameScreen;
 import com.pixelrpg.game.screens.GameScreen;
 import com.pixelrpg.game.screens.IntroScreen;
@@ -20,6 +21,7 @@ public class PixelRpgGame extends Game {
     private static final String NEW_GAME_START_SPAWN_LAYER = "FIRST-SPAWN";
 
     private final IntroPlaybackService introPlaybackService;
+    private final GameSettingsService settingsService = new GameSettingsService();
     private String pendingNewGameCharacterName = DEFAULT_CHARACTER_NAME;
 
     public PixelRpgGame() {
@@ -34,7 +36,12 @@ public class PixelRpgGame extends Game {
 
     @Override
     public void create() {
+        settingsService.initialize();
         showMainMenu();
+    }
+
+    public GameSettingsService getSettingsService() {
+        return settingsService;
     }
 
     public void showMainMenu() {
@@ -64,7 +71,7 @@ public class PixelRpgGame extends Game {
             showLoadGame();
             return;
         }
-        replaceScreen(new GameScreen(saveData));
+        replaceScreen(new GameScreen(this, saveData));
     }
 
     public void startNewGame() {
@@ -85,7 +92,7 @@ public class PixelRpgGame extends Game {
     }
 
     private GameScreen createNewGameScreen(String characterName) {
-        return new GameScreen(NEW_GAME_START_MAP_ID, NEW_GAME_START_SPAWN_LAYER,
+        return new GameScreen(this, NEW_GAME_START_MAP_ID, NEW_GAME_START_SPAWN_LAYER,
                 normalizeCharacterName(characterName));
     }
 

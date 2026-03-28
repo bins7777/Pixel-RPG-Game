@@ -3,6 +3,7 @@ package com.pixelrpg.game.ui;
 import java.util.Locale;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -10,8 +11,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Align;
 import com.pixelrpg.game.entities.PlayerLevelStats;
+import com.pixelrpg.game.settings.GameSettingsService;
 
 /**
  * Draws the fixed HUD and top spawn notification panel.
@@ -65,8 +69,10 @@ public class HudRenderer {
     private static final int MAIN_MENU_TITLE_FONT_SIZE = 16;
     private static final int MAIN_MENU_TAB_FONT_SIZE = 18;
     private static final int MAIN_MENU_BODY_FONT_SIZE = 15;
-    private static final String[] MAIN_MENU_TABS = {"Quests", "Map", "Skills", "Stats", "Save"};
-    private static final int ACTIVE_MAIN_MENU_TAB_INDEX = 0;
+    private static final String[] MAIN_MENU_TABS = {"Game", "Quest", "Settings"};
+    private static final String[] GAME_MENU_ACTIONS = {"Resume", "Main Menu", "Reload Autosave", "Exit Game"};
+    private static final String[] SETTINGS_MENU_ITEMS = {"Music Volume", "SFX Volume", "Fullscreen", "VSync"};
+    private static final int MAIN_MENU_SETTINGS_STEP_PERCENT = 10;
     private static final float CHAT_PANEL_WIDTH = 360f;
     private static final float CHAT_PANEL_HEIGHT = 172f;
     private static final float CHAT_PANEL_LEFT_MARGIN = 18f;
@@ -110,20 +116,51 @@ public class HudRenderer {
     private Texture uiMainMenuTabSelectedTex;
     private Texture uiMainMenuCloseTex;
 
+    private final GameSettingsService settingsService;
     private String topNotificationTitle;
     private String topNotificationMessage;
     private float topNotificationTimer = 0f;
     private float topNotificationDuration = 0f;
     private boolean topNotificationPersistent = false;
     private boolean mainMenuVisible = false;
+    private PauseMenuTab activePauseMenuTab = PauseMenuTab.GAME;
+    private PauseMenuAction confirmationAction = PauseMenuAction.NONE;
+    private int selectedGameActionIndex = 0;
+    private int selectedSettingsIndex = 0;
+    private int selectedConfirmationIndex = 0;
+    private final Rectangle[] mainMenuTabBounds = new Rectangle[MAIN_MENU_TABS.length];
+    private final Rectangle[] gameActionBounds = new Rectangle[GAME_MENU_ACTIONS.length];
+    private final Rectangle[] settingsRowBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
+    private final Rectangle[] settingsDecreaseBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
+    private final Rectangle[] settingsIncreaseBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
+    private final Rectangle mainMenuPanelBounds = new Rectangle();
+    private final Rectangle mainMenuLeftCardBounds = new Rectangle();
+    private final Rectangle mainMenuRightCardBounds = new Rectangle();
+    private final Rectangle mainMenuCenterCardBounds = new Rectangle();
+    private final Rectangle confirmationBounds = new Rectangle();
+    private final Rectangle mainMenuCloseBounds = new Rectangle();
+    private final Rectangle confirmationYesBounds = new Rectangle();
+    private final Rectangle confirmationNoBounds = new Rectangle();
     private final Array<String> chatMessages = new Array<>();
     private final StringBuilder chatDraft = new StringBuilder();
     private boolean chatOpen = false;
     private boolean chatCursorVisible = false;
     private float chatCursorTimer = 0f;
 
-    public HudRenderer(OrthographicCamera uiCamera) {
+    public HudRenderer(OrthographicCamera uiCamera, GameSettingsService settingsService) {
         this.uiCamera = uiCamera;
+        this.settingsService = settingsService;
+        for (int i = 0; i < mainMenuTabBounds.length; i++) {
+            mainMenuTabBounds[i] = new Rectangle();
+        }
+        for (int i = 0; i < gameActionBounds.length; i++) {
+            gameActionBounds[i] = new Rectangle();
+        }
+        for (int i = 0; i < settingsRowBounds.length; i++) {
+            settingsRowBounds[i] = new Rectangle();
+            settingsDecreaseBounds[i] = new Rectangle();
+            settingsIncreaseBounds[i] = new Rectangle();
+        }
     }
 
     public void loadAssets() {
@@ -216,10 +253,15 @@ public class HudRenderer {
 
     public void openMainMenu() {
         mainMenuVisible = true;
+        activePauseMenuTab = PauseMenuTab.GAME;
+        selectedGameActionIndex = 0;
+        selectedConfirmationIndex = 0;
+        confirmationAction = PauseMenuAction.NONE;
     }
 
     public void closeMainMenu() {
         mainMenuVisible = false;
+        confirmationAction = PauseMenuAction.NONE;
     }
 
     public void toggleMainMenu() {
@@ -232,6 +274,160 @@ public class HudRenderer {
 
     public boolean isMainMenuVisible() {
         return mainMenuVisible;
+    }
+
+    public boolean isMainMenuConfirmationVisible() {
+        return confirmationAction != PauseMenuAction.NONE;
+    }
+
+    public void cancelMainMenuConfirmation() {
+        confirmationAction = PauseMenuAction.NONE;
+        selectedConfirmationIndex = 0;
+    }
+
+    public void selectPreviousMainMenuItem() {
+        if (confirmationAction != PauseMenuAction.NONE) {
+            selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex - 1, 2);
+            return;
+        }
+        switch (activePauseMenuTab) {
+            case GAME -> selectedGameActionIndex = wrapIndex(selectedGameActionIndex - 1, GAME_MENU_ACTIONS.length);
+            case SETTINGS -> selectedSettingsIndex = wrapIndex(selectedSettingsIndex - 1, SETTINGS_MENU_ITEMS.length);
+            default -> {
+            }
+        }
+    }
+
+    public void selectNextMainMenuItem() {
+        if (confirmationAction != PauseMenuAction.NONE) {
+            selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex + 1, 2);
+            return;
+        }
+        switch (activePauseMenuTab) {
+            case GAME -> selectedGameActionIndex = wrapIndex(selectedGameActionIndex + 1, GAME_MENU_ACTIONS.length);
+            case SETTINGS -> selectedSettingsIndex = wrapIndex(selectedSettingsIndex + 1, SETTINGS_MENU_ITEMS.length);
+            default -> {
+            }
+        }
+    }
+
+    public void selectPreviousMainMenuTab() {
+        if (confirmationAction != PauseMenuAction.NONE) {
+            selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex - 1, 2);
+            return;
+        }
+        activePauseMenuTab = PauseMenuTab.values()[wrapIndex(activePauseMenuTab.ordinal() - 1, PauseMenuTab.values().length)];
+    }
+
+    public void selectNextMainMenuTab() {
+        if (confirmationAction != PauseMenuAction.NONE) {
+            selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex + 1, 2);
+            return;
+        }
+        activePauseMenuTab = PauseMenuTab.values()[wrapIndex(activePauseMenuTab.ordinal() + 1, PauseMenuTab.values().length)];
+    }
+
+    public void adjustSelectedMainMenuSetting(int direction) {
+        if (direction == 0) {
+            return;
+        }
+        if (confirmationAction != PauseMenuAction.NONE) {
+            selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex + direction, 2);
+            return;
+        }
+        if (activePauseMenuTab != PauseMenuTab.SETTINGS || settingsService == null) {
+            activePauseMenuTab = PauseMenuTab.values()[wrapIndex(activePauseMenuTab.ordinal() + direction, PauseMenuTab.values().length)];
+            return;
+        }
+        switch (selectedSettingsIndex) {
+            case 0 -> settingsService.stepMusicVolume(direction * MAIN_MENU_SETTINGS_STEP_PERCENT);
+            case 1 -> settingsService.stepSfxVolume(direction * MAIN_MENU_SETTINGS_STEP_PERCENT);
+            case 2 -> settingsService.toggleFullscreen();
+            case 3 -> settingsService.toggleVsync();
+            default -> {
+            }
+        }
+    }
+
+    public PauseMenuAction activateSelectedMainMenuItem() {
+        if (!mainMenuVisible) {
+            return PauseMenuAction.NONE;
+        }
+        if (confirmationAction != PauseMenuAction.NONE) {
+            PauseMenuAction action = selectedConfirmationIndex == 0 ? confirmationAction : PauseMenuAction.NONE;
+            confirmationAction = PauseMenuAction.NONE;
+            return action;
+        }
+        if (activePauseMenuTab == PauseMenuTab.GAME) {
+            return activateGameMenuAction(selectedGameActionIndex);
+        }
+        if (activePauseMenuTab == PauseMenuTab.SETTINGS) {
+            adjustSelectedMainMenuSetting(1);
+        }
+        return PauseMenuAction.NONE;
+    }
+
+    public PauseMenuAction handleMainMenuClick(float screenX, float screenY) {
+        if (!mainMenuVisible || uiCamera == null) {
+            return PauseMenuAction.NONE;
+        }
+        updateMainMenuLayout();
+        float worldX = screenX;
+        float worldY = uiCamera.viewportHeight - screenY;
+
+        if (mainMenuCloseBounds.contains(worldX, worldY)) {
+            cancelMainMenuConfirmation();
+            return PauseMenuAction.RESUME;
+        }
+        if (confirmationAction != PauseMenuAction.NONE) {
+            if (confirmationYesBounds.contains(worldX, worldY)) {
+                PauseMenuAction action = confirmationAction;
+                confirmationAction = PauseMenuAction.NONE;
+                selectedConfirmationIndex = 0;
+                return action;
+            }
+            if (confirmationNoBounds.contains(worldX, worldY)) {
+                cancelMainMenuConfirmation();
+            }
+            return PauseMenuAction.NONE;
+        }
+
+        for (int i = 0; i < mainMenuTabBounds.length; i++) {
+            if (mainMenuTabBounds[i].contains(worldX, worldY)) {
+                activePauseMenuTab = PauseMenuTab.values()[i];
+                return PauseMenuAction.NONE;
+            }
+        }
+
+        if (activePauseMenuTab == PauseMenuTab.GAME) {
+            for (int i = 0; i < gameActionBounds.length; i++) {
+                if (gameActionBounds[i].contains(worldX, worldY)) {
+                    selectedGameActionIndex = i;
+                    return activateGameMenuAction(i);
+                }
+            }
+            return PauseMenuAction.NONE;
+        }
+
+        if (activePauseMenuTab == PauseMenuTab.SETTINGS) {
+            for (int i = 0; i < settingsRowBounds.length; i++) {
+                if (!settingsRowBounds[i].contains(worldX, worldY)) {
+                    continue;
+                }
+                selectedSettingsIndex = i;
+                if (i <= 1) {
+                    if (settingsDecreaseBounds[i].contains(worldX, worldY)) {
+                        adjustSelectedMainMenuSetting(-1);
+                    } else {
+                        adjustSelectedMainMenuSetting(1);
+                    }
+                } else {
+                    adjustSelectedMainMenuSetting(1);
+                }
+                break;
+            }
+        }
+        return PauseMenuAction.NONE;
     }
 
     public void openChat() {
@@ -564,6 +760,204 @@ public class HudRenderer {
             return;
         }
 
+        updateMainMenuLayout();
+
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(
+                uiMainMenuPanelTex,
+                mainMenuPanelBounds.x,
+                mainMenuPanelBounds.y,
+                mainMenuPanelBounds.width,
+                mainMenuPanelBounds.height);
+
+        float menuCenterX = mainMenuPanelBounds.x + mainMenuPanelBounds.width * 0.5f;
+        if (uiMainMenuTitleFont != null) {
+            drawMenuCenteredText(batch, uiMainMenuTitleFont, "Pause",
+                    menuCenterX, mainMenuPanelBounds.y + mainMenuPanelBounds.height * 0.935f + 8f,
+                    0.84f, 0.84f, 0.84f, 1f);
+        }
+
+        for (int i = 0; i < MAIN_MENU_TABS.length; i++) {
+            Rectangle tabBounds = mainMenuTabBounds[i];
+            boolean active = activePauseMenuTab.ordinal() == i;
+            if (active && uiMainMenuTabSelectedTex != null) {
+                float selectedW = Math.max(tabBounds.width + 18f, uiMainMenuTabSelectedTex.getWidth() * 0.22f);
+                float selectedH = uiMainMenuTabSelectedTex.getHeight() * 0.28f;
+                float selectedX = tabBounds.x + (tabBounds.width - selectedW) * 0.5f;
+                float selectedY = tabBounds.y + (tabBounds.height - selectedH) * 0.40f;
+                batch.setColor(1f, 1f, 1f, 0.85f);
+                batch.draw(uiMainMenuTabSelectedTex, selectedX, selectedY, selectedW, selectedH);
+                batch.setColor(1f, 1f, 1f, 1f);
+            }
+            if (uiMainMenuTabFont != null) {
+                drawMenuCenteredText(batch, uiMainMenuTabFont, MAIN_MENU_TABS[i],
+                        tabBounds.x + tabBounds.width * 0.5f,
+                        tabBounds.y + tabBounds.height * 0.70f,
+                        active ? 0.83f : 0.69f,
+                        active ? 0.26f : 0.69f,
+                        active ? 0.20f : 0.69f,
+                        1f);
+            }
+        }
+
+        if (uiMainMenuCloseTex != null) {
+            batch.draw(uiMainMenuCloseTex,
+                    mainMenuCloseBounds.x,
+                    mainMenuCloseBounds.y,
+                    mainMenuCloseBounds.width,
+                    mainMenuCloseBounds.height);
+        }
+
+        if (uiMainMenuPanel3Tex != null) {
+            batch.setColor(1f, 1f, 1f, 0.95f);
+            batch.draw(uiMainMenuPanel3Tex,
+                    mainMenuLeftCardBounds.x,
+                    mainMenuLeftCardBounds.y,
+                    mainMenuLeftCardBounds.width,
+                    mainMenuLeftCardBounds.height);
+        }
+        if (uiMainMenuPanel4Tex != null) {
+            batch.setColor(1f, 1f, 1f, 0.95f);
+            batch.draw(uiMainMenuPanel4Tex,
+                    mainMenuRightCardBounds.x,
+                    mainMenuRightCardBounds.y,
+                    mainMenuRightCardBounds.width,
+                    mainMenuRightCardBounds.height);
+        }
+        if (uiMainMenuPanel2Tex != null) {
+            batch.setColor(1f, 1f, 1f, 0.82f);
+            batch.draw(uiMainMenuPanel2Tex,
+                    mainMenuCenterCardBounds.x,
+                    mainMenuCenterCardBounds.y,
+                    mainMenuCenterCardBounds.width,
+                    mainMenuCenterCardBounds.height);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        if (uiMainMenuBodyFont != null) {
+            float bodyLineStep = 22f;
+            String safeQuestTitle = menuQuestTitle == null || menuQuestTitle.isBlank() ? "No active quest" : menuQuestTitle;
+            String safeQuestObjective = menuQuestObjective == null || menuQuestObjective.isBlank()
+                    ? "Explore the world."
+                    : menuQuestObjective;
+            String safeRegion = currentRegionName == null || currentRegionName.isBlank() ? "Unknown" : currentRegionName;
+
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Region: " + safeRegion,
+                    mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
+                    mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.60f,
+                    0.72f, 0.72f, 0.72f, 1f);
+            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Esc or M closes this menu",
+                    mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
+                    mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.35f,
+                    0.66f, 0.66f, 0.66f, 1f);
+
+            if (activePauseMenuTab == PauseMenuTab.GAME) {
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Game",
+                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
+                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
+                        0.78f, 0.78f, 0.78f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Hero",
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
+                        0.83f, 0.73f, 0.73f, 1f);
+                for (int i = 0; i < GAME_MENU_ACTIONS.length; i++) {
+                    drawMenuRow(batch, gameActionBounds[i], GAME_MENU_ACTIONS[i],
+                            selectedGameActionIndex == i && confirmationAction == PauseMenuAction.NONE,
+                            i == GAME_MENU_ACTIONS.length - 1);
+                }
+                float heroBaseY = mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f;
+                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                        "Level " + playerLevel + " / " + PlayerLevelStats.MAX_LEVEL,
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroBaseY,
+                        0.78f, 0.66f, 0.66f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                        "Health: " + formatValue((int) currentHealth) + " / " + formatValue((int) maxHealth),
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroBaseY - bodyLineStep,
+                        0.78f, 0.66f, 0.66f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                        "Stamina: " + formatValue((int) currentStamina) + " / " + formatValue((int) maxStamina),
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroBaseY - bodyLineStep * 2f,
+                        0.78f, 0.66f, 0.66f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                        "Current Region: " + safeRegion,
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroBaseY - bodyLineStep * 3f,
+                        0.78f, 0.66f, 0.66f, 1f);
+            } else if (activePauseMenuTab == PauseMenuTab.QUEST) {
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Current Quest",
+                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
+                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
+                        0.78f, 0.78f, 0.78f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Journey",
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
+                        0.83f, 0.73f, 0.73f, 1f);
+                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeQuestTitle,
+                        new Rectangle(mainMenuLeftCardBounds.x + 14f, mainMenuLeftCardBounds.y + 68f,
+                                mainMenuLeftCardBounds.width - 28f, mainMenuLeftCardBounds.height - 84f),
+                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 58f,
+                        Align.center,
+                        0.79f, 0.73f, 0.58f, 1f);
+                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeQuestObjective,
+                        new Rectangle(mainMenuLeftCardBounds.x + 14f, mainMenuLeftCardBounds.y + 24f,
+                                mainMenuLeftCardBounds.width - 28f, mainMenuLeftCardBounds.height - 132f),
+                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 112f,
+                        Align.center,
+                        0.72f, 0.72f, 0.72f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Current Region",
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
+                        0.78f, 0.66f, 0.66f, 1f);
+                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeRegion,
+                        new Rectangle(mainMenuRightCardBounds.x + 14f, mainMenuRightCardBounds.y + 40f,
+                                mainMenuRightCardBounds.width - 28f, mainMenuRightCardBounds.height - 94f),
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 100f,
+                        Align.center,
+                        0.78f, 0.66f, 0.66f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "You are carrying the story forward.",
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + 40f,
+                        0.72f, 0.72f, 0.72f, 1f);
+            } else {
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Settings",
+                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
+                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
+                        0.78f, 0.78f, 0.78f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Selected",
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
+                        0.83f, 0.73f, 0.73f, 1f);
+                for (int i = 0; i < SETTINGS_MENU_ITEMS.length; i++) {
+                    String valueText = settingsValueText(i);
+                    drawSettingsRow(batch, settingsRowBounds[i], SETTINGS_MENU_ITEMS[i], valueText,
+                            selectedSettingsIndex == i && confirmationAction == PauseMenuAction.NONE);
+                }
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, SETTINGS_MENU_ITEMS[selectedSettingsIndex],
+                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
+                        0.79f, 0.73f, 0.58f, 1f);
+                drawWrappedMenuText(batch, uiMainMenuBodyFont, settingsDescriptionText(selectedSettingsIndex),
+                        new Rectangle(mainMenuRightCardBounds.x + 16f, mainMenuRightCardBounds.y + 30f,
+                                mainMenuRightCardBounds.width - 32f, mainMenuRightCardBounds.height - 96f),
+                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 94f,
+                        Align.center,
+                        0.72f, 0.72f, 0.72f, 1f);
+            }
+        }
+
+        if (confirmationAction != PauseMenuAction.NONE) {
+            drawMainMenuConfirmation(batch);
+        }
+    }
+
+    private void updateMainMenuLayout() {
+        if (uiCamera == null || uiMainMenuPanelTex == null || uiLayout == null) {
+            return;
+        }
+
         float maxWidth = uiCamera.viewportWidth * MAIN_MENU_MAX_WIDTH_RATIO;
         float maxHeight = uiCamera.viewportHeight * MAIN_MENU_MAX_HEIGHT_RATIO;
         float scale = Math.min(maxWidth / uiMainMenuPanelTex.getWidth(), maxHeight / uiMainMenuPanelTex.getHeight())
@@ -574,147 +968,221 @@ public class HudRenderer {
         float drawY = (uiCamera.viewportHeight - drawHeight) * 0.5f;
         float menuCenterX = drawX + drawWidth * 0.5f;
 
-        batch.setColor(1f, 1f, 1f, 1f);
-        batch.draw(uiMainMenuPanelTex, drawX, drawY, drawWidth, drawHeight);
-
-        if (uiMainMenuTitleFont != null) {
-            drawMenuCenteredText(batch, uiMainMenuTitleFont, "Menu",
-                    menuCenterX, drawY + drawHeight * 0.935f + 8f,
-                    0.84f, 0.84f, 0.84f, 1f);
-        }
+        mainMenuPanelBounds.set(drawX, drawY, drawWidth, drawHeight);
 
         float tabBaselineY = drawY + drawHeight * 0.865f;
         float tabGap = 30f * scale;
         float totalTabsWidth = 0f;
         float[] tabWidths = new float[MAIN_MENU_TABS.length];
         for (int i = 0; i < MAIN_MENU_TABS.length; i++) {
-            if (uiMainMenuTabFont == null) {
-                continue;
+            if (uiMainMenuTabFont != null) {
+                uiLayout.setText(uiMainMenuTabFont, MAIN_MENU_TABS[i]);
+                tabWidths[i] = uiLayout.width;
+            } else {
+                tabWidths[i] = 80f * scale;
             }
-            uiLayout.setText(uiMainMenuTabFont, MAIN_MENU_TABS[i]);
-            tabWidths[i] = uiLayout.width;
             totalTabsWidth += tabWidths[i];
             if (i < MAIN_MENU_TABS.length - 1) {
                 totalTabsWidth += tabGap;
             }
         }
-
         float cursorX = menuCenterX - totalTabsWidth * 0.5f;
         for (int i = 0; i < MAIN_MENU_TABS.length; i++) {
-            float tabWidth = tabWidths[i];
-            if (i == ACTIVE_MAIN_MENU_TAB_INDEX && uiMainMenuTabSelectedTex != null) {
-                float selectedW = Math.max(tabWidth + 28f * scale, uiMainMenuTabSelectedTex.getWidth() * scale * 0.46f);
-                float selectedH = uiMainMenuTabSelectedTex.getHeight() * scale * 0.48f;
-                float selectedX = cursorX + (tabWidth - selectedW) * 0.5f;
-                float selectedY = tabBaselineY - selectedH * 0.70f;
-                batch.setColor(1f, 1f, 1f, 0.85f);
-                batch.draw(uiMainMenuTabSelectedTex, selectedX, selectedY, selectedW, selectedH);
-                batch.setColor(1f, 1f, 1f, 1f);
-            }
-
-            if (uiMainMenuTabFont != null) {
-                boolean active = i == ACTIVE_MAIN_MENU_TAB_INDEX;
-                drawMenuText(batch, uiMainMenuTabFont, MAIN_MENU_TABS[i], cursorX, tabBaselineY,
-                        active ? 0.83f : 0.69f,
-                        active ? 0.26f : 0.69f,
-                        active ? 0.20f : 0.69f,
-                        1f);
-            }
-            cursorX += tabWidth;
-            if (i < MAIN_MENU_TABS.length - 1) {
-                cursorX += tabGap;
-            }
+            mainMenuTabBounds[i].set(cursorX - 10f, tabBaselineY - 18f, tabWidths[i] + 20f, 28f);
+            cursorX += tabWidths[i] + (i < MAIN_MENU_TABS.length - 1 ? tabGap : 0f);
         }
 
-        if (uiMainMenuCloseTex != null) {
-            float closeW = uiMainMenuCloseTex.getWidth() * scale * 0.60f;
-            float closeH = uiMainMenuCloseTex.getHeight() * scale * 0.60f;
-            float closeX = drawX + drawWidth - closeW - 16f * scale;
-            float closeY = drawY + drawHeight - closeH - 10f * scale;
-            batch.draw(uiMainMenuCloseTex, closeX, closeY, closeW, closeH);
-        }
+        float closeW = uiMainMenuCloseTex != null ? uiMainMenuCloseTex.getWidth() * scale * 0.60f : 32f;
+        float closeH = uiMainMenuCloseTex != null ? uiMainMenuCloseTex.getHeight() * scale * 0.60f : 32f;
+        mainMenuCloseBounds.set(drawX + drawWidth - closeW - 16f * scale, drawY + drawHeight - closeH - 10f * scale, closeW, closeH);
 
         float cardY = drawY + drawHeight * 0.18f;
         float cardW = drawWidth * 0.25f;
         float cardH = drawHeight * 0.40f;
         float leftCardX = drawX + drawWidth * 0.10f;
         float rightCardX = drawX + drawWidth * 0.65f;
-        if (uiMainMenuPanel3Tex != null) {
-            batch.setColor(1f, 1f, 1f, 0.95f);
-            batch.draw(uiMainMenuPanel3Tex, leftCardX, cardY, cardW, cardH);
+        mainMenuLeftCardBounds.set(leftCardX, cardY, cardW, cardH);
+        mainMenuRightCardBounds.set(rightCardX, cardY, cardW, cardH);
+        mainMenuCenterCardBounds.set(menuCenterX - drawWidth * 0.17f, drawY + drawHeight * 0.40f, drawWidth * 0.34f, drawHeight * 0.14f);
+
+        float rowHeight = 34f * scale;
+        float rowGap = 12f * scale;
+        float gameRowWidth = (cardW - 36f * scale) * 0.75f;
+        float gameRowX = leftCardX + (cardW - gameRowWidth) * 0.5f;
+        float gameStartY = cardY + cardH - 92f * scale;
+        for (int i = 0; i < gameActionBounds.length; i++) {
+            float rowY = gameStartY - i * (rowHeight + rowGap);
+            gameActionBounds[i].set(gameRowX, rowY, gameRowWidth, rowHeight);
         }
-        if (uiMainMenuPanel4Tex != null) {
-            batch.setColor(1f, 1f, 1f, 0.95f);
-            batch.draw(uiMainMenuPanel4Tex, rightCardX, cardY, cardW, cardH);
+
+        float settingsRowX = leftCardX + 16f * scale;
+        float settingsRowWidth = cardW - 32f * scale;
+        float settingsStartY = cardY + cardH - 92f * scale;
+        float valueAreaWidth = Math.max(72f * scale, settingsRowWidth * 0.34f);
+        for (int i = 0; i < settingsRowBounds.length; i++) {
+            float rowY = settingsStartY - i * (rowHeight + rowGap);
+            settingsRowBounds[i].set(settingsRowX, rowY, settingsRowWidth, rowHeight);
+            settingsDecreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth, rowY, valueAreaWidth * 0.5f, rowHeight);
+            settingsIncreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth * 0.5f, rowY, valueAreaWidth * 0.5f, rowHeight);
+        }
+
+        float confirmWidth = drawWidth * 0.42f;
+        float confirmHeight = drawHeight * 0.28f;
+        confirmationBounds.set(menuCenterX - confirmWidth * 0.5f, drawY + drawHeight * 0.32f, confirmWidth, confirmHeight);
+        float buttonWidth = confirmWidth * 0.28f;
+        float buttonHeight = 32f * scale;
+        float buttonY = confirmationBounds.y + 24f * scale;
+        confirmationYesBounds.set(
+                confirmationBounds.x + confirmWidth * 0.18f,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+        confirmationNoBounds.set(
+                confirmationBounds.x + confirmWidth * 0.54f,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+    }
+
+    private PauseMenuAction activateGameMenuAction(int index) {
+        PauseMenuAction action = switch (index) {
+            case 0 -> PauseMenuAction.RESUME;
+            case 1 -> PauseMenuAction.MAIN_MENU;
+            case 2 -> PauseMenuAction.RELOAD_AUTOSAVE;
+            case 3 -> PauseMenuAction.EXIT_GAME;
+            default -> PauseMenuAction.NONE;
+        };
+        if (action == PauseMenuAction.RELOAD_AUTOSAVE || action == PauseMenuAction.EXIT_GAME) {
+            confirmationAction = action;
+            selectedConfirmationIndex = 1;
+            return PauseMenuAction.NONE;
+        }
+        return action;
+    }
+
+    private void drawMenuRow(SpriteBatch batch, Rectangle bounds, String text, boolean selected, boolean danger) {
+        if (uiBlackBarTex == null || uiMainMenuBodyFont == null) {
+            return;
+        }
+        float alpha = selected ? 0.78f : 0.42f;
+        if (selected) {
+            batch.setColor(danger ? 0.55f : 0.40f, danger ? 0.16f : 0.24f, danger ? 0.16f : 0.18f, alpha);
+        } else {
+            batch.setColor(0f, 0f, 0f, alpha);
+        }
+        batch.draw(uiBlackBarTex, bounds.x, bounds.y, bounds.width, bounds.height);
+        batch.setColor(1f, 1f, 1f, 1f);
+        drawMenuCenteredText(batch, uiMainMenuBodyFont, text,
+                bounds.x + bounds.width * 0.5f,
+                bounds.y + bounds.height * 0.68f,
+                danger && selected ? 0.92f : 0.86f,
+                selected ? (danger ? 0.48f : 0.75f) : 0.82f,
+                selected ? (danger ? 0.40f : 0.66f) : 0.82f,
+                1f);
+    }
+
+    private void drawSettingsRow(SpriteBatch batch, Rectangle bounds, String label, String value, boolean selected) {
+        if (uiBlackBarTex == null || uiMainMenuBodyFont == null) {
+            return;
+        }
+        batch.setColor(selected ? 0.40f : 0f, selected ? 0.24f : 0f, selected ? 0.18f : 0f, selected ? 0.78f : 0.42f);
+        batch.draw(uiBlackBarTex, bounds.x, bounds.y, bounds.width, bounds.height);
+        batch.setColor(1f, 1f, 1f, 1f);
+        drawMenuText(batch, uiMainMenuBodyFont, label,
+                bounds.x + 10f,
+                bounds.y + bounds.height * 0.68f,
+                0.82f, 0.82f, 0.82f, 1f);
+        drawMenuText(batch, uiMainMenuBodyFont, value,
+                bounds.x + bounds.width - 78f,
+                bounds.y + bounds.height * 0.68f,
+                selected ? 0.90f : 0.76f,
+                selected ? 0.74f : 0.76f,
+                selected ? 0.58f : 0.76f,
+                1f);
+    }
+
+    private void drawMainMenuConfirmation(SpriteBatch batch) {
+        if (uiBlackBarTex == null || uiMainMenuBodyFont == null) {
+            return;
+        }
+        batch.setColor(0f, 0f, 0f, 0.68f);
+        batch.draw(uiBlackBarTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        Texture panel = uiMainMenuPanel1Tex != null ? uiMainMenuPanel1Tex : uiMainMenuPanel2Tex;
+        if (panel != null) {
+            batch.draw(panel, confirmationBounds.x, confirmationBounds.y, confirmationBounds.width, confirmationBounds.height);
+        } else {
+            batch.setColor(0f, 0f, 0f, 0.90f);
+            batch.draw(uiBlackBarTex, confirmationBounds.x, confirmationBounds.y, confirmationBounds.width, confirmationBounds.height);
             batch.setColor(1f, 1f, 1f, 1f);
         }
 
-        if (uiMainMenuPanel2Tex != null) {
-            float centerW = drawWidth * 0.34f;
-            float centerH = drawHeight * 0.14f;
-            float centerX = menuCenterX - centerW * 0.5f;
-            float centerY = drawY + drawHeight * 0.40f;
-            batch.setColor(1f, 1f, 1f, 0.82f);
-            batch.draw(uiMainMenuPanel2Tex, centerX, centerY, centerW, centerH);
-            batch.setColor(1f, 1f, 1f, 1f);
+        drawMenuCenteredText(batch, uiMainMenuBodyFont, confirmationTitleText(),
+                confirmationBounds.x + confirmationBounds.width * 0.5f,
+                confirmationBounds.y + confirmationBounds.height - 28f,
+                0.82f, 0.78f, 0.72f, 1f);
+        drawWrappedMenuText(batch, uiMainMenuBodyFont, confirmationMessageText(),
+                new Rectangle(confirmationBounds.x + 18f, confirmationBounds.y + 58f, confirmationBounds.width - 36f, confirmationBounds.height - 96f),
+                confirmationBounds.y + confirmationBounds.height - 64f,
+                Align.center,
+                0.74f, 0.74f, 0.74f, 1f);
+
+        drawMenuRow(batch, confirmationYesBounds, "Yes", selectedConfirmationIndex == 0, false);
+        drawMenuRow(batch, confirmationNoBounds, "No", selectedConfirmationIndex == 1, false);
+    }
+
+    private String settingsValueText(int index) {
+        if (settingsService == null) {
+            return "--";
         }
+        return switch (index) {
+            case 0 -> settingsService.getMusicVolumePercent() + "%";
+            case 1 -> settingsService.getSfxVolumePercent() + "%";
+            case 2 -> settingsService.isFullscreen() ? "On" : "Off";
+            case 3 -> settingsService.isVsyncEnabled() ? "On" : "Off";
+            default -> "";
+        };
+    }
 
-        if (uiMainMenuBodyFont != null) {
-            float bodyTextWidth = cardW - 26f * scale;
-            float centerTextWidth = drawWidth * 0.34f - 24f * scale;
-            String activeQuestTitle = fitText(
-                    uiMainMenuBodyFont,
-                    menuQuestTitle == null || menuQuestTitle.isBlank() ? "No active quest" : menuQuestTitle,
-                    bodyTextWidth);
-            String activeQuestObjective = fitText(
-                    uiMainMenuBodyFont,
-                    menuQuestObjective == null || menuQuestObjective.isBlank() ? "Explore the world." : menuQuestObjective,
-                    bodyTextWidth);
-            String regionLabel = fitText(
-                    uiMainMenuBodyFont,
-                    "Current Region: "
-                            + (currentRegionName == null || currentRegionName.isBlank() ? "Unknown" : currentRegionName),
-                    centerTextWidth);
+    private String settingsDescriptionText(int index) {
+        return switch (index) {
+            case 0 -> "Adjust the volume for music-style playback and long audio cues.";
+            case 1 -> "Adjust the volume for attacks, impacts, and other sound effects.";
+            case 2 -> "Toggle fullscreen display immediately.";
+            case 3 -> "Toggle vertical sync immediately.";
+            default -> "";
+        };
+    }
 
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Quest Log",
-                    leftCardX + cardW * 0.5f, cardY + cardH - 26f * scale,
-                    0.78f, 0.78f, 0.78f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Travel",
-                    menuCenterX, drawY + drawHeight * 0.47f,
-                    0.80f, 0.80f, 0.80f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Hero Stats",
-                    rightCardX + cardW * 0.5f, cardY + cardH - 26f * scale,
-                    0.83f, 0.73f, 0.73f, 1f);
+    private String confirmationTitleText() {
+        return switch (confirmationAction) {
+            case RELOAD_AUTOSAVE -> "Reload Autosave?";
+            case EXIT_GAME -> "Exit Game?";
+            default -> "";
+        };
+    }
 
-            float bodyLineStep = 22f * scale;
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, activeQuestTitle,
-                    leftCardX + cardW * 0.5f, cardY + cardH - 62f * scale,
-                    0.79f, 0.73f, 0.58f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, activeQuestObjective,
-                    leftCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep,
-                    0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, regionLabel,
-                    menuCenterX, drawY + drawHeight * 0.425f,
-                    0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont,
-                    "Level " + playerLevel + " / " + PlayerLevelStats.MAX_LEVEL,
-                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale,
-                    0.78f, 0.66f, 0.66f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont,
-                    "Health: " + formatValue((int) currentHealth) + " / " + formatValue((int) maxHealth),
-                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep,
-                    0.78f, 0.66f, 0.66f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont,
-                    "Stamina: " + formatValue((int) currentStamina) + " / " + formatValue((int) maxStamina),
-                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep * 2f,
-                    0.78f, 0.66f, 0.66f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Class: Ranger",
-                    rightCardX + cardW * 0.5f, cardY + cardH - 62f * scale - bodyLineStep * 3f,
-                    0.78f, 0.66f, 0.66f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Press M to close",
-                    menuCenterX, drawY + drawHeight * 0.11f,
-                    0.66f, 0.66f, 0.66f, 1f);
+    private String confirmationMessageText() {
+        return switch (confirmationAction) {
+            case RELOAD_AUTOSAVE -> "Discard the current unsaved moment-to-moment progress and reload the last autosave.";
+            case EXIT_GAME -> "Close the game now?";
+            default -> "";
+        };
+    }
+
+    private void drawWrappedMenuText(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
+                                     float baselineY, int align, float r, float g, float b, float a) {
+        if (font == null || text == null || text.isBlank() || uiLayout == null) {
+            return;
         }
+        Color color = new Color(r, g, b, a);
+        uiLayout.setText(font, text, color, bounds.width, align, true);
+        font.setColor(0f, 0f, 0f, 0.85f * a);
+        font.draw(batch, uiLayout, bounds.x + 1f, baselineY - 1f);
+        font.setColor(r, g, b, a);
+        font.draw(batch, uiLayout, bounds.x, baselineY);
+        font.setColor(1f, 1f, 1f, 1f);
     }
 
     private void drawChat(SpriteBatch batch) {
@@ -840,6 +1308,13 @@ public class HudRenderer {
         return ellipsis;
     }
 
+    private int wrapIndex(int index, int size) {
+        if (size <= 0) {
+            return 0;
+        }
+        return (index % size + size) % size;
+    }
+
     private Texture loadOptionalTexture(String path) {
         if (!Gdx.files.internal(path).exists()) {
             Gdx.app.error("HudRenderer", "Missing menu texture: " + path);
@@ -895,5 +1370,19 @@ public class HudRenderer {
 
     private static float clamp01(float value) {
         return Math.max(0f, Math.min(1f, value));
+    }
+
+    public enum PauseMenuAction {
+        NONE,
+        RESUME,
+        MAIN_MENU,
+        RELOAD_AUTOSAVE,
+        EXIT_GAME
+    }
+
+    private enum PauseMenuTab {
+        GAME,
+        QUEST,
+        SETTINGS
     }
 }

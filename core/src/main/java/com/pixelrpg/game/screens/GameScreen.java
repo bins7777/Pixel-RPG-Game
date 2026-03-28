@@ -50,6 +50,7 @@ import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.ShortArray;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
+import com.pixelrpg.game.PixelRpgGame;
 import com.pixelrpg.game.config.MapCatalog;
 import com.pixelrpg.game.config.MapDefinition;
 import com.pixelrpg.game.entities.PlayerLevelStats;
@@ -58,6 +59,7 @@ import com.pixelrpg.game.helpers.ShaderFactory;
 import com.pixelrpg.game.managers.DayNightCycleManager;
 import com.pixelrpg.game.save.SaveGameData;
 import com.pixelrpg.game.save.SaveGameService;
+import com.pixelrpg.game.settings.GameSettingsService;
 import com.pixelrpg.game.ui.HudRenderer;
 import com.pixelrpg.game.world.WorldState;
 
@@ -1675,6 +1677,7 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> activeAttackAnim;
     private final WorldState world = new WorldState();
     private final PlayerState player = new PlayerState();
+    private final PixelRpgGame game;
     private final SaveGameData initialSaveData;
     private final String initialMapId;
     private final String initialSpawnLayer;
@@ -1928,23 +1931,36 @@ public class GameScreen extends ScreenAdapter {
     };
 
     public GameScreen() {
-        this(null, null, null, null);
+        this(resolveGameInstance(), null, null, null, null);
     }
 
     public GameScreen(SaveGameData initialSaveData) {
-        this(initialSaveData, null, null, null);
+        this(resolveGameInstance(), initialSaveData, null, null, null);
+    }
+
+    public GameScreen(PixelRpgGame game, SaveGameData initialSaveData) {
+        this(game, initialSaveData, null, null, null);
     }
 
     public GameScreen(String initialMapId, String initialSpawnLayer) {
-        this(null, initialMapId, initialSpawnLayer, null);
+        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, null);
+    }
+
+    public GameScreen(PixelRpgGame game, String initialMapId, String initialSpawnLayer) {
+        this(game, null, initialMapId, initialSpawnLayer, null);
     }
 
     public GameScreen(String initialMapId, String initialSpawnLayer, String characterName) {
-        this(null, initialMapId, initialSpawnLayer, characterName);
+        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, characterName);
     }
 
-    private GameScreen(SaveGameData initialSaveData, String initialMapId, String initialSpawnLayer,
+    public GameScreen(PixelRpgGame game, String initialMapId, String initialSpawnLayer, String characterName) {
+        this(game, null, initialMapId, initialSpawnLayer, characterName);
+    }
+
+    private GameScreen(PixelRpgGame game, SaveGameData initialSaveData, String initialMapId, String initialSpawnLayer,
                        String initialCharacterName) {
+        this.game = game;
         this.initialSaveData = initialSaveData;
         this.initialMapId = initialMapId;
         this.initialSpawnLayer = initialSpawnLayer;
@@ -1961,6 +1977,15 @@ public class GameScreen extends ScreenAdapter {
         this.gameCompleted = resolveInitialGameCompleted(initialSaveData);
     }
 
+    private static PixelRpgGame resolveGameInstance() {
+        if (Gdx.app == null) {
+            return null;
+        }
+        return Gdx.app.getApplicationListener() instanceof PixelRpgGame pixelRpgGame
+                ? pixelRpgGame
+                : null;
+    }
+
     @Override
     public void show() {
         camera = new OrthographicCamera();
@@ -1971,7 +1996,7 @@ public class GameScreen extends ScreenAdapter {
         screenFadeAlpha = 1f;
 
         batch = new SpriteBatch();
-        hudRenderer = new HudRenderer(uiCamera);
+        hudRenderer = new HudRenderer(uiCamera, settingsService());
         hudRenderer.loadAssets();
         loadFirstQuestAssets();
         loadFifthQuestAssets();
@@ -2006,9 +2031,12 @@ public class GameScreen extends ScreenAdapter {
         if (screenFadeAlpha > 0f) {
             screenFadeAlpha = Math.max(0f, screenFadeAlpha - delta / SCREEN_FADE_DURATION_SECONDS);
         }
+        applyRuntimeAudioSettings();
         clearCameraShakeOffsetFromCameraPosition();
         if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
-            handleMainMenuInput();
+            if (handleMainMenuInput()) {
+                return;
+            }
             if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
                 player.moving = false;
                 centerCameraOnPlayer();
@@ -4844,7 +4872,7 @@ public class GameScreen extends ScreenAdapter {
     private void playEvilWizardAttackSfx(boolean attack1) {
         Sound attackSfx = attack1 ? evilWizardAttack1Sfx : evilWizardAttack2Sfx;
         if (attackSfx != null) {
-            attackSfx.play(EVIL_WIZARD_ATTACK_SFX_VOLUME);
+            playSfx(attackSfx, EVIL_WIZARD_ATTACK_SFX_VOLUME);
         }
     }
 
@@ -4938,6 +4966,10 @@ public class GameScreen extends ScreenAdapter {
                 }
             } else {
                 evilWizardPreExplosionSfx.setPosition(0f);
+            }
+            GameSettingsService settingsService = settingsService();
+            if (settingsService != null) {
+                settingsService.applyMusicVolume(evilWizardPreExplosionSfx, EVIL_WIZARD_PRE_EXPLOSION_SFX_VOLUME);
             }
             evilWizardPreExplosionSfx.play();
         }
@@ -5591,7 +5623,7 @@ public class GameScreen extends ScreenAdapter {
         }
         bat.health = Math.max(0f, bat.health - BAT_HIT_DAMAGE);
         if (batHurtSfx != null) {
-            batHurtSfx.play(BAT_HURT_SFX_VOLUME);
+            playSfx(batHurtSfx, BAT_HURT_SFX_VOLUME);
         }
         if (bat.health <= 0f) {
             bat.state = BatAnimationState.DIE;
@@ -9479,12 +9511,104 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
-    private void handleMainMenuInput() {
+    private boolean handleMainMenuInput() {
         if (hudRenderer == null || !hudRenderer.isMainMenuVisible()) {
-            return;
+            return false;
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.M) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            hudRenderer.closeMainMenu();
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            HudRenderer.PauseMenuAction clickedAction =
+                    hudRenderer.handleMainMenuClick(Gdx.input.getX(), Gdx.input.getY());
+            if (executePauseMenuAction(clickedAction)) {
+                return true;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            if (hudRenderer.isMainMenuConfirmationVisible()) {
+                hudRenderer.cancelMainMenuConfirmation();
+            } else {
+                hudRenderer.closeMainMenu();
+            }
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            hudRenderer.selectPreviousMainMenuItem();
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            hudRenderer.selectNextMainMenuItem();
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            hudRenderer.adjustSelectedMainMenuSetting(-1);
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            hudRenderer.adjustSelectedMainMenuSetting(1);
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+            hudRenderer.selectPreviousMainMenuTab();
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+            hudRenderer.selectNextMainMenuTab();
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) {
+            hudRenderer.selectNextMainMenuTab();
+            return false;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            return executePauseMenuAction(hudRenderer.activateSelectedMainMenuItem());
+        }
+        return false;
+    }
+
+    private boolean executePauseMenuAction(HudRenderer.PauseMenuAction action) {
+        if (action == null || action == HudRenderer.PauseMenuAction.NONE) {
+            return false;
+        }
+        switch (action) {
+            case RESUME -> {
+                if (hudRenderer != null) {
+                    hudRenderer.closeMainMenu();
+                }
+                return false;
+            }
+            case MAIN_MENU -> {
+                writeAutosave();
+                if (hudRenderer != null) {
+                    hudRenderer.closeMainMenu();
+                }
+                if (game != null) {
+                    game.showMainMenu();
+                    return true;
+                }
+                return false;
+            }
+            case RELOAD_AUTOSAVE -> {
+                if (SaveGameService.load(SaveGameService.AUTOSAVE_SLOT_ID) == null) {
+                    if (hudRenderer != null) {
+                        hudRenderer.showNotification("Autosave", "No autosave is available to reload.", 2.4f);
+                    }
+                    return false;
+                }
+                if (hudRenderer != null) {
+                    hudRenderer.closeMainMenu();
+                }
+                if (game != null) {
+                    game.loadGame(SaveGameService.AUTOSAVE_SLOT_ID);
+                    return true;
+                }
+                return false;
+            }
+            case EXIT_GAME -> {
+                Gdx.app.exit();
+                return true;
+            }
+            default -> {
+                return false;
+            }
         }
     }
 
@@ -9537,7 +9661,8 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.BACKSLASH)) {
             setDayNightSpeed(1f);
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.M) && hudRenderer != null) {
+        if ((Gdx.input.isKeyJustPressed(Input.Keys.M) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
+                && hudRenderer != null) {
             hudRenderer.openMainMenu();
             player.moving = false;
             centerCameraOnPlayer();
@@ -9601,7 +9726,7 @@ public class GameScreen extends ScreenAdapter {
                 player.attackCooldownTimer = ATTACK_COOLDOWN;
                 player.attackComboStep = 0;
                 if (attackSpecialSfx != null) {
-                    attackSpecialSfx.play();
+                    playSfx(attackSpecialSfx);
                 }
                 startDashAttack(dashInputX, dashInputY);
             }
@@ -9633,7 +9758,7 @@ public class GameScreen extends ScreenAdapter {
                 player.attackCooldownTimer = ATTACK_COOLDOWN;
                 player.attackComboStep = 0;
                 if (attackSpecialSfx != null) {
-                    attackSpecialSfx.play();
+                    playSfx(attackSpecialSfx);
                 }
                 startDashAttack(dashInputX, dashInputY);
             }
@@ -9666,7 +9791,7 @@ public class GameScreen extends ScreenAdapter {
                 player.attackTimer = 0f;
                 player.attackCooldownTimer = ATTACK_COOLDOWN;
                 if (attackSound != null) {
-                    attackSound.play();
+                    playSfx(attackSound);
                 }
             }
         }
@@ -11472,7 +11597,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void playGolem1ExplosionSfx() {
         if (golem1ExplosionSfx != null) {
-            golem1ExplosionSfx.play(GOLEM_1_EXPLOSION_SFX_VOLUME);
+            playSfx(golem1ExplosionSfx, GOLEM_1_EXPLOSION_SFX_VOLUME);
         }
     }
 
@@ -11766,6 +11891,45 @@ public class GameScreen extends ScreenAdapter {
         } catch (NumberFormatException ignored) {
             return -1;
         }
+    }
+
+    private GameSettingsService settingsService() {
+        return game != null ? game.getSettingsService() : null;
+    }
+
+    private long playSfx(Sound sound) {
+        return playSfx(sound, 1f);
+    }
+
+    private long playSfx(Sound sound, float baseVolume) {
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            return settingsService.playSound(sound, baseVolume);
+        }
+        return sound != null ? sound.play(baseVolume) : -1L;
+    }
+
+    private void playMusicFromStart(Music music, float baseVolume, boolean looping) {
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            settingsService.playMusicFromStart(music, baseVolume, looping);
+            return;
+        }
+        if (music != null) {
+            music.stop();
+            music.setLooping(looping);
+            music.setPosition(0f);
+            music.setVolume(baseVolume);
+            music.play();
+        }
+    }
+
+    private void applyRuntimeAudioSettings() {
+        GameSettingsService settingsService = settingsService();
+        if (settingsService == null) {
+            return;
+        }
+        settingsService.applyMusicVolume(evilWizardPreExplosionSfx, EVIL_WIZARD_PRE_EXPLOSION_SFX_VOLUME);
     }
 
     private Sound loadOptionalAbsoluteSound(String absolutePath) {

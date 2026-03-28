@@ -37,7 +37,7 @@ public class LoadGameScreen extends ScreenAdapter {
     private static final String BUTTON_NORMAL_PATH = "ui/main_menu/Button Normal.png";
     private static final String BUTTON_HOVER_PATH = "ui/main_menu/Button Hover.png";
     private static final String FONT_PATH = "fonts/Berry Rotunda.ttf";
-    private static final String BACK_SOUND_ABSOLUTE_PATH = "C:/Users/user/Downloads/Menu-2.MP3";
+    private static final String BACK_SOUND_PATH = "sounds/menu/Menu-2.MP3";
     private static final float BACK_ACTION_SOUND_DELAY_SECONDS = 0.6f;
     private static final float SCREEN_FADE_DURATION_SECONDS = 0.7f;
 
@@ -235,7 +235,7 @@ public class LoadGameScreen extends ScreenAdapter {
         saveTitleFont = loadFont(SAVE_TITLE_FONT_SIZE);
         saveMetaFont = loadFont(SAVE_META_FONT_SIZE);
         backButtonFont = loadFont(BACK_BUTTON_FONT_SIZE);
-        backSound = loadOptionalAbsoluteMusic(BACK_SOUND_ABSOLUTE_PATH);
+        backSound = loadOptionalMusic(BACK_SOUND_PATH);
         titleFont.setUseIntegerPositions(false);
         saveTitleFont.setUseIntegerPositions(false);
         saveMetaFont.setUseIntegerPositions(false);
@@ -587,25 +587,29 @@ public class LoadGameScreen extends ScreenAdapter {
         playMusic(backSound);
     }
 
-    private Music loadOptionalAbsoluteMusic(String absolutePath) {
-        if (absolutePath == null || absolutePath.isBlank()) {
+    private Music loadOptionalMusic(String path) {
+        if (path == null || path.isBlank()) {
             return null;
         }
         try {
-            if (!Gdx.files.absolute(absolutePath).exists()) {
+            if (!Gdx.files.internal(path).exists()) {
                 return null;
             }
-            Music music = Gdx.audio.newMusic(Gdx.files.absolute(absolutePath));
+            Music music = Gdx.audio.newMusic(Gdx.files.internal(path));
             music.setLooping(false);
             return music;
         } catch (Exception error) {
-            Gdx.app.error("LoadGameScreen", "Failed to load sound: " + absolutePath, error);
+            Gdx.app.error("LoadGameScreen", "Failed to load sound: " + path, error);
             return null;
         }
     }
 
     private void playMusic(Music music) {
         if (music != null) {
+            if (game != null && game.getSettingsService() != null) {
+                game.getSettingsService().playMusicFromStart(music, 1f, false);
+                return;
+            }
             music.stop();
             music.setPosition(0f);
             music.setVolume(1f);

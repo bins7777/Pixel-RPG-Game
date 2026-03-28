@@ -33,7 +33,7 @@ public class MainMenuScreen extends ScreenAdapter {
     private static final String FONT_PATH = "fonts/Berry Rotunda.ttf";
     private static final String DESKTOP_CONFIG_PATH = "config/desktop.properties";
     private static final String DEFAULT_TITLE_TEXT = "Pixel RPG";
-    private static final String MENU_CONFIRM_SOUND_ABSOLUTE_PATH = "C:/Users/user/Downloads/Menu-1.MP3";
+    private static final String MENU_CONFIRM_SOUND_PATH = "sounds/menu/Menu-1.MP3";
     private static final float MENU_ACTION_SOUND_DELAY_SECONDS = 0.6f;
     private static final float SCREEN_FADE_DURATION_SECONDS = 0.7f;
 
@@ -224,7 +224,7 @@ public class MainMenuScreen extends ScreenAdapter {
         titleFont.setUseIntegerPositions(false);
         buttonFont = loadFont(FONT_PATH, BUTTON_FONT_SIZE);
         buttonFont.setUseIntegerPositions(false);
-        confirmSound = loadOptionalAbsoluteMusic(MENU_CONFIRM_SOUND_ABSOLUTE_PATH);
+        confirmSound = loadOptionalMusic(MENU_CONFIRM_SOUND_PATH);
         fadeAlpha = 1f;
         fadeOutActive = false;
     }
@@ -414,25 +414,29 @@ public class MainMenuScreen extends ScreenAdapter {
         }
     }
 
-    private Music loadOptionalAbsoluteMusic(String absolutePath) {
-        if (absolutePath == null || absolutePath.isBlank()) {
+    private Music loadOptionalMusic(String path) {
+        if (path == null || path.isBlank()) {
             return null;
         }
         try {
-            if (!Gdx.files.absolute(absolutePath).exists()) {
+            if (!Gdx.files.internal(path).exists()) {
                 return null;
             }
-            Music music = Gdx.audio.newMusic(Gdx.files.absolute(absolutePath));
+            Music music = Gdx.audio.newMusic(Gdx.files.internal(path));
             music.setLooping(false);
             return music;
         } catch (Exception error) {
-            Gdx.app.error("MainMenuScreen", "Failed to load sound: " + absolutePath, error);
+            Gdx.app.error("MainMenuScreen", "Failed to load sound: " + path, error);
             return null;
         }
     }
 
     private void playMusic(Music music) {
         if (music != null) {
+            if (game != null && game.getSettingsService() != null) {
+                game.getSettingsService().playMusicFromStart(music, 1f, false);
+                return;
+            }
             music.stop();
             music.setPosition(0f);
             music.setVolume(1f);
