@@ -23,6 +23,8 @@ public class IntroScreen extends ScreenAdapter {
 
     private final PixelRpgGame game;
     private final IntroPlaybackService introPlaybackService;
+    private final Runnable completionAction;
+    private final boolean allowSkip;
     private final OrthographicCamera camera = new OrthographicCamera();
     private final GlyphLayout layout = new GlyphLayout();
 
@@ -35,10 +37,22 @@ public class IntroScreen extends ScreenAdapter {
     private float skipHoldSeconds = 0f;
 
     public IntroScreen(PixelRpgGame game, IntroPlaybackService introPlaybackService) {
+        this(game, introPlaybackService, new Runnable() {
+            @Override
+            public void run() {
+                game.startGameAfterIntro();
+            }
+        }, true);
+    }
+
+    public IntroScreen(PixelRpgGame game, IntroPlaybackService introPlaybackService,
+                       Runnable completionAction, boolean allowSkip) {
         this.game = game;
         this.introPlaybackService = introPlaybackService == null
                 ? IntroPlaybackService.NO_OP
                 : introPlaybackService;
+        this.completionAction = completionAction;
+        this.allowSkip = allowSkip;
     }
 
     @Override
@@ -74,7 +88,9 @@ public class IntroScreen extends ScreenAdapter {
         } else {
             drawCenteredText("Loading...");
         }
-        drawSkipHint();
+        if (allowSkip) {
+            drawSkipHint();
+        }
         batch.end();
     }
 
@@ -106,6 +122,9 @@ public class IntroScreen extends ScreenAdapter {
     }
 
     private void updateSkipInput(float delta) {
+        if (!allowSkip) {
+            return;
+        }
         if (skipRequested) {
             return;
         }
@@ -224,7 +243,9 @@ public class IntroScreen extends ScreenAdapter {
         Gdx.app.postRunnable(new Runnable() {
             @Override
             public void run() {
-                game.startGameAfterIntro();
+                if (completionAction != null) {
+                    completionAction.run();
+                }
             }
         });
     }

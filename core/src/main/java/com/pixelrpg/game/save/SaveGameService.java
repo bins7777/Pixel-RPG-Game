@@ -42,6 +42,14 @@ public final class SaveGameService {
         return saves;
     }
 
+    public static String createNewSlotId(String baseName) {
+        String normalizedBase = normalizeSlotId(baseName == null || baseName.isBlank() ? "save" : baseName);
+        if (normalizedBase == null || normalizedBase.isBlank()) {
+            normalizedBase = "save";
+        }
+        return normalizedBase + "-" + System.currentTimeMillis();
+    }
+
     public static SaveGameData load(String slotId) {
         if (slotId == null || slotId.isBlank()) {
             return null;

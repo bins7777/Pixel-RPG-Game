@@ -180,7 +180,7 @@ public class LoadGameScreen extends ScreenAdapter {
         if (!hasSaveEntries) {
             drawCenteredText(saveTitleFont, "No saves available yet.",
                     REFERENCE_WIDTH * 0.5f, 390f, 0.88f, 0.88f, 0.88f, 1f);
-            drawCenteredText(saveMetaFont, "Start the game once and an autosave will appear here.",
+            drawCenteredText(saveMetaFont, "Start a new game and save slots will appear here.",
                     REFERENCE_WIDTH * 0.5f, 350f, 0.72f, 0.72f, 0.72f, 1f);
         }
         if (fadeAlpha > 0f && fadeTexture != null) {

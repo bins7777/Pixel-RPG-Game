@@ -161,13 +161,21 @@ public class GameScreen extends ScreenAdapter {
     private static final String THIRD_QUEST_INN_ENTRANCE_LAYER_NAME = "ENTRANCE-Inn";
     private static final String THIRD_QUEST_INN_ROOM_ENTRANCE_LAYER_NAME = "ENTRANCE-Inn-Room";
     private static final String FIRST_QUEST_PANEL_TEXTURE_PATH = "ui/menu/Big_Panel.png";
+    private static final String FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXTURE_PATH = "ui/dialogue/Dialogue-Box.png";
     private static final String FIRST_QUEST_ITEM_TEXTURE_PATH = "ui/quests/Herb-and-Spice.png";
     private static final String SECOND_QUEST_FRAGMENT_TEXTURE_PATH = "ui/quests/Scorched-Fragment.png";
+    private static final String FOURTH_QUEST_CONDENSED_CORE_TEXTURE_PATH = "ui/quests/Condensed-Core.png";
     private static final String THIRD_QUEST_FATHER_TEXTURE_PATH =
             "maps/NPC/GandalfHardcore FREE Warrior/GandalfHardcore Warrior.png";
     private static final String FIRST_QUEST_CAFE_NPC_IDLE_DIRECTORY =
             PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "NPC"
                     + File.separator + "Idle1";
+    private static final String VILLAGE_MUSIC_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "GAME SFX"
+                    + File.separator + "Village-Music.mp3";
+    private static final String DEMON_BATTLE_MUSIC_ABSOLUTE_PATH =
+            "C:" + File.separator + "Users" + File.separator + "user" + File.separator + "Desktop"
+                    + File.separator + "GAME SFX" + File.separator + "Demon-Music.mp3";
     private static final String GUI_FONT_PATH = "fonts/Berry Rotunda.ttf";
     private static final int FIRST_QUEST_TITLE_FONT_SIZE = 22;
     private static final int FIRST_QUEST_BODY_FONT_SIZE = 16;
@@ -183,10 +191,65 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS = 5f;
     private static final float QUEST_ARROW_MARKER_SCALE = 1.5f;
     private static final float QUEST_ARROW_MARKER_OUTLINE_OFFSET = 2f;
+    private static final float VILLAGE_MUSIC_BASE_VOLUME = 1f;
+    private static final float VILLAGE_MUSIC_FADE_IN_SECONDS = 5f;
+    private static final float DEMON_BATTLE_MUSIC_BASE_VOLUME = 1f;
+    private static final String SIXTH_QUEST_ENDING_MUSIC_ASSET_PATH = "music/ending/Ending-Waltz.mp3";
+    private static final float SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME = 1f;
+    private static final float SIXTH_QUEST_ENDING_MUSIC_FADE_OUT_SECONDS = 3f;
+    private static final float SIXTH_QUEST_ENDING_MUSIC_FADE_IN_SECONDS = 3f;
+    private static final float SIXTH_QUEST_ENDING_VIDEO_DELAY_SECONDS = 4f;
+    private static final float SIXTH_QUEST_ENDING_VIDEO_FADE_SECONDS = 4f;
+    private static final float BOSS_ARENA_FINAL_INTRO_AUTO_WALK_SECONDS = 1.5f;
+    private static final float BOSS_ARENA_FINAL_INTRO_FOCUS_SECONDS = 5f;
+    private static final float BOSS_ARENA_FINAL_INTRO_ZOOM_MULTIPLIER = 0.65f;
+    private static final float BOSS_ARENA_FINAL_INTRO_CAMERA_Y_OFFSET_TILES = 4f;
+    private static final float BOSS_ARENA_HUD_FADE_IN_SECONDS = 2f;
+    private static final float DIALOGUE_CAMERA_ZOOM_MULTIPLIER = 0.05f;
+    private static final float DIALOGUE_CAMERA_SMOOTH_SPEED = 8f;
+    private static final float DIALOGUE_FOREGROUND_SCREEN_PADDING_X = 34f;
+    private static final float DIALOGUE_FOREGROUND_SCREEN_PADDING_Y = 42f;
+    private static final float DIALOGUE_FOREGROUND_FALLBACK_TARGET_WIDTH = 64f;
+    private static final float DIALOGUE_FOREGROUND_FALLBACK_TARGET_HEIGHT = 80f;
     private static final float FIRST_QUEST_OVERLAY_HEADER_SCALE = 0.6f;
     private static final float FIRST_QUEST_DIALOGUE_HEADER_OFFSET_Y = -20f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_WIDTH_RATIO = 0.9f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_MAX_WIDTH = 1120f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_BOTTOM_MARGIN = 28f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_CENTER_X_RATIO = 0.305f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_BASELINE_FROM_TOP = 64f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_SCALE_MULTIPLIER = 2f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_OFFSET_Y = -10f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_PADDING_LEFT = 92f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_PADDING_RIGHT = 170f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_TOP_FROM_TOP = 154f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_SCALE_MULTIPLIER = 1.15f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_OFFSET_X = 20f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_OFFSET_Y = -40f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_RIGHT_PADDING = 186f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_BOTTOM_PADDING = 66f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_X = -35f;
+    private static final float FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y = 15f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BOX_WIDTH_RATIO = 0.9f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BOX_MAX_WIDTH = 1120f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BOX_BOTTOM_MARGIN = 28f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TITLE_CENTER_X_RATIO = 0.305f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TITLE_BASELINE_FROM_TOP = 64f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TITLE_OFFSET_Y = -4f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT = 92f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_RIGHT = 170f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_TOP_FROM_TOP = 154f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_X = 20f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_Y = -18f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_WIDTH = 156f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_HEIGHT = 42f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP = 36f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING = 62f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_RIGHT_PADDING = 160f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_BOTTOM_PADDING = 34f;
     private static final float FIRST_QUEST_ITEM_CARD_HEADER_OFFSET_Y = -10f;
     private static final float SECOND_QUEST_FRAGMENT_CARD_IMAGE_OFFSET_Y = -24f;
+    private static final float FOURTH_QUEST_CONDENSED_CORE_CARD_IMAGE_OFFSET_Y = -89f;
     private static final float TECHNIQUE_LOCKED_NOTIFICATION_SECONDS = 2.8f;
     private static final int QUEST_LEVEL_CAP_DEFAULT = PlayerLevelStats.MIN_LEVEL;
     private static final int QUEST_2_LEVEL_CAP = 2;
@@ -204,6 +267,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String FIFTH_QUEST_FIGHTING_AREA_LAYER_NAME = "FIGHTING AREA";
     private static final String VILLAGE_PORTAL_ACTIVE_LAYER_NAME = "PORTAL-Active";
     private static final String VILLAGE_PORTAL_INACTIVE_LAYER_NAME = "PORTAL-Inactive";
+    private static final String VILLAGE_PORTAL_ACTUAL_LAYER_NAME = "Actual-Portal";
+    private static final float VILLAGE_PORTAL_QUEST_MARKER_Y_OFFSET = -104f;
     private static final int FOURTH_QUEST_ENCOUNTER_NONE = 0;
     private static final int FOURTH_QUEST_ENCOUNTER_CAFE = 1;
     private static final int FOURTH_QUEST_ENCOUNTER_CENTER = 2;
@@ -265,10 +330,10 @@ public class GameScreen extends ScreenAdapter {
     private static final float SIXTH_QUEST_SEAL_HEIGHT = 104f;
     private static final float SIXTH_QUEST_THRONE_WIDTH = 148f;
     private static final float SIXTH_QUEST_THRONE_HEIGHT = 116f;
-    private static final float SIXTH_QUEST_BOSS_PHASE_1_HEALTH = 260f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_1_HEALTH = 520f;
     private static final float SIXTH_QUEST_BOSS_PHASE_1_DAMAGE = 30f;
     private static final float SIXTH_QUEST_BOSS_PHASE_1_SPEED = 48f;
-    private static final float SIXTH_QUEST_BOSS_PHASE_2_HEALTH = 360f;
+    private static final float SIXTH_QUEST_BOSS_PHASE_2_HEALTH = 780f;
     private static final float SIXTH_QUEST_BOSS_PHASE_2_DAMAGE = 36f;
     private static final float SIXTH_QUEST_BOSS_PHASE_2_SPEED = 54f;
     private static final float SIXTH_QUEST_BOSS_PHASE_TRANSITION_HEALTH_RATIO = 0.38f;
@@ -276,6 +341,16 @@ public class GameScreen extends ScreenAdapter {
     private static final float THIRD_QUEST_TRAINING_ZONE_HALF_WIDTH = 120f;
     private static final float THIRD_QUEST_TRAINING_ZONE_HALF_HEIGHT = 86f;
     private static final float THIRD_QUEST_TRAINING_ZONE_Y_OFFSET = 26f;
+    private static final float SIXTH_QUEST_ENDING_FATHER_OFFSET_X_TILES = 1f;
+    private static final float SIXTH_QUEST_ENDING_FATHER_OFFSET_Y_TILES = 1f;
+    private static final int SIXTH_QUEST_ENDING_FATHER_TALKING_FRAME_INDEX = 2;
+    private static final String SIXTH_QUEST_ENDING_SCIENTIST_TEXTURE_PATH =
+            "maps/ORIGINAL ASSETS/NPC/Scientist 5/NPC_Scientist_5.png";
+    private static final float SIXTH_QUEST_ENDING_SCIENTIST_OFFSET_X_TILES = -3.5f;
+    private static final float SIXTH_QUEST_ENDING_SCIENTIST_OFFSET_Y_TILES = 0f;
+    private static final float SIXTH_QUEST_ENDING_SCIENTIST_DRAW_SCALE = 0.75f;
+    private static final float SIXTH_QUEST_ENDING_SCIENTIST_FRAME_DURATION = 0.12f;
+    private static final float SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS = 3f;
     private static final float THIRD_QUEST_TRAINING_MARKER_REACH_DISTANCE = 22f;
     private static final int THIRD_QUEST_DUMMY_HITS_REQUIRED = 5;
     private static final int THIRD_QUEST_TUTORIAL_BAT_COUNT = 3;
@@ -892,6 +967,8 @@ public class GameScreen extends ScreenAdapter {
     private static final String BOSS_WALKABLE_LAYER_NAME = "WALKABLE";
     private static final String BOSS_PHASE_2_BOSS_LAYER_NAME = "Phase-2-Boss";
     private static final String BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME = "Boss-Spawn";
+    private static final String BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME = "SPAWN";
+    private static final String BOSS_ARENA_PHASE_2_EXPLOSION_WALKABLE_LAYER_NAME = "WALKABLE AREA";
     private static final String GOLEM_1_GROUP_LAYER_NAME = "Golem-1";
     private static final String GOLEM_1_OBJECT_LAYER_NAME = "Golem-1";
     private static final String GOLEM_1_OBJECT_LAYER_NAME_ALT = "Golem1";
@@ -1143,6 +1220,14 @@ public class GameScreen extends ScreenAdapter {
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/individual sprites/04_demon_take_hit";
     private static final String BOSS_ARENA_PHASE_2_DEMON_IDLE_TEXTURE_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/spritesheets/demon_slime_FREE_v1.0_288x160_spritesheet.png";
+    private static final String BOSS_ARENA_PHASE_2_SKILL_START_FRAMES_DIR_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/VFX1/part1(start)/frames";
+    private static final String BOSS_ARENA_PHASE_2_SKILL_LOOP_FRAMES_DIR_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/VFX1/part2(loop)/frames";
+    private static final String BOSS_ARENA_PHASE_2_SKILL_END_FRAMES_DIR_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/VFX1/part3(end)/frames";
+    private static final String BOSS_ARENA_PHASE_2_EXPLOSION_FRAMES_DIR_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/boss_demon_slime_FREE_v1.0/explosion pack 1/explosion pack 1/Explosions pack/explosion-1-d/Sprites";
     private static final String FIFTH_QUEST_DEMON_1_IDLE_TEXTURE_ABSOLUTE_PATH =
             PROJECT_ROOT_ABSOLUTE_PATH + "/DSA GAME/ENEMY-Assets/Demon_1/Idle.png";
     private static final String FIFTH_QUEST_DEMON_1_WALK_TEXTURE_ABSOLUTE_PATH =
@@ -1237,6 +1322,8 @@ public class GameScreen extends ScreenAdapter {
     private static final float BOSS_ARENA_PHASE_2_DEMON_IDLE_FRAME_DURATION = 0.12f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_WALK_FRAME_DURATION = 0.09f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_FRAME_DURATION = 0.08f;
+    private static final int BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX = 8;
+    private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_SECONDS = 0.5f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_HURT_FRAME_DURATION = 0.08f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_DRAW_SCALE = 2f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_HITBOX_WIDTH_SCALE = 0.189f;
@@ -1246,9 +1333,29 @@ public class GameScreen extends ScreenAdapter {
     private static final float BOSS_ARENA_PHASE_2_DEMON_SPAWN_OFFSET_X_TILES = -5f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_SPAWN_OFFSET_Y_TILES = 4f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_CHASE_SPEED = 30f;
-    private static final float BOSS_ARENA_PHASE_2_DEMON_CHASE_STOP_DISTANCE_TILES = 1.5f;
-    private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_RANGE = DEFAULT_TILE_SIZE * 20f;
+    private static final float BOSS_ARENA_PHASE_2_DEMON_CHASE_STOP_DISTANCE_TILES = 10f;
+    private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_RANGE = DEFAULT_TILE_SIZE * 25f;
+    private static final float BOSS_ARENA_PHASE_2_DEMON_ATTACK_INTERVAL_SECONDS = 5f;
     private static final float BOSS_ARENA_PHASE_2_DEMON_PLAYER_HIT_COOLDOWN_SECONDS = 0.2f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_START_FRAME_DURATION = 0.08f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_LOOP_FRAME_DURATION = 0.08f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_END_FRAME_DURATION = 0.08f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_LOOP_SECONDS = 0.8f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_COOLDOWN_SECONDS = 0.65f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_DRAW_SCALE = 1.5f;
+    private static final float BOSS_ARENA_PHASE_2_SKILL_OFFSET_Y_TILES = 0.5f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_FRAME_DURATION = 0.078f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_DRAW_SCALE = 1.14f;
+    private static final int BOSS_ARENA_PHASE_2_EXPLOSION_SPOT_COUNT = 25;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_SECONDS = 1.5f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_JITTER_SECONDS = 0f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_EDGE_MARGIN_TILES = 2f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_MIN_SEPARATION_TILES = 2.5f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_HIT_RADIUS_TILES = 2f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_MAX_DIAMETER_TILES = 9f;
+    private static final float BOSS_ARENA_PHASE_2_EXPLOSION_SKILL_COOLDOWN_SECONDS = 5f;
+    private static final float SIXTH_QUEST_PORTAL_EFFECT_LOOP_SECONDS = 3f;
+    private static final float SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE = 1.75f;
     private static final int FIFTH_QUEST_DEMON_FRAME_WIDTH = 128;
     private static final int FIFTH_QUEST_DEMON_FRAME_HEIGHT = 128;
     private static final float FIFTH_QUEST_DEMON_IDLE_FRAME_DURATION = 0.13f;
@@ -1268,6 +1375,8 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIFTH_QUEST_DEMON_SHADOW_DOWN_OFFSET_TILES = 1.8f;
     private static final float FIFTH_QUEST_DEMON_SHADOW_ALPHA = 0.7f;
     private static final float FIFTH_QUEST_VILLAGER_DRAW_SCALE = 0.52f;
+    private static final float FIFTH_QUEST_OLD_WOMAN_X_SHIFT = 5.3f * DEFAULT_TILE_SIZE + 5f;
+    private static final float FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS = 2f;
     private static final float BOSS_ARENA_PHASE_2_DETECTION_CENTER_DOWN_OFFSET_TILES = 7.5f;
     private static final float ENEMY_HITBOX_DEBUG_FILL_ALPHA = 0.26f;
     private static final float ENEMY_HITBOX_DEBUG_OUTLINE_ALPHA = 0.95f;
@@ -1350,6 +1459,12 @@ public class GameScreen extends ScreenAdapter {
         RETURN_TO_PLAYER
     }
 
+    private enum BossArenaFinalIntroPhase {
+        NONE,
+        AUTO_WALK,
+        FOCUS_BOSS
+    }
+
     private enum QuestDialogueId {
         NONE,
         FIRST_QUEST_FATHER,
@@ -1393,6 +1508,7 @@ public class GameScreen extends ScreenAdapter {
         FIRST_QUEST_HERB_AND_SPICE,
         SECOND_QUEST_SCORCHED_FRAGMENT,
         SECOND_QUEST_ARCHIVE_NOTES,
+        FOURTH_QUEST_CONDENSED_CORE,
         THIRD_QUEST_DASH_ATTACK_UNLOCKED,
         FOURTH_QUEST_SPATIAL_DASH_UNLOCKED,
         SIXTH_QUEST_CLEAR
@@ -1486,7 +1602,11 @@ public class GameScreen extends ScreenAdapter {
         final Vector2 position = new Vector2();
         float stateTime = 0f;
         float attackStateTime = 0f;
+        float attackCooldownTimer = 0f;
         float hurtStateTime = 0f;
+        float skillStateTime = 0f;
+        float skillLoopTimer = 0f;
+        float skillCooldownTimer = 0f;
         float maxHealth = SIXTH_QUEST_BOSS_PHASE_2_HEALTH;
         float health = SIXTH_QUEST_BOSS_PHASE_2_HEALTH;
         float playerHitCooldownTimer = 0f;
@@ -1496,6 +1616,41 @@ public class GameScreen extends ScreenAdapter {
         boolean hurting = false;
         boolean attackDamageApplied = false;
         int lastDashAttackHitId = -1;
+        BossArenaPhase2SkillPhase skillPhase = BossArenaPhase2SkillPhase.NONE;
+    }
+
+    private static final class BossArenaPhase2ExplosionInstance {
+        final Vector2 position = new Vector2();
+        float delayTimer = 0f;
+        float stateTime = 0f;
+        boolean active = false;
+        boolean damageApplied = false;
+    }
+
+    private enum BossArenaPhase2SkillPhase {
+        NONE,
+        START,
+        LOOP,
+        END
+    }
+
+    private enum PortalActivationPhase {
+        NONE,
+        START,
+        LOOP,
+        END
+    }
+
+    private enum PortalChoiceResult {
+        NONE,
+        ENTER_CASTLE,
+        CLOSE_PORTAL
+    }
+
+    private enum EndingMusicTransitionPhase {
+        NONE,
+        FADING_OUT_BATTLE,
+        FADING_IN_ENDING
     }
 
     private static final class FifthQuestDemonInstance {
@@ -1600,6 +1755,9 @@ public class GameScreen extends ScreenAdapter {
     private Sound evilWizardAttack1Sfx;
     private Sound evilWizardAttack2Sfx;
     private Sound golem1ExplosionSfx;
+    private Music villageMusic;
+    private Music demonBattleMusic;
+    private Music sixthQuestEndingMusic;
     private Music evilWizardPreExplosionSfx;
     private ShaderProgram saturationShader;
     private ShaderProgram lightAreaMaskShader;
@@ -1609,11 +1767,24 @@ public class GameScreen extends ScreenAdapter {
     private int questBlurBufferWidth = 0;
     private int questBlurBufferHeight = 0;
     private float questBlurProgress = 0f;
+    private float villageMusicFadeProgress = 0f;
+    private float demonBattleMusicFadeProgress = 1f;
+    private float sixthQuestEndingMusicFadeProgress = 0f;
+    private boolean villageMusicPlaying = false;
+    private boolean demonBattleMusicPlaying = false;
+    private boolean sixthQuestEndingMusicPlaying = false;
+    private EndingMusicTransitionPhase endingMusicTransitionPhase = EndingMusicTransitionPhase.NONE;
+    private boolean sixthQuestEndingVideoSequenceActive = false;
+    private boolean sixthQuestEndingVideoTriggered = false;
+    private float sixthQuestEndingVideoSequenceTimer = 0f;
     private Texture firstQuestPanelTex;
+    private Texture firstQuestFatherDialogueBoxTex;
     private Texture firstQuestItemTex;
     private Texture secondQuestFragmentTex;
+    private Texture fourthQuestCondensedCoreTex;
     private Texture secondQuestArchiveNotesTex;
     private Texture thirdQuestFatherVillageTex;
+    private Texture sixthQuestEndingScientistTex;
     private TextureRegion[][] thirdQuestFatherVillageTiles;
     private BitmapFont firstQuestTitleFont;
     private BitmapFont firstQuestBodyFont;
@@ -1622,6 +1793,7 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> firstQuestCafeNpcIdleAnim;
     private Animation<TextureRegion> fifthQuestAdultManIdleAnim;
     private Animation<TextureRegion> fifthQuestOldWomanIdleAnim;
+    private Animation<TextureRegion> sixthQuestEndingScientistAnim;
     private Animation<TextureRegion> idleAnim;
     private Animation<TextureRegion> runAnim;
     private Animation<TextureRegion> attack1Anim;
@@ -1657,6 +1829,10 @@ public class GameScreen extends ScreenAdapter {
     private Animation<TextureRegion> bossArenaPhase2DemonWalkAnim;
     private Animation<TextureRegion> bossArenaPhase2DemonAttackAnim;
     private Animation<TextureRegion> bossArenaPhase2DemonHurtAnim;
+    private Animation<TextureRegion> bossArenaPhase2SkillStartAnim;
+    private Animation<TextureRegion> bossArenaPhase2SkillLoopAnim;
+    private Animation<TextureRegion> bossArenaPhase2SkillEndAnim;
+    private Animation<TextureRegion> bossArenaPhase2ExplosionAnim;
     private Animation<TextureRegion> fifthQuestDemon1IdleAnim;
     private Animation<TextureRegion> fifthQuestDemon1WalkAnim;
     private Animation<TextureRegion> fifthQuestDemon1AttackAnim;
@@ -1682,6 +1858,8 @@ public class GameScreen extends ScreenAdapter {
     private final String initialMapId;
     private final String initialSpawnLayer;
     private final String characterName;
+    private final String activeSaveSlotId;
+    private final String activeSaveDisplayName;
     private int firstQuestStage;
     private int secondQuestStage;
     private int thirdQuestStage;
@@ -1709,6 +1887,8 @@ public class GameScreen extends ScreenAdapter {
     private float activeQuestItemHintOffsetY = 0f;
     private float firstQuestMarkerTimer = 0f;
     private float firstQuestCafeNpcStateTime = 0f;
+    private boolean sixthQuestEndingNpcFadeActive = false;
+    private float sixthQuestEndingNpcFadeTimer = 0f;
     private float questGuidanceSuppressTimer = 0f;
     private final Rectangle thirdQuestTrainingZoneBounds = new Rectangle();
     private final Rectangle thirdQuestFatherTrainingBounds = new Rectangle();
@@ -1763,6 +1943,7 @@ public class GameScreen extends ScreenAdapter {
     private final Rectangle sixthQuestThroneBounds = new Rectangle();
     private final Rectangle sixthQuestBossPhase1SpawnBounds = new Rectangle();
     private final Rectangle sixthQuestFinalPhaseBounds = new Rectangle();
+    private final Rectangle sixthQuestFinalPhaseExplosionBounds = new Rectangle();
     private final Rectangle sixthQuestFinalPhaseSpawnBounds = new Rectangle();
     private boolean fourthQuestVillageLayoutReady = false;
     private boolean fourthQuestFloor2LayoutReady = false;
@@ -1775,14 +1956,34 @@ public class GameScreen extends ScreenAdapter {
     private boolean fifthQuestEncounterSpawned = false;
     private float fifthQuestCommanderCalloutTimer = 0f;
     private int fifthQuestCommanderCalloutIndex = 0;
+    private float fifthQuestLabVillagersFadeTimer = 0f;
+    private boolean fifthQuestLabVillagersVisibleLastFrame = false;
     private boolean sixthQuestCastleLayoutReady = false;
     private boolean sixthQuestFinalArenaLayoutReady = false;
     private boolean sixthQuestEncounterSpawned = false;
     private float sixthQuestBossCalloutTimer = 0f;
     private int sixthQuestBossCalloutIndex = 0;
     private boolean sixthQuestLowHealthExchangePlayed = false;
+    private PortalActivationPhase sixthQuestPortalActivationPhase = PortalActivationPhase.NONE;
+    private PortalChoiceResult sixthQuestPortalChoiceResult = PortalChoiceResult.NONE;
+    private float sixthQuestPortalActivationStateTime = 0f;
+    private float sixthQuestPortalActivationLoopTimer = 0f;
+    private boolean sixthQuestPortalChoiceVisible = false;
+    private int sixthQuestPortalChoiceIndex = 0;
+    private final Vector2 sixthQuestPortalEffectStartPosition = new Vector2();
+    private final Vector2 sixthQuestPortalEffectTargetPosition = new Vector2();
+    private final Vector2 sixthQuestPortalEffectPosition = new Vector2();
+    private final Rectangle sixthQuestPortalChoiceYesBounds = new Rectangle();
+    private final Rectangle sixthQuestPortalChoiceNoBounds = new Rectangle();
+    private final Vector3 sixthQuestPortalChoiceUiPoint = new Vector3();
     private boolean infiniteHealthEnabled = false;
     private final Vector3 questMarkerProjection = new Vector3();
+    private final Vector2 dialogueCameraFocusPoint = new Vector2();
+    private final Rectangle dialogueHighlightWorldBounds = new Rectangle();
+    private final Rectangle dialogueHighlightScreenBounds = new Rectangle();
+    private final Rectangle dialogueHighlightCombinedScreenBounds = new Rectangle();
+    private final Vector3 dialogueHighlightProjectionMin = new Vector3();
+    private final Vector3 dialogueHighlightProjectionMax = new Vector3();
     private final EarClippingTriangulator triangulator = new EarClippingTriangulator();
     private final Polygon playerCollisionPolygon = new Polygon();
     private final float[] playerCollisionVertices = new float[8];
@@ -1805,6 +2006,11 @@ public class GameScreen extends ScreenAdapter {
     private final Array<Texture> bossArenaPhase2DemonWalkFrameTextures = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonAttackFrameTextures = new Array<>();
     private final Array<Texture> bossArenaPhase2DemonHurtFrameTextures = new Array<>();
+    private final Array<Texture> bossArenaPhase2SkillStartFrameTextures = new Array<>();
+    private final Array<Texture> bossArenaPhase2SkillLoopFrameTextures = new Array<>();
+    private final Array<Texture> bossArenaPhase2SkillEndFrameTextures = new Array<>();
+    private final Array<Texture> bossArenaPhase2ExplosionFrameTextures = new Array<>();
+    private final Array<BossArenaPhase2ExplosionInstance> bossArenaPhase2Explosions = new Array<>();
     private final Array<Texture> firstQuestCafeNpcFrameTextures = new Array<>();
     private final Array<Texture> fifthQuestAdultManFrameTextures = new Array<>();
     private final Array<Texture> fifthQuestOldWomanFrameTextures = new Array<>();
@@ -1874,6 +2080,10 @@ public class GameScreen extends ScreenAdapter {
     private float boss1IntroTimer = 0f;
     private boolean boss1IntroPlayed = false;
     private final Vector2 boss1IntroCameraTarget = new Vector2();
+    private BossArenaFinalIntroPhase bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.NONE;
+    private float bossArenaFinalIntroTimer = 0f;
+    private final Vector2 bossArenaFinalIntroCameraTarget = new Vector2();
+    private float bossArenaHudRevealTimer = 0f;
     private MapLayer bossFightZoneLayer;
     private final Rectangle bossFightZoneBounds = new Rectangle();
     private boolean bossFightZoneDarkMode = false;
@@ -1965,6 +2175,8 @@ public class GameScreen extends ScreenAdapter {
         this.initialMapId = initialMapId;
         this.initialSpawnLayer = initialSpawnLayer;
         this.characterName = resolveCharacterName(initialSaveData, initialCharacterName);
+        this.activeSaveSlotId = resolveSaveSlotId(initialSaveData, this.characterName);
+        this.activeSaveDisplayName = resolveSaveDisplayName(initialSaveData, this.characterName, this.activeSaveSlotId);
         this.firstQuestStage = resolveInitialFirstQuestStage(initialSaveData);
         this.secondQuestStage = resolveInitialSecondQuestStage(initialSaveData);
         this.thirdQuestStage = resolveInitialThirdQuestStage(initialSaveData);
@@ -2032,6 +2244,9 @@ public class GameScreen extends ScreenAdapter {
             screenFadeAlpha = Math.max(0f, screenFadeAlpha - delta / SCREEN_FADE_DURATION_SECONDS);
         }
         applyRuntimeAudioSettings();
+        updateVillageMusic(delta);
+        updateDemonBattleMusic();
+        updateSixthQuestEndingMusic(delta);
         clearCameraShakeOffsetFromCameraPosition();
         if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
             if (handleMainMenuInput()) {
@@ -2061,10 +2276,15 @@ public class GameScreen extends ScreenAdapter {
                         player.playerLevel,
                         currentMainMenuQuestTitle(),
                         currentMainMenuQuestObjective(),
-                        currentMainMenuRegionName());
+                        currentMainMenuRegionName(),
+                        shouldShowHudQuestPanel(),
+                        currentBossArenaHudHealth(),
+                        currentBossArenaHudMaxHealth(),
+                        currentBossArenaHudAlpha());
                 drawFirstQuestUi();
                 drawMapTransitionOverlay();
                 drawScreenFadeOverlay();
+                drawBossArenaTopLetterboxOverlay();
                 return;
             }
         }
@@ -2078,6 +2298,7 @@ public class GameScreen extends ScreenAdapter {
         updateEvilWizards(delta);
         updateGolem1s(delta);
         updateBossArenaPhase2Demons(delta);
+        updateBossArenaPhase2Explosions(delta);
         updateFifthQuestDemons(delta);
         updateRewardChests(delta);
         updateEvilWizardAttackHazard(delta);
@@ -2091,15 +2312,18 @@ public class GameScreen extends ScreenAdapter {
         updateBossFightZoneDarkMode(delta);
         updateGolemFightZoneDarkMode(delta);
         updateBoss1IntroSequence(delta);
+        updateBossArenaFinalIntroSequence(delta);
+        updateBossArenaHudReveal(delta);
         if (isMapTransitionActive()
                 || isEntranceDoorInputBlocked()
                 || isRoom1DoorInputBlocked()
                 || isRoom3DoorInputBlocked()
                 || isFirstBossDoorInputBlocked()
                 || isBoss1IntroActive()
+                || isBossArenaFinalIntroActive()
                 || isPlayerHazardHitReactionActive()
                 || isPlayerDead()) {
-            if (!isBoss1IntroStepDownActive()) {
+            if (!isBoss1IntroStepDownActive() && !isBossArenaFinalIntroAutoWalkActive()) {
                 player.moving = false;
             }
         } else {
@@ -2122,9 +2346,11 @@ public class GameScreen extends ScreenAdapter {
         updatePlayerStamina(delta);
         updatePlayerHealth(delta);
         updateFirstQuest(delta);
+        updateFifthQuestLabVillagers(delta);
         hudRenderer.update(delta);
         updateQuestBlur(delta);
         updateBossArenaPhase2AttackZoom(delta);
+        updateDialogueCamera(delta);
         updateAutosave(delta);
         clampCamera();
         updateAndApplyExplosionCameraShake(delta);
@@ -2147,10 +2373,15 @@ public class GameScreen extends ScreenAdapter {
                 player.playerLevel,
                 currentMainMenuQuestTitle(),
                 currentMainMenuQuestObjective(),
-                currentMainMenuRegionName());
+                currentMainMenuRegionName(),
+                shouldShowHudQuestPanel(),
+                currentBossArenaHudHealth(),
+                currentBossArenaHudMaxHealth(),
+                currentBossArenaHudAlpha());
         drawFirstQuestUi();
         drawMapTransitionOverlay();
         drawScreenFadeOverlay();
+        drawBossArenaTopLetterboxOverlay();
     }
 
     @Override
@@ -2165,6 +2396,9 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void hide() {
+        stopVillageMusic();
+        stopDemonBattleMusic();
+        stopSixthQuestEndingMusic();
         writeAutosave();
         restoreInputProcessor();
     }
@@ -2237,16 +2471,22 @@ public class GameScreen extends ScreenAdapter {
         if (evilWizardAttack1Sfx != null) evilWizardAttack1Sfx.dispose();
         if (evilWizardAttack2Sfx != null) evilWizardAttack2Sfx.dispose();
         if (golem1ExplosionSfx != null) golem1ExplosionSfx.dispose();
+        if (villageMusic != null) villageMusic.dispose();
+        if (demonBattleMusic != null) demonBattleMusic.dispose();
+        if (sixthQuestEndingMusic != null) sixthQuestEndingMusic.dispose();
         if (evilWizardPreExplosionSfx != null) evilWizardPreExplosionSfx.dispose();
         if (saturationShader != null) saturationShader.dispose();
         if (lightAreaMaskShader != null) lightAreaMaskShader.dispose();
         if (screenBlurShader != null) screenBlurShader.dispose();
         disposeQuestBlurFrameBuffer();
         if (firstQuestPanelTex != null) firstQuestPanelTex.dispose();
+        if (firstQuestFatherDialogueBoxTex != null) firstQuestFatherDialogueBoxTex.dispose();
         if (firstQuestItemTex != null) firstQuestItemTex.dispose();
         if (secondQuestFragmentTex != null) secondQuestFragmentTex.dispose();
+        if (fourthQuestCondensedCoreTex != null && fourthQuestCondensedCoreTex != secondQuestFragmentTex) fourthQuestCondensedCoreTex.dispose();
         if (secondQuestArchiveNotesTex != null) secondQuestArchiveNotesTex.dispose();
         if (thirdQuestFatherVillageTex != null) thirdQuestFatherVillageTex.dispose();
+        if (sixthQuestEndingScientistTex != null) sixthQuestEndingScientistTex.dispose();
         if (firstQuestTitleFont != null) firstQuestTitleFont.dispose();
         if (firstQuestBodyFont != null) firstQuestBodyFont.dispose();
         if (firstQuestHintFont != null) firstQuestHintFont.dispose();
@@ -2297,32 +2537,54 @@ public class GameScreen extends ScreenAdapter {
 
     private void loadFirstQuestAssets() {
         firstQuestPanelTex = loadOptionalTexture(FIRST_QUEST_PANEL_TEXTURE_PATH);
+        firstQuestFatherDialogueBoxTex = loadOptionalTexture(FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXTURE_PATH);
         firstQuestItemTex = loadOptionalTexture(FIRST_QUEST_ITEM_TEXTURE_PATH);
         secondQuestFragmentTex = loadOptionalTexture(SECOND_QUEST_FRAGMENT_TEXTURE_PATH);
         thirdQuestFatherVillageTex = loadOptionalTexture(THIRD_QUEST_FATHER_TEXTURE_PATH);
+        sixthQuestEndingScientistTex = loadOptionalTexture(SIXTH_QUEST_ENDING_SCIENTIST_TEXTURE_PATH);
         if (secondQuestFragmentTex == null) {
             secondQuestFragmentTex = createScorchedFragmentTexture();
+        }
+        fourthQuestCondensedCoreTex = loadOptionalTexture(FOURTH_QUEST_CONDENSED_CORE_TEXTURE_PATH);
+        if (fourthQuestCondensedCoreTex == null) {
+            fourthQuestCondensedCoreTex = secondQuestFragmentTex;
         }
         secondQuestArchiveNotesTex = createArchiveNotesTexture();
         firstQuestTitleFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_TITLE_FONT_SIZE);
         firstQuestBodyFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_BODY_FONT_SIZE);
         firstQuestHintFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_HINT_FONT_SIZE);
+        villageMusic = loadOptionalAbsoluteMusic(VILLAGE_MUSIC_ABSOLUTE_PATH);
+        demonBattleMusic = loadOptionalAbsoluteMusic(DEMON_BATTLE_MUSIC_ABSOLUTE_PATH);
+        sixthQuestEndingMusic = loadOptionalMusic(SIXTH_QUEST_ENDING_MUSIC_ASSET_PATH);
         firstQuestLayout = new GlyphLayout();
         firstQuestCafeNpcIdleAnim = loadOptionalAbsoluteFrameAnimation(
                 FIRST_QUEST_CAFE_NPC_IDLE_DIRECTORY,
                 FIRST_QUEST_CAFE_NPC_FRAME_DURATION,
                 firstQuestCafeNpcFrameTextures);
         setNearestFilter(firstQuestPanelTex);
+        setNearestFilter(firstQuestFatherDialogueBoxTex);
         setNearestFilter(firstQuestItemTex);
         setNearestFilter(secondQuestFragmentTex);
+        if (fourthQuestCondensedCoreTex != secondQuestFragmentTex) {
+            setNearestFilter(fourthQuestCondensedCoreTex);
+        }
         setNearestFilter(secondQuestArchiveNotesTex);
         setNearestFilter(thirdQuestFatherVillageTex);
+        setNearestFilter(sixthQuestEndingScientistTex);
         if (thirdQuestFatherVillageTex != null) {
             int tileSize = Math.max(1, Math.round(DEFAULT_TILE_SIZE));
             thirdQuestFatherVillageTiles = TextureRegion.split(thirdQuestFatherVillageTex, tileSize, tileSize);
         } else {
             thirdQuestFatherVillageTiles = null;
         }
+        sixthQuestEndingScientistAnim = sixthQuestEndingScientistTex == null
+                ? null
+                : buildRawAnimation(
+                sixthQuestEndingScientistTex,
+                4,
+                sixthQuestEndingScientistTex.getHeight(),
+                sixthQuestEndingScientistTex.getHeight(),
+                SIXTH_QUEST_ENDING_SCIENTIST_FRAME_DURATION);
     }
 
     private void loadFifthQuestAssets() {
@@ -2653,8 +2915,8 @@ public class GameScreen extends ScreenAdapter {
         }
 
         SaveGameData saveData = new SaveGameData();
-        saveData.slotId = SaveGameService.AUTOSAVE_SLOT_ID;
-        saveData.displayName = "Autosave";
+        saveData.slotId = activeSaveSlotId;
+        saveData.displayName = activeSaveDisplayName;
         saveData.characterName = characterName;
         saveData.mapId = world.activeMapId;
         saveData.playerBoundsX = player.bounds.x;
@@ -2709,6 +2971,23 @@ public class GameScreen extends ScreenAdapter {
             return normalizeCharacterName(saveData.characterName);
         }
         return normalizeCharacterName(initialCharacterName);
+    }
+
+    private String resolveSaveSlotId(SaveGameData saveData, String resolvedCharacterName) {
+        if (saveData != null && saveData.slotId != null && !saveData.slotId.isBlank()) {
+            return saveData.slotId;
+        }
+        return SaveGameService.createNewSlotId(resolvedCharacterName);
+    }
+
+    private String resolveSaveDisplayName(SaveGameData saveData, String resolvedCharacterName, String resolvedSlotId) {
+        if (saveData != null && saveData.displayName != null && !saveData.displayName.isBlank()) {
+            return saveData.displayName;
+        }
+        if (resolvedCharacterName != null && !resolvedCharacterName.isBlank()) {
+            return resolvedCharacterName;
+        }
+        return resolvedSlotId;
     }
 
     private String normalizeCharacterName(String rawCharacterName) {
@@ -2813,12 +3092,15 @@ public class GameScreen extends ScreenAdapter {
         fifthQuestEncounterSpawned = false;
         fifthQuestCommanderCalloutTimer = 0f;
         fifthQuestCommanderCalloutIndex = 0;
+        fifthQuestLabVillagersFadeTimer = 0f;
+        fifthQuestLabVillagersVisibleLastFrame = false;
         sixthQuestCastleLayoutReady = false;
         sixthQuestFinalArenaLayoutReady = false;
         sixthQuestEncounterSpawned = false;
         sixthQuestBossCalloutTimer = 0f;
         sixthQuestBossCalloutIndex = 0;
         sixthQuestLowHealthExchangePlayed = false;
+        clearSixthQuestPortalActivation();
         entranceDoorAnimationFrames.clear();
         entranceDoorFrontAnimationFrames.clear();
         entranceDoorTriggerLayer = null;
@@ -2881,6 +3163,9 @@ public class GameScreen extends ScreenAdapter {
         boss1DefeatDoorOpened = false;
         boss1DefeatDoorTriggered = false;
         resetBoss1IntroState();
+        bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.NONE;
+        bossArenaFinalIntroTimer = 0f;
+        bossArenaFinalIntroCameraTarget.setZero();
         bossFightZoneLayer = null;
         bossFightZoneBounds.set(0f, 0f, 0f, 0f);
         bossFightZoneDarkMode = false;
@@ -3243,6 +3528,18 @@ public class GameScreen extends ScreenAdapter {
         return boss1IntroPhase == Boss1IntroPhase.STEP_DOWN;
     }
 
+    private boolean isBossArenaFinalIntroActive() {
+        return bossArenaFinalIntroPhase != BossArenaFinalIntroPhase.NONE;
+    }
+
+    private boolean isBossArenaFinalIntroAutoWalkActive() {
+        return bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.AUTO_WALK;
+    }
+
+    private boolean isBossArenaFinalIntroFocusActive() {
+        return bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.FOCUS_BOSS;
+    }
+
     private boolean isPlayerHazardHitReactionActive() {
         return playerHazardHitReactionTimer > 0f;
     }
@@ -3343,7 +3640,11 @@ public class GameScreen extends ScreenAdapter {
         String respawnMapId = MAP_ID_VILLAGE;
         String respawnSpawnLayer = THIRD_QUEST_INN_ENTRANCE_LAYER_NAME;
         String respawnMessage = "You recover outside the inn.";
-        if (MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
+        if (MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            respawnMapId = MAP_ID_BOSS_ARENA_PHASE_2;
+            respawnSpawnLayer = BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME;
+            respawnMessage = "You recover at the arena spawn.";
+        } else if (MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
             respawnMapId = MAP_ID_DEMON_CASTLE;
             respawnSpawnLayer = "Spawn";
             respawnMessage = "You recover at the castle entrance.";
@@ -3975,6 +4276,7 @@ public class GameScreen extends ScreenAdapter {
         demon.hurtStateTime = 0f;
         demon.attackDamageApplied = false;
         demon.playerHitCooldownTimer = 0f;
+        demon.skillCooldownTimer = BOSS_ARENA_PHASE_2_EXPLOSION_SKILL_COOLDOWN_SECONDS;
         demon.lastDashAttackHitId = -1;
         Animation<TextureRegion> spawnAnimation = bossArenaPhase2DemonIdleAnim != null
                 ? bossArenaPhase2DemonIdleAnim
@@ -4293,6 +4595,10 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         float safeDelta = Math.max(0f, delta);
+        boolean introLocked = MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)
+                && (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO
+                || isBossArenaFinalIntroActive()
+                || activeQuestDialogueId == QuestDialogueId.SIXTH_QUEST_FINAL_PHASE_INTRO);
         float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
         float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
         float stopDistance = BOSS_ARENA_PHASE_2_DEMON_CHASE_STOP_DISTANCE_TILES * DEFAULT_TILE_SIZE;
@@ -4302,6 +4608,12 @@ public class GameScreen extends ScreenAdapter {
             BossArenaPhase2DemonInstance demon = bossArenaPhase2Demons.get(i);
             if (demon.playerHitCooldownTimer > 0f) {
                 demon.playerHitCooldownTimer = Math.max(0f, demon.playerHitCooldownTimer - safeDelta);
+            }
+            if (demon.attackCooldownTimer > 0f) {
+                demon.attackCooldownTimer = Math.max(0f, demon.attackCooldownTimer - safeDelta);
+            }
+            if (demon.skillCooldownTimer > 0f) {
+                demon.skillCooldownTimer = Math.max(0f, demon.skillCooldownTimer - safeDelta);
             }
             if (demon.health <= 0f && !demon.hurting) {
                 bossArenaPhase2Demons.removeIndex(i);
@@ -4315,6 +4627,14 @@ public class GameScreen extends ScreenAdapter {
             demon.moving = false;
             if (Math.abs(dx) > 0.001f) {
                 demon.facingLeft = dx < 0f;
+            }
+
+            if (introLocked) {
+                demon.attacking = false;
+                demon.attackStateTime = 0f;
+                demon.attackDamageApplied = false;
+                demon.stateTime += safeDelta;
+                continue;
             }
 
             if (demon.hurting) {
@@ -4344,24 +4664,45 @@ public class GameScreen extends ScreenAdapter {
                     }
                     if (demon.attackStateTime >= impactTime) {
                         demon.attackDamageApplied = true;
-                        if (distanceSq <= attackRangeSq) {
-                            applyDamageToPlayer(SIXTH_QUEST_BOSS_PHASE_2_DAMAGE);
-                        }
                     }
                 }
-                if (bossArenaPhase2DemonAttackAnim == null
-                        || bossArenaPhase2DemonAttackAnim.isAnimationFinished(demon.attackStateTime)) {
+                boolean attackAnimFinished = bossArenaPhase2DemonAttackAnim == null
+                        || demon.attackStateTime >= bossArenaPhase2DemonAttackAnimationDuration();
+                if (attackAnimFinished) {
                     demon.attacking = false;
                     demon.attackStateTime = 0f;
                     demon.attackDamageApplied = false;
                 }
             }
 
-            if (distanceSq <= attackRangeSq && bossArenaPhase2DemonAttackAnim != null) {
-                if (!demon.attacking) {
+            if (hasPendingOrActiveBossArenaPhase2Explosions()) {
+                demon.moving = false;
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            if (distanceSq <= attackRangeSq
+                    && demon.skillCooldownTimer <= 0f
+                    && bossArenaPhase2ExplosionAnim != null) {
+                queueBossArenaPhase2ExplosionPattern(demon);
+                demon.skillCooldownTimer = BOSS_ARENA_PHASE_2_EXPLOSION_SKILL_COOLDOWN_SECONDS;
+                demon.attackCooldownTimer = BOSS_ARENA_PHASE_2_EXPLOSION_SKILL_COOLDOWN_SECONDS;
+                if (bossArenaPhase2DemonAttackAnim != null) {
                     demon.attacking = true;
                     demon.attackStateTime = 0f;
                     demon.attackDamageApplied = false;
+                }
+                demon.moving = false;
+                demon.stateTime += safeDelta;
+                continue;
+            }
+
+            if (distanceSq <= stopDistanceSq && bossArenaPhase2DemonAttackAnim != null) {
+                if (!demon.attacking && demon.attackCooldownTimer <= 0f) {
+                    demon.attacking = true;
+                    demon.attackStateTime = 0f;
+                    demon.attackDamageApplied = false;
+                    demon.attackCooldownTimer = BOSS_ARENA_PHASE_2_DEMON_ATTACK_INTERVAL_SECONDS;
                 }
                 demon.stateTime += safeDelta;
                 continue;
@@ -4382,6 +4723,208 @@ public class GameScreen extends ScreenAdapter {
             }
             demon.stateTime += safeDelta;
         }
+    }
+
+    private void startBossArenaPhase2DemonSkill(BossArenaPhase2DemonInstance demon) {
+        if (demon == null) {
+            return;
+        }
+        demon.skillStateTime = 0f;
+        demon.skillLoopTimer = 0f;
+        if (bossArenaPhase2SkillStartAnim != null) {
+            demon.skillPhase = BossArenaPhase2SkillPhase.START;
+        } else if (bossArenaPhase2SkillLoopAnim != null) {
+            demon.skillPhase = BossArenaPhase2SkillPhase.LOOP;
+        } else if (bossArenaPhase2SkillEndAnim != null) {
+            demon.skillPhase = BossArenaPhase2SkillPhase.END;
+        } else {
+            demon.skillPhase = BossArenaPhase2SkillPhase.NONE;
+        }
+    }
+
+    private void updateBossArenaPhase2DemonSkill(BossArenaPhase2DemonInstance demon, float delta) {
+        if (demon == null || delta <= 0f || demon.skillPhase == BossArenaPhase2SkillPhase.NONE) {
+            return;
+        }
+        demon.skillStateTime += delta;
+        switch (demon.skillPhase) {
+            case START -> {
+                if (bossArenaPhase2SkillStartAnim == null
+                        || bossArenaPhase2SkillStartAnim.isAnimationFinished(demon.skillStateTime)) {
+                    demon.skillPhase = bossArenaPhase2SkillLoopAnim != null
+                            ? BossArenaPhase2SkillPhase.LOOP
+                            : (bossArenaPhase2SkillEndAnim != null ? BossArenaPhase2SkillPhase.END : BossArenaPhase2SkillPhase.NONE);
+                    demon.skillStateTime = 0f;
+                    demon.skillLoopTimer = 0f;
+                }
+            }
+            case LOOP -> {
+                demon.skillLoopTimer += delta;
+                if (bossArenaPhase2SkillLoopAnim == null || demon.skillLoopTimer >= BOSS_ARENA_PHASE_2_SKILL_LOOP_SECONDS) {
+                    demon.skillPhase = bossArenaPhase2SkillEndAnim != null
+                            ? BossArenaPhase2SkillPhase.END
+                            : BossArenaPhase2SkillPhase.NONE;
+                    demon.skillStateTime = 0f;
+                }
+            }
+            case END -> {
+                if (bossArenaPhase2SkillEndAnim == null
+                        || bossArenaPhase2SkillEndAnim.isAnimationFinished(demon.skillStateTime)) {
+                    demon.skillPhase = BossArenaPhase2SkillPhase.NONE;
+                    demon.skillStateTime = 0f;
+                    demon.skillLoopTimer = 0f;
+                }
+            }
+            case NONE -> {
+            }
+        }
+    }
+
+    private boolean bossArenaPhase2DemonHasSkillAnimations() {
+        return bossArenaPhase2SkillStartAnim != null
+                || bossArenaPhase2SkillLoopAnim != null
+                || bossArenaPhase2SkillEndAnim != null;
+    }
+
+    private Animation<TextureRegion> activeBossArenaPhase2DemonSkillAnimation(BossArenaPhase2DemonInstance demon) {
+        if (demon == null) {
+            return null;
+        }
+        return switch (demon.skillPhase) {
+            case START -> bossArenaPhase2SkillStartAnim;
+            case LOOP -> bossArenaPhase2SkillLoopAnim;
+            case END -> bossArenaPhase2SkillEndAnim;
+            case NONE -> null;
+        };
+    }
+
+    private void updateBossArenaPhase2Explosions(float delta) {
+        if (bossArenaPhase2Explosions.size == 0 || delta <= 0f) {
+            return;
+        }
+        if (bossArenaPhase2ExplosionAnim == null) {
+            bossArenaPhase2Explosions.clear();
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        float impactTime = bossArenaPhase2ExplosionAnim.getAnimationDuration() * 0.45f;
+        boolean playedExplosionSfxThisFrame = false;
+        for (int i = bossArenaPhase2Explosions.size - 1; i >= 0; i--) {
+            BossArenaPhase2ExplosionInstance burst = bossArenaPhase2Explosions.get(i);
+            if (!burst.active) {
+                burst.delayTimer = Math.max(0f, burst.delayTimer - safeDelta);
+                if (burst.delayTimer <= 0f) {
+                    burst.active = true;
+                    burst.stateTime = 0f;
+                    burst.damageApplied = false;
+                    triggerGolemExplosionCameraShake();
+                    if (!playedExplosionSfxThisFrame) {
+                        playGolem1ExplosionSfx();
+                        playedExplosionSfxThisFrame = true;
+                    }
+                }
+            }
+            if (!burst.active) {
+                continue;
+            }
+            burst.stateTime += safeDelta;
+            if (!burst.damageApplied && burst.stateTime >= impactTime) {
+                burst.damageApplied = true;
+                applyBossArenaPhase2ExplosionHitToPlayer(burst);
+            }
+            if (bossArenaPhase2ExplosionAnim.isAnimationFinished(burst.stateTime)) {
+                bossArenaPhase2Explosions.removeIndex(i);
+            }
+        }
+    }
+
+    private boolean hasPendingOrActiveBossArenaPhase2Explosions() {
+        return bossArenaPhase2Explosions.size > 0;
+    }
+
+    private void queueBossArenaPhase2ExplosionPattern(BossArenaPhase2DemonInstance demon) {
+        bossArenaPhase2Explosions.clear();
+        ensureSixthQuestFinalArenaLayout();
+        Rectangle bounds = sixthQuestFinalPhaseExplosionBounds.width > 0f && sixthQuestFinalPhaseExplosionBounds.height > 0f
+                ? new Rectangle(sixthQuestFinalPhaseExplosionBounds)
+                : (world.mapBounds != null ? new Rectangle(world.mapBounds) : null);
+        if (bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+            return;
+        }
+
+        float margin = BOSS_ARENA_PHASE_2_EXPLOSION_EDGE_MARGIN_TILES * DEFAULT_TILE_SIZE;
+        float minX = bounds.x + margin;
+        float maxX = bounds.x + bounds.width - margin;
+        float minY = bounds.y + margin;
+        float maxY = bounds.y + bounds.height - margin;
+        if (maxX <= minX || maxY <= minY) {
+            minX = bounds.x;
+            maxX = bounds.x + bounds.width;
+            minY = bounds.y;
+            maxY = bounds.y + bounds.height;
+        }
+
+        float minSeparation = BOSS_ARENA_PHASE_2_EXPLOSION_MIN_SEPARATION_TILES * DEFAULT_TILE_SIZE;
+        float minSeparationSq = minSeparation * minSeparation;
+        Rectangle testBounds = new Rectangle();
+        float testSize = DEFAULT_TILE_SIZE;
+        int attempts = 0;
+        while (bossArenaPhase2Explosions.size < BOSS_ARENA_PHASE_2_EXPLOSION_SPOT_COUNT && attempts < 600) {
+            attempts++;
+            float spotX = minX + (float) Math.random() * Math.max(1f, maxX - minX);
+            float spotY = minY + (float) Math.random() * Math.max(1f, maxY - minY);
+            testBounds.set(spotX - testSize * 0.5f, spotY - testSize * 0.5f, testSize, testSize);
+            if (collides(testBounds)) {
+                continue;
+            }
+
+            boolean tooClose = false;
+            for (int i = 0; i < bossArenaPhase2Explosions.size; i++) {
+                BossArenaPhase2ExplosionInstance existing = bossArenaPhase2Explosions.get(i);
+                float dx = existing.position.x - spotX;
+                float dy = existing.position.y - spotY;
+                if (dx * dx + dy * dy < minSeparationSq) {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if (tooClose) {
+                continue;
+            }
+
+            BossArenaPhase2ExplosionInstance burst = new BossArenaPhase2ExplosionInstance();
+            burst.position.set(spotX, spotY);
+            burst.delayTimer = BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_SECONDS
+                    + (float) Math.random() * BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_JITTER_SECONDS;
+            bossArenaPhase2Explosions.add(burst);
+        }
+
+        if (bossArenaPhase2Explosions.size == 0) {
+            BossArenaPhase2ExplosionInstance fallbackBurst = new BossArenaPhase2ExplosionInstance();
+            if (demon != null) {
+                fallbackBurst.position.set(demon.position.x, demon.position.y);
+            } else {
+                fallbackBurst.position.set(bounds.x + bounds.width * 0.5f, bounds.y + bounds.height * 0.5f);
+            }
+            fallbackBurst.delayTimer = BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_SECONDS;
+            bossArenaPhase2Explosions.add(fallbackBurst);
+        }
+    }
+
+    private void applyBossArenaPhase2ExplosionHitToPlayer(BossArenaPhase2ExplosionInstance burst) {
+        if (burst == null || player.currentHealth <= 0f || isPlayerHazardHitReactionActive()) {
+            return;
+        }
+        float radius = currentBossArenaPhase2ExplosionRadiusTiles() * DEFAULT_TILE_SIZE;
+        float radiusSq = radius * radius;
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float dx = playerCenterX - burst.position.x;
+        float dy = playerCenterY - burst.position.y;
+        if (dx * dx + dy * dy > radiusSq) {
+            return;
+        }
+        applyDamageToPlayer(SIXTH_QUEST_BOSS_PHASE_2_DAMAGE);
     }
 
     private void updateFifthQuestDemons(float delta) {
@@ -5402,6 +5945,51 @@ public class GameScreen extends ScreenAdapter {
         return BOSS_ARENA_PHASE_2_DEMON_FRAME_HEIGHT;
     }
 
+    private TextureRegion currentBossArenaPhase2DemonAttackFrame(float attackStateTime) {
+        if (bossArenaPhase2DemonAttackAnim == null) {
+            return null;
+        }
+        return bossArenaPhase2DemonAttackAnim.getKeyFrame(
+                adjustedBossArenaPhase2DemonAttackTime(attackStateTime),
+                false);
+    }
+
+    private float adjustedBossArenaPhase2DemonAttackTime(float attackStateTime) {
+        if (bossArenaPhase2DemonAttackAnim == null) {
+            return attackStateTime;
+        }
+        int attackFrameCount = bossArenaPhase2DemonAttackFrameTextures.size;
+        if (attackFrameCount <= 0
+                || BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX < 0
+                || BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX >= attackFrameCount) {
+            return attackStateTime;
+        }
+        float frameDuration = bossArenaPhase2DemonAttackAnim.getFrameDuration();
+        float holdStartTime = frameDuration * BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX;
+        float holdEndTime = holdStartTime + BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_SECONDS;
+        if (attackStateTime < holdStartTime) {
+            return attackStateTime;
+        }
+        if (attackStateTime < holdEndTime) {
+            return holdStartTime;
+        }
+        return attackStateTime - BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_SECONDS;
+    }
+
+    private float bossArenaPhase2DemonAttackAnimationDuration() {
+        if (bossArenaPhase2DemonAttackAnim == null) {
+            return 0f;
+        }
+        int attackFrameCount = bossArenaPhase2DemonAttackFrameTextures.size;
+        if (attackFrameCount <= 0
+                || BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX < 0
+                || BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_FRAME_INDEX >= attackFrameCount) {
+            return bossArenaPhase2DemonAttackAnim.getAnimationDuration();
+        }
+        return bossArenaPhase2DemonAttackAnim.getAnimationDuration()
+                + BOSS_ARENA_PHASE_2_DEMON_ATTACK_HOLD_SECONDS;
+    }
+
     private TextureRegion firstBossArenaPhase2DemonReferenceFrame() {
         if (bossArenaPhase2DemonIdleAnim != null) {
             return bossArenaPhase2DemonIdleAnim.getKeyFrame(0f, true);
@@ -6029,6 +6617,105 @@ public class GameScreen extends ScreenAdapter {
                 camera.position.set(playerTargetX, playerTargetY, 0f);
             }
         }
+    }
+
+    private void startBossArenaFinalIntroSequence() {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)
+                || isBossArenaFinalIntroActive()
+                || firstQuestDialogueActive
+                || activeQuestDialogueId != QuestDialogueId.NONE) {
+            return;
+        }
+        ensureSixthQuestFinalArenaLayout();
+        if (bossArenaPhase2Demons.size == 0) {
+            configureBossArenaPhase2Demons();
+        }
+        stopPlayerForDoorAction();
+        player.moving = false;
+        bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.AUTO_WALK;
+        bossArenaFinalIntroTimer = BOSS_ARENA_FINAL_INTRO_AUTO_WALK_SECONDS;
+    }
+
+    private void updateBossArenaFinalIntroSequence(float delta) {
+        if (!isBossArenaFinalIntroActive() || camera == null || !MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        float playerTargetX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerTargetY = player.bounds.y + player.bounds.height * 0.5f;
+        if (bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.AUTO_WALK) {
+            float step = currentPlayerMoveSpeed() * safeDelta;
+            tryMove(step, 0f);
+            player.lastMoveX = 1f;
+            player.lastMoveY = 0f;
+            player.facingLeft = false;
+            player.moving = true;
+            smoothCameraToward(playerTargetX, playerTargetY, safeDelta);
+            bossArenaFinalIntroTimer = Math.max(0f, bossArenaFinalIntroTimer - safeDelta);
+            if (bossArenaFinalIntroTimer <= 0f) {
+                player.moving = false;
+                bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.FOCUS_BOSS;
+                bossArenaFinalIntroTimer = BOSS_ARENA_FINAL_INTRO_FOCUS_SECONDS;
+                startDemonBattleMusic();
+            }
+            return;
+        }
+        if (bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.FOCUS_BOSS) {
+            player.moving = false;
+            if (resolveBossArenaFinalIntroCameraTarget()) {
+                smoothCameraToward(
+                        bossArenaFinalIntroCameraTarget.x,
+                        bossArenaFinalIntroCameraTarget.y + BOSS_ARENA_FINAL_INTRO_CAMERA_Y_OFFSET_TILES * DEFAULT_TILE_SIZE,
+                        safeDelta);
+            } else {
+                smoothCameraToward(playerTargetX, playerTargetY, safeDelta);
+            }
+            float zoomAlpha = 1f - (float) Math.exp(-TELEPORT_CAMERA_SMOOTH_SPEED * safeDelta);
+            float targetZoom = DEFAULT_ZOOM * BOSS_ARENA_FINAL_INTRO_ZOOM_MULTIPLIER;
+            camera.zoom = lerp(camera.zoom, targetZoom, zoomAlpha);
+            if (Math.abs(camera.zoom - targetZoom) < 0.0005f) {
+                camera.zoom = targetZoom;
+            }
+            bossArenaFinalIntroTimer = Math.max(0f, bossArenaFinalIntroTimer - safeDelta);
+            if (bossArenaFinalIntroTimer <= 0f) {
+                bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.NONE;
+                startQuestDialogue(
+                        QuestDialogueId.SIXTH_QUEST_FINAL_PHASE_INTRO,
+                        SIXTH_QUEST_FINAL_PHASE_INTRO_SPEAKERS,
+                        SIXTH_QUEST_FINAL_PHASE_INTRO_DIALOGUE_LINES);
+            }
+        }
+    }
+
+    private void updateBossArenaHudReveal(float delta) {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            bossArenaHudRevealTimer = 0f;
+            return;
+        }
+        if (isBossArenaFinalIntroActive()) {
+            bossArenaHudRevealTimer = 0f;
+            return;
+        }
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        if (boss == null || boss.health <= 0f) {
+            bossArenaHudRevealTimer = 0f;
+            return;
+        }
+        bossArenaHudRevealTimer = Math.min(
+                BOSS_ARENA_HUD_FADE_IN_SECONDS,
+                bossArenaHudRevealTimer + Math.max(0f, delta));
+    }
+
+    private boolean resolveBossArenaFinalIntroCameraTarget() {
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        if (boss != null && boss.health > 0f) {
+            bossArenaFinalIntroCameraTarget.set(
+                    bossArenaPhase2DemonHitboxCenterX(boss),
+                    bossArenaPhase2DemonHitboxCenterY(boss));
+            return true;
+        }
+        ensureSixthQuestFinalArenaLayout();
+        return setVectorToRectCenter(bossArenaFinalIntroCameraTarget, sixthQuestFinalPhaseSpawnBounds);
     }
 
     private boolean resolveBoss1IntroCameraTarget() {
@@ -6832,6 +7519,9 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private MapLayer findLayerByName(String name) {
+        if (world.map == null || name == null || name.isBlank()) {
+            return null;
+        }
         return findLayerByName(world.map.getLayers(), name);
     }
 
@@ -6844,6 +7534,9 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private MapLayer findLayerByName(MapLayers layers, String name) {
+        if (layers == null || name == null || name.isBlank()) {
+            return null;
+        }
         for (MapLayer layer : layers) {
             if (name.equalsIgnoreCase(layer.getName())) {
                 return layer;
@@ -7129,12 +7822,67 @@ public class GameScreen extends ScreenAdapter {
     private void updateFirstQuest(float delta) {
         firstQuestMarkerTimer += Math.max(0f, delta);
         firstQuestCafeNpcStateTime += Math.max(0f, delta);
+        updateSixthQuestEndingNpcFade(delta);
+        updateSixthQuestEndingVideoSequence(delta);
         questGuidanceSuppressTimer = Math.max(0f, questGuidanceSuppressTimer - Math.max(0f, delta));
         updateThirdQuest(delta);
         updateFourthQuest(delta);
         updateFifthQuest(delta);
         updateSixthQuest(delta);
         refreshFirstQuestGuidance();
+    }
+
+    private void updateSixthQuestEndingNpcFade(float delta) {
+        if (!sixthQuestEndingNpcFadeActive) {
+            if (sixthQuestStage < SIXTH_QUEST_ENDING) {
+                sixthQuestEndingNpcFadeTimer = 0f;
+            }
+            return;
+        }
+        sixthQuestEndingNpcFadeTimer = Math.min(
+                SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS,
+                sixthQuestEndingNpcFadeTimer + Math.max(0f, delta));
+    }
+
+    private void updateSixthQuestEndingVideoSequence(float delta) {
+        if (!sixthQuestEndingVideoSequenceActive || sixthQuestEndingVideoTriggered) {
+            if (!sixthQuestEndingVideoSequenceActive && sixthQuestStage < SIXTH_QUEST_ENDING) {
+                sixthQuestEndingVideoSequenceTimer = 0f;
+            }
+            return;
+        }
+        sixthQuestEndingVideoSequenceTimer += Math.max(0f, delta);
+        float totalDuration = SIXTH_QUEST_ENDING_VIDEO_DELAY_SECONDS + SIXTH_QUEST_ENDING_VIDEO_FADE_SECONDS;
+        if (sixthQuestEndingVideoSequenceTimer < totalDuration) {
+            return;
+        }
+        sixthQuestEndingVideoTriggered = true;
+        if (sixthQuestEndingMusic != null && sixthQuestEndingMusicPlaying) {
+            game.handoffPersistentMusic(sixthQuestEndingMusic, SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME);
+            sixthQuestEndingMusic = null;
+            sixthQuestEndingMusicPlaying = false;
+            sixthQuestEndingMusicFadeProgress = 0f;
+        }
+        game.playEndingVideo();
+    }
+
+    private void updateFifthQuestLabVillagers(float delta) {
+        boolean shouldShowVillagers = MAP_ID_RESEARCH_LAB_FLOOR_1.equals(world.activeMapId)
+                && (fifthQuestStage == FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE
+                || activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_LAB_ALARM);
+        if (!shouldShowVillagers) {
+            fifthQuestLabVillagersFadeTimer = 0f;
+            fifthQuestLabVillagersVisibleLastFrame = false;
+            return;
+        }
+        if (!fifthQuestLabVillagersVisibleLastFrame) {
+            fifthQuestLabVillagersFadeTimer = 0f;
+            fifthQuestLabVillagersVisibleLastFrame = true;
+        } else {
+            fifthQuestLabVillagersFadeTimer = Math.min(
+                    FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS,
+                    fifthQuestLabVillagersFadeTimer + Math.max(0f, delta));
+        }
     }
 
     private void refreshFirstQuestGuidance() {
@@ -7417,13 +8165,18 @@ public class GameScreen extends ScreenAdapter {
         if (fifthQuestStage == FIFTH_QUEST_COMPLETE
                 && sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL
                 && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Enter the Portal and raid the Demon Castle.");
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Go to the dormant portal.");
             return;
         }
         if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
                 && sixthQuestStage < SIXTH_QUEST_ENDING
                 && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE, "Return to the portal and continue the assault.");
+            hudRenderer.showPersistentNotification(SIXTH_QUEST_NOTIFICATION_TITLE,
+                    sixthQuestPortalChoiceVisible
+                            ? "Choose whether to enter the final stage."
+                            : (isSixthQuestPortalActivationRunning()
+                            ? "The portal is opening."
+                            : "Go to the dormant portal."));
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_OUTER_ASSAULT && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
@@ -7801,6 +8554,8 @@ public class GameScreen extends ScreenAdapter {
         fifthQuestEncounterSpawned = false;
         fifthQuestCommanderCalloutTimer = 0f;
         fifthQuestCommanderCalloutIndex = 0;
+        fifthQuestLabVillagersFadeTimer = 0f;
+        fifthQuestLabVillagersVisibleLastFrame = false;
         showQuestNotification(
                 FIFTH_QUEST_NOTIFICATION_TITLE,
                 "Objective Updated: Go to the abandoned village by the portal.",
@@ -8087,10 +8842,16 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void updateSixthQuest(float delta) {
-        if (sixthQuestStage <= SIXTH_QUEST_DISABLED || sixthQuestStage >= SIXTH_QUEST_COMPLETE || isFirstQuestOverlayActive()) {
+        if (sixthQuestStage <= SIXTH_QUEST_DISABLED
+                || sixthQuestStage >= SIXTH_QUEST_COMPLETE
+                || (isFirstQuestOverlayActive() && !isSixthQuestPortalActivationRunning())) {
             return;
         }
 
+        if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL) {
+            updateSixthQuestPortalActivation(delta);
+            return;
+        }
         if (sixthQuestStage == SIXTH_QUEST_OUTER_ASSAULT) {
             updateSixthQuestOuterAssault();
             return;
@@ -8217,9 +8978,20 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         Rectangle spawnBounds = objectLayerBounds(findLayerByName(BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME));
+        Rectangle explosionWalkableBounds = objectLayerBounds(findLayerByName(BOSS_ARENA_PHASE_2_EXPLOSION_WALKABLE_LAYER_NAME));
+        Rectangle walkableBounds = objectLayerBounds(findLayerByName(BOSS_WALKABLE_LAYER_NAME));
         Rectangle mapBounds = world.mapBounds != null ? new Rectangle(world.mapBounds) : new Rectangle(0f, 0f, 0f, 0f);
-        if (mapBounds.width > 0f && mapBounds.height > 0f) {
+        if (hasValidBossZoneBounds(walkableBounds)) {
+            sixthQuestFinalPhaseBounds.set(walkableBounds);
+        } else if (mapBounds.width > 0f && mapBounds.height > 0f) {
             sixthQuestFinalPhaseBounds.set(mapBounds);
+        }
+        if (hasValidBossZoneBounds(explosionWalkableBounds)) {
+            sixthQuestFinalPhaseExplosionBounds.set(explosionWalkableBounds);
+        } else if (sixthQuestFinalPhaseBounds.width > 0f && sixthQuestFinalPhaseBounds.height > 0f) {
+            sixthQuestFinalPhaseExplosionBounds.set(sixthQuestFinalPhaseBounds);
+        } else {
+            sixthQuestFinalPhaseExplosionBounds.set(0f, 0f, 0f, 0f);
         }
         if (spawnBounds != null) {
             sixthQuestFinalPhaseSpawnBounds.set(spawnBounds);
@@ -8768,10 +9540,16 @@ public class GameScreen extends ScreenAdapter {
         if (fourthQuestEncounterSpawned && countFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH) <= 0) {
             fourthQuestEncounterSpawned = false;
             clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH);
-            startQuestDialogue(
-                    QuestDialogueId.FOURTH_QUEST_BREACH_AFTER,
-                    FOURTH_QUEST_BREACH_AFTER_SPEAKERS,
-                    FOURTH_QUEST_BREACH_AFTER_DIALOGUE_LINES);
+            showQuestItemCard(
+                    QuestItemCardId.FOURTH_QUEST_CONDENSED_CORE,
+                    "",
+                    "You received the Condensed Core left behind by the breach.",
+                    fourthQuestCondensedCoreTex,
+                    1f,
+                    0.866f,
+                    0f,
+                    -10f,
+                    0f);
         }
     }
 
@@ -9209,12 +9987,15 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private boolean isFirstQuestOverlayActive() {
-        return firstQuestDialogueActive || firstQuestItemCardVisible;
+        return firstQuestDialogueActive || firstQuestItemCardVisible || sixthQuestPortalChoiceVisible;
     }
 
     private boolean handleFirstQuestOverlayInput() {
         if (!isFirstQuestOverlayActive()) {
             return false;
+        }
+        if (sixthQuestPortalChoiceVisible) {
+            return handleSixthQuestPortalChoiceInput();
         }
         boolean advancePressed = Gdx.input.isKeyJustPressed(Input.Keys.E)
                 || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
@@ -9239,6 +10020,53 @@ public class GameScreen extends ScreenAdapter {
             return true;
         }
 
+        return true;
+    }
+
+    private boolean handleSixthQuestPortalChoiceInput() {
+        if (!sixthQuestPortalChoiceVisible) {
+            return false;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)
+                || Gdx.input.isKeyJustPressed(Input.Keys.A)
+                || Gdx.input.isKeyJustPressed(Input.Keys.UP)
+                || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+            sixthQuestPortalChoiceIndex = 0;
+            return true;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)
+                || Gdx.input.isKeyJustPressed(Input.Keys.D)
+                || Gdx.input.isKeyJustPressed(Input.Keys.DOWN)
+                || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+            sixthQuestPortalChoiceIndex = 1;
+            return true;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            confirmSixthQuestPortalChoice(false);
+            return true;
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && uiCamera != null) {
+            sixthQuestPortalChoiceUiPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0f);
+            uiCamera.unproject(sixthQuestPortalChoiceUiPoint);
+            float uiX = sixthQuestPortalChoiceUiPoint.x;
+            float uiY = sixthQuestPortalChoiceUiPoint.y;
+            if (sixthQuestPortalChoiceYesBounds.contains(uiX, uiY)) {
+                sixthQuestPortalChoiceIndex = 0;
+                confirmSixthQuestPortalChoice(true);
+                return true;
+            }
+            if (sixthQuestPortalChoiceNoBounds.contains(uiX, uiY)) {
+                sixthQuestPortalChoiceIndex = 1;
+                confirmSixthQuestPortalChoice(false);
+                return true;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            confirmSixthQuestPortalChoice(sixthQuestPortalChoiceIndex == 0);
+            return true;
+        }
         return true;
     }
 
@@ -9425,16 +10253,24 @@ public class GameScreen extends ScreenAdapter {
             case SIXTH_QUEST_PHASE_1_INTRO -> beginSixthQuestBossPhase1();
             case SIXTH_QUEST_PHASE_1_TRANSITION -> beginSixthQuestFinalPhaseIntro();
             case SIXTH_QUEST_FINAL_PHASE_INTRO -> beginSixthQuestFinalPhaseBattle();
-            case SIXTH_QUEST_ENDING -> showQuestItemCard(
-                    QuestItemCardId.SIXTH_QUEST_CLEAR,
-                    "The Last Ember",
-                    "The fire that once took everything from her was finally extinguished.\nFrom grief, she found strength. From ashes, she found a home. And from the last ember, a new dawn was born.",
-                    null,
-                    0.92f,
-                    1f,
-                    0f,
-                    44f,
-                    0f);
+            case SIXTH_QUEST_ENDING -> {
+                sixthQuestEndingNpcFadeActive = true;
+                sixthQuestEndingNpcFadeTimer = 0f;
+                triggerSixthQuestEndingMusicTransition();
+                sixthQuestEndingVideoSequenceActive = true;
+                sixthQuestEndingVideoTriggered = false;
+                sixthQuestEndingVideoSequenceTimer = 0f;
+                showQuestItemCard(
+                        QuestItemCardId.SIXTH_QUEST_CLEAR,
+                        "The Last Ember",
+                        "The fire that once took everything from her was finally extinguished.\nFrom grief, she found strength. From ashes, she found a home. And from the last ember, a new dawn was born.",
+                        null,
+                        0.92f,
+                        1f,
+                        0f,
+                        44f,
+                        0f);
+            }
             default -> {
             }
         }
@@ -9472,6 +10308,10 @@ public class GameScreen extends ScreenAdapter {
                         "Objective Updated: Return to the Scientist.",
                         FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
             }
+            case FOURTH_QUEST_CONDENSED_CORE -> startQuestDialogue(
+                    QuestDialogueId.FOURTH_QUEST_BREACH_AFTER,
+                    FOURTH_QUEST_BREACH_AFTER_SPEAKERS,
+                    FOURTH_QUEST_BREACH_AFTER_DIALOGUE_LINES);
             case THIRD_QUEST_DASH_ATTACK_UNLOCKED -> startQuestDialogue(
                     QuestDialogueId.FOURTH_QUEST_INTERRUPTION,
                     FOURTH_QUEST_INTERRUPTION_SPEAKERS,
@@ -9515,14 +10355,21 @@ public class GameScreen extends ScreenAdapter {
         if (hudRenderer == null || !hudRenderer.isMainMenuVisible()) {
             return false;
         }
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            HudRenderer.PauseMenuAction clickedAction =
-                    hudRenderer.handleMainMenuClick(Gdx.input.getX(), Gdx.input.getY());
-            if (executePauseMenuAction(clickedAction)) {
-                return true;
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                HudRenderer.PauseMenuAction clickedAction =
+                        hudRenderer.handleMainMenuClick(Gdx.input.getX(), Gdx.input.getY());
+                if (executePauseMenuAction(clickedAction)) {
+                    return true;
+                }
+            } else {
+                hudRenderer.handleMainMenuDrag(Gdx.input.getX(), Gdx.input.getY());
             }
+        } else {
+            hudRenderer.endMainMenuDrag();
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            hudRenderer.endMainMenuDrag();
             if (hudRenderer.isMainMenuConfirmationVisible()) {
                 hudRenderer.cancelMainMenuConfirmation();
             } else {
@@ -9587,9 +10434,9 @@ public class GameScreen extends ScreenAdapter {
                 return false;
             }
             case RELOAD_AUTOSAVE -> {
-                if (SaveGameService.load(SaveGameService.AUTOSAVE_SLOT_ID) == null) {
+                if (SaveGameService.load(activeSaveSlotId) == null) {
                     if (hudRenderer != null) {
-                        hudRenderer.showNotification("Autosave", "No autosave is available to reload.", 2.4f);
+                        hudRenderer.showNotification("Save", "No save is available to reload.", 2.4f);
                     }
                     return false;
                 }
@@ -9597,7 +10444,7 @@ public class GameScreen extends ScreenAdapter {
                     hudRenderer.closeMainMenu();
                 }
                 if (game != null) {
-                    game.loadGame(SaveGameService.AUTOSAVE_SLOT_ID);
+                    game.loadGame(activeSaveSlotId);
                     return true;
                 }
                 return false;
@@ -9626,6 +10473,11 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (handleFirstQuestOverlayInput()) {
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
+        }
+        if (isSixthQuestPortalActivationRunning()) {
             player.moving = false;
             centerCameraOnPlayer();
             return;
@@ -9664,6 +10516,13 @@ public class GameScreen extends ScreenAdapter {
         if ((Gdx.input.isKeyJustPressed(Input.Keys.M) || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
                 && hudRenderer != null) {
             hudRenderer.openMainMenu();
+            player.moving = false;
+            centerCameraOnPlayer();
+            return;
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+                && hudRenderer != null
+                && hudRenderer.handleQuestPanelClick(Gdx.input.getX(), Gdx.input.getY())) {
             player.moving = false;
             centerCameraOnPlayer();
             return;
@@ -9889,18 +10748,178 @@ public class GameScreen extends ScreenAdapter {
 
         if ("/to".equals(command)) {
             String destination = tokens[1].toLowerCase(Locale.ROOT);
+            if (destination.startsWith("quest") && jumpToQuestDebugStart(destination)) {
+                return;
+            }
             if ("castle".equals(destination)) {
                 teleportToMap(MAP_ID_DEMON_CASTLE, "Spawn");
             } else if ("village".equals(destination)) {
                 teleportToMap(MAP_ID_VILLAGE, null);
             } else if ("boss".equals(destination)) {
-                teleportToMap(MAP_ID_BOSS_ARENA_PHASE_2, "SPAWN");
+                sixthQuestStage = SIXTH_QUEST_FINAL_PHASE_INTRO;
+                sixthQuestEncounterSpawned = false;
+                sixthQuestBossCalloutTimer = 0f;
+                sixthQuestBossCalloutIndex = 0;
+                sixthQuestLowHealthExchangePlayed = false;
+                bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.NONE;
+                bossArenaFinalIntroTimer = 0f;
+                bossArenaFinalIntroCameraTarget.setZero();
+                teleportToMap(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
             }
             return;
         }
 
         if ("/spawn".equals(command) && "bat".equalsIgnoreCase(tokens[1])) {
             spawnBatInFrontOfPlayer();
+        }
+    }
+
+    private boolean jumpToQuestDebugStart(String destination) {
+        if (destination == null || destination.isBlank()) {
+            return false;
+        }
+        switch (destination) {
+            case "quest1" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_TALK_TO_FATHER;
+                secondQuestStage = SECOND_QUEST_DISABLED;
+                thirdQuestStage = THIRD_QUEST_DISABLED;
+                fourthQuestStage = FOURTH_QUEST_DISABLED;
+                fifthQuestStage = FIFTH_QUEST_DISABLED;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(1);
+                scientistProgressionUnlocked = false;
+                thirdQuestAvailable = false;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(1);
+                teleportToMap(MAP_ID_INN_ROOM, "FIRST-SPAWN");
+                notifyQuestDebugJump("Quest 1");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            case "quest2" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_TALK_TO_CAFE_OWNER;
+                thirdQuestStage = THIRD_QUEST_DISABLED;
+                fourthQuestStage = FOURTH_QUEST_DISABLED;
+                fifthQuestStage = FIFTH_QUEST_DISABLED;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(1);
+                scientistProgressionUnlocked = false;
+                thirdQuestAvailable = false;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(1);
+                teleportToMap(MAP_ID_VILLAGE, FIRST_QUEST_CAFE_ENTRANCE_LAYER_NAME);
+                notifyQuestDebugJump("Quest 2");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            case "quest3" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_COMPLETE;
+                thirdQuestStage = THIRD_QUEST_RETURN_TO_FATHER;
+                fourthQuestStage = FOURTH_QUEST_DISABLED;
+                fifthQuestStage = FIFTH_QUEST_DISABLED;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(QUEST_2_LEVEL_CAP);
+                scientistProgressionUnlocked = true;
+                thirdQuestAvailable = true;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(QUEST_2_LEVEL_CAP);
+                teleportToMap(MAP_ID_RESEARCH_LAB_FLOOR_1, null);
+                notifyQuestDebugJump("Quest 3");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            case "quest4" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_COMPLETE;
+                thirdQuestStage = THIRD_QUEST_COMPLETE;
+                fourthQuestStage = FOURTH_QUEST_REPORT_TO_SCIENTIST;
+                fifthQuestStage = FIFTH_QUEST_DISABLED;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(QUEST_3_LEVEL_CAP);
+                scientistProgressionUnlocked = true;
+                thirdQuestAvailable = true;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(QUEST_3_LEVEL_CAP);
+                teleportToMap(MAP_ID_VILLAGE, THIRD_QUEST_TRAINING_AREA_LAYER_NAME);
+                notifyQuestDebugJump("Quest 4");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            case "quest4.1" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_COMPLETE;
+                thirdQuestStage = THIRD_QUEST_COMPLETE;
+                fourthQuestStage = FOURTH_QUEST_COMPLETE;
+                fifthQuestStage = FIFTH_QUEST_COMPLETE;
+                sixthQuestStage = SIXTH_QUEST_FINAL_PHASE_INTRO;
+                progressionLevelCap = clampProgressionLevelCap(QUEST_4_LEVEL_CAP);
+                scientistProgressionUnlocked = true;
+                thirdQuestAvailable = true;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(QUEST_4_LEVEL_CAP);
+                teleportToMap(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
+                notifyQuestDebugJump("Quest 4.1");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
+    private void prepareQuestDebugState() {
+        firstQuestDialogueActive = false;
+        firstQuestItemCardVisible = false;
+        firstQuestDialogueLineIndex = 0;
+        activeQuestDialogueId = QuestDialogueId.NONE;
+        activeQuestDialogueSpeakers = new String[0];
+        activeQuestDialogueLines = new String[0];
+        activeQuestItemCardId = QuestItemCardId.NONE;
+        activeQuestItemTitle = "";
+        activeQuestItemDescription = "";
+        activeQuestItemTexture = null;
+        activeQuestItemTitleScale = 1f;
+        activeQuestItemImageScaleMultiplier = 1f;
+        activeQuestItemTitleOffsetY = 0f;
+        activeQuestItemDescriptionOffsetY = 0f;
+        activeQuestItemHintOffsetY = 0f;
+        questGuidanceSuppressTimer = 0f;
+        sixthQuestEncounterSpawned = false;
+        sixthQuestBossCalloutTimer = 0f;
+        sixthQuestBossCalloutIndex = 0;
+        sixthQuestLowHealthExchangePlayed = false;
+        bossArenaFinalIntroPhase = BossArenaFinalIntroPhase.NONE;
+        bossArenaFinalIntroTimer = 0f;
+        bossArenaFinalIntroCameraTarget.setZero();
+        bossArenaHudRevealTimer = 0f;
+        clearSixthQuestPortalActivation();
+        clearSpawnedBat();
+        clearSpawnedGolem1();
+        clearSpawnedBossArenaPhase2Demons();
+        clearSpawnedFifthQuestDemons();
+    }
+
+    private void restorePlayerForQuestDebug(int level) {
+        int safeLevel = PlayerLevelStats.clampLevel(level);
+        applyPlayerLevelStats(
+                safeLevel,
+                PlayerLevelStats.maxHealthForLevel(safeLevel),
+                PlayerLevelStats.maxStaminaForLevel(safeLevel));
+        clearPlayerHazardHitReaction();
+        resetPlayerDeathState();
+    }
+
+    private void notifyQuestDebugJump(String label) {
+        if (hudRenderer != null && label != null && !label.isBlank()) {
+            hudRenderer.showNotification("System", "Jumped to " + label + ".", 2.4f);
         }
     }
 
@@ -9943,6 +10962,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void clearSpawnedBossArenaPhase2Demons() {
         bossArenaPhase2Demons.clear();
+        bossArenaPhase2Explosions.clear();
     }
 
     private void clearSpawnedFifthQuestDemons() {
@@ -9978,6 +10998,34 @@ public class GameScreen extends ScreenAdapter {
             }
         }
         bossArenaPhase2DemonHurtFrameTextures.clear();
+        for (int i = 0; i < bossArenaPhase2SkillStartFrameTextures.size; i++) {
+            Texture frameTexture = bossArenaPhase2SkillStartFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        bossArenaPhase2SkillStartFrameTextures.clear();
+        for (int i = 0; i < bossArenaPhase2SkillLoopFrameTextures.size; i++) {
+            Texture frameTexture = bossArenaPhase2SkillLoopFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        bossArenaPhase2SkillLoopFrameTextures.clear();
+        for (int i = 0; i < bossArenaPhase2SkillEndFrameTextures.size; i++) {
+            Texture frameTexture = bossArenaPhase2SkillEndFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        bossArenaPhase2SkillEndFrameTextures.clear();
+        for (int i = 0; i < bossArenaPhase2ExplosionFrameTextures.size; i++) {
+            Texture frameTexture = bossArenaPhase2ExplosionFrameTextures.get(i);
+            if (frameTexture != null) {
+                frameTexture.dispose();
+            }
+        }
+        bossArenaPhase2ExplosionFrameTextures.clear();
     }
 
     private void clearSpawnedRewardChests() {
@@ -10290,7 +11338,7 @@ public class GameScreen extends ScreenAdapter {
                 && isVillagePortalActive()
                 && isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
             if (sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_INTRO) {
-                startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+                startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
             } else {
                 startMapTransition(MAP_ID_DEMON_CASTLE, "Spawn");
             }
@@ -10436,6 +11484,47 @@ public class GameScreen extends ScreenAdapter {
         return doorAnimationVisualBounds(world.npcAnimationFrames);
     }
 
+    private Rectangle sixthQuestEndingFatherBounds() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)
+                || sixthQuestStage < SIXTH_QUEST_ENDING
+                || thirdQuestFatherVillageTiles == null
+                || thirdQuestFatherVillageTiles.length < 4) {
+            return null;
+        }
+        Rectangle portalBounds = sixthQuestActualPortalBounds();
+        if (portalBounds == null) {
+            portalBounds = objectLayerBounds(findLayerByName(FIFTH_QUEST_PORTAL_LAYER_NAME));
+        }
+        if (portalBounds == null) {
+            return null;
+        }
+        return new Rectangle(
+                portalBounds.x + portalBounds.width * 0.5f + SIXTH_QUEST_ENDING_FATHER_OFFSET_X_TILES * DEFAULT_TILE_SIZE,
+                portalBounds.y + SIXTH_QUEST_ENDING_FATHER_OFFSET_Y_TILES * DEFAULT_TILE_SIZE,
+                32f,
+                48f);
+    }
+
+    private Rectangle sixthQuestEndingScientistBounds() {
+        Rectangle fatherBounds = sixthQuestEndingFatherBounds();
+        if (fatherBounds == null || sixthQuestEndingScientistAnim == null) {
+            return null;
+        }
+        TextureRegion frame = sixthQuestEndingScientistAnim.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return null;
+        }
+        float drawW = frame.getRegionWidth() * SIXTH_QUEST_ENDING_SCIENTIST_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * SIXTH_QUEST_ENDING_SCIENTIST_DRAW_SCALE;
+        dialogueHighlightWorldBounds.set(
+                fatherBounds.x + fatherBounds.width * 0.5f + SIXTH_QUEST_ENDING_SCIENTIST_OFFSET_X_TILES * DEFAULT_TILE_SIZE
+                        - drawW * 0.5f,
+                fatherBounds.y + SIXTH_QUEST_ENDING_SCIENTIST_OFFSET_Y_TILES * DEFAULT_TILE_SIZE,
+                drawW,
+                drawH);
+        return dialogueHighlightWorldBounds;
+    }
+
     private boolean isPlayerNearScientistNpc() {
         return overlapsPlayerExpanded(scientistNpcBounds());
     }
@@ -10577,10 +11666,11 @@ public class GameScreen extends ScreenAdapter {
         sixthQuestBossCalloutTimer = 0f;
         sixthQuestBossCalloutIndex = 0;
         sixthQuestLowHealthExchangePlayed = false;
+        clearSixthQuestPortalActivation();
         applyVillagePortalVisualState();
         showQuestNotification(
                 SIXTH_QUEST_NOTIFICATION_TITLE,
-                "Objective Updated: Enter the Portal.",
+                "Objective Updated: Go to the dormant portal.",
                 FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
         refreshFirstQuestGuidance();
     }
@@ -10588,6 +11678,7 @@ public class GameScreen extends ScreenAdapter {
     private void beginSixthQuestOuterAssault() {
         sixthQuestStage = SIXTH_QUEST_OUTER_ASSAULT;
         sixthQuestEncounterSpawned = false;
+        clearSixthQuestPortalActivation();
         clearFifthQuestEncounterDemons(SIXTH_QUEST_ENCOUNTER_OUTER);
         showQuestNotification(
                 SIXTH_QUEST_NOTIFICATION_TITLE,
@@ -10643,7 +11734,7 @@ public class GameScreen extends ScreenAdapter {
         sixthQuestBossCalloutTimer = 0f;
         sixthQuestBossCalloutIndex = 0;
         sixthQuestLowHealthExchangePlayed = false;
-        startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+        startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
     }
 
     private void beginSixthQuestFinalPhaseBattle() {
@@ -10671,12 +11762,19 @@ public class GameScreen extends ScreenAdapter {
         sixthQuestBossCalloutTimer = 0f;
         sixthQuestBossCalloutIndex = 0;
         sixthQuestLowHealthExchangePlayed = false;
-        startMapTransition(MAP_ID_VILLAGE, FIFTH_QUEST_PORTAL_LAYER_NAME);
+        sixthQuestEndingNpcFadeActive = false;
+        sixthQuestEndingNpcFadeTimer = 0f;
+        sixthQuestEndingVideoSequenceActive = false;
+        sixthQuestEndingVideoTriggered = false;
+        sixthQuestEndingVideoSequenceTimer = 0f;
+        clearSixthQuestPortalActivation();
+        startMapTransition(MAP_ID_VILLAGE, VILLAGE_PORTAL_ACTUAL_LAYER_NAME);
     }
 
     private void finishSixthQuest() {
         sixthQuestStage = SIXTH_QUEST_COMPLETE;
         gameCompleted = true;
+        clearSixthQuestPortalActivation();
         applyVillagePortalVisualState();
         showQuestNotification(
                 "Game Complete",
@@ -10689,7 +11787,188 @@ public class GameScreen extends ScreenAdapter {
         if (gameCompleted || sixthQuestStage >= SIXTH_QUEST_ENDING) {
             return false;
         }
+        if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL) {
+            return isSixthQuestPortalActivationRunning();
+        }
         return fifthQuestStage >= FIFTH_QUEST_COMPLETE || sixthQuestStage > SIXTH_QUEST_DISABLED;
+    }
+
+    private boolean isSixthQuestPortalActivationRunning() {
+        return sixthQuestPortalActivationPhase != PortalActivationPhase.NONE;
+    }
+
+    private void clearSixthQuestPortalActivation() {
+        sixthQuestPortalActivationPhase = PortalActivationPhase.NONE;
+        sixthQuestPortalChoiceResult = PortalChoiceResult.NONE;
+        sixthQuestPortalActivationStateTime = 0f;
+        sixthQuestPortalActivationLoopTimer = 0f;
+        sixthQuestPortalChoiceVisible = false;
+        sixthQuestPortalChoiceIndex = 0;
+        sixthQuestPortalEffectStartPosition.setZero();
+        sixthQuestPortalEffectTargetPosition.setZero();
+        sixthQuestPortalEffectPosition.setZero();
+        sixthQuestPortalChoiceYesBounds.set(0f, 0f, 0f, 0f);
+        sixthQuestPortalChoiceNoBounds.set(0f, 0f, 0f, 0f);
+    }
+
+    private Rectangle sixthQuestInactivePortalBounds() {
+        return tiledLayerBounds(findLayerInGroup(VILLAGE_PORTAL_INACTIVE_LAYER_NAME, VILLAGE_PORTAL_INACTIVE_LAYER_NAME));
+    }
+
+    private Rectangle sixthQuestActivePortalBounds() {
+        return tiledLayerBounds(findLayerInGroup(VILLAGE_PORTAL_ACTIVE_LAYER_NAME, VILLAGE_PORTAL_ACTIVE_LAYER_NAME));
+    }
+
+    private Rectangle sixthQuestActualPortalBounds() {
+        return objectLayerBounds(findLayerByName(VILLAGE_PORTAL_ACTUAL_LAYER_NAME));
+    }
+
+    private Rectangle sixthQuestPortalInteractionBounds() {
+        Rectangle bounds = isSixthQuestPortalActivationRunning()
+                ? sixthQuestActivePortalBounds()
+                : sixthQuestInactivePortalBounds();
+        if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
+            return bounds;
+        }
+        bounds = sixthQuestActualPortalBounds();
+        if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
+            return bounds;
+        }
+        return objectLayerBounds(findLayerByName(FIFTH_QUEST_PORTAL_LAYER_NAME));
+    }
+
+    private boolean isPlayerWithinVillagePortalInteraction() {
+        Rectangle bounds = sixthQuestPortalInteractionBounds();
+        return bounds != null && Intersector.overlaps(player.bounds, bounds);
+    }
+
+    private Rectangle sixthQuestPortalGuideBounds() {
+        Rectangle bounds = sixthQuestInactivePortalBounds();
+        if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
+            return bounds;
+        }
+        bounds = sixthQuestActualPortalBounds();
+        if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
+            return bounds;
+        }
+        return objectLayerBounds(findLayerByName(FIFTH_QUEST_PORTAL_LAYER_NAME));
+    }
+
+    private void startSixthQuestPortalActivation() {
+        if (world.map == null || !MAP_ID_VILLAGE.equals(world.activeMapId) || isSixthQuestPortalActivationRunning()) {
+            return;
+        }
+        Rectangle startBounds = sixthQuestPortalGuideBounds();
+        Rectangle targetBounds = sixthQuestActualPortalBounds();
+        if (startBounds != null && startBounds.width > 0f && startBounds.height > 0f) {
+            sixthQuestPortalEffectStartPosition.set(
+                    startBounds.x + startBounds.width * 0.5f,
+                    startBounds.y + startBounds.height * 0.5f);
+        } else {
+            sixthQuestPortalEffectStartPosition.set(player.bounds.x + player.bounds.width * 0.5f,
+                    player.bounds.y + player.bounds.height * 0.5f);
+        }
+        if (targetBounds != null && targetBounds.width > 0f && targetBounds.height > 0f) {
+            sixthQuestPortalEffectTargetPosition.set(
+                    targetBounds.x + targetBounds.width * 0.5f,
+                    targetBounds.y + targetBounds.height * 0.5f);
+        } else {
+            sixthQuestPortalEffectTargetPosition.set(sixthQuestPortalEffectStartPosition);
+        }
+        sixthQuestPortalEffectPosition.set(sixthQuestPortalEffectStartPosition);
+        sixthQuestPortalActivationPhase = bossArenaPhase2SkillStartAnim != null
+                ? PortalActivationPhase.START
+                : PortalActivationPhase.LOOP;
+        sixthQuestPortalChoiceResult = PortalChoiceResult.NONE;
+        sixthQuestPortalActivationStateTime = 0f;
+        sixthQuestPortalActivationLoopTimer = 0f;
+        sixthQuestPortalChoiceVisible = false;
+        sixthQuestPortalChoiceIndex = 0;
+        applyVillagePortalVisualState();
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    SIXTH_QUEST_NOTIFICATION_TITLE,
+                    "The portal awakens.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+    }
+
+    private void updateSixthQuestPortalActivation(float delta) {
+        if (!isSixthQuestPortalActivationRunning()) {
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        sixthQuestPortalActivationStateTime += safeDelta;
+        switch (sixthQuestPortalActivationPhase) {
+            case START -> {
+                float startDuration = bossArenaPhase2SkillStartAnim != null
+                        ? Math.max(0.001f, bossArenaPhase2SkillStartAnim.getAnimationDuration())
+                        : 0.001f;
+                float startProgress = clamp01(sixthQuestPortalActivationStateTime / startDuration);
+                sixthQuestPortalEffectPosition.set(sixthQuestPortalEffectStartPosition)
+                        .lerp(sixthQuestPortalEffectTargetPosition, startProgress);
+                if (bossArenaPhase2SkillStartAnim == null
+                        || bossArenaPhase2SkillStartAnim.isAnimationFinished(sixthQuestPortalActivationStateTime)) {
+                    sixthQuestPortalActivationPhase = PortalActivationPhase.LOOP;
+                    sixthQuestPortalActivationStateTime = 0f;
+                    sixthQuestPortalActivationLoopTimer = 0f;
+                    sixthQuestPortalChoiceVisible = false;
+                    sixthQuestPortalEffectPosition.set(sixthQuestPortalEffectTargetPosition);
+                }
+            }
+            case LOOP -> {
+                sixthQuestPortalEffectPosition.set(sixthQuestPortalEffectTargetPosition);
+                sixthQuestPortalActivationLoopTimer += safeDelta;
+                if (!sixthQuestPortalChoiceVisible
+                        && sixthQuestPortalActivationLoopTimer >= SIXTH_QUEST_PORTAL_EFFECT_LOOP_SECONDS) {
+                    sixthQuestPortalChoiceVisible = true;
+                    sixthQuestPortalChoiceIndex = 0;
+                }
+            }
+            case END -> {
+                sixthQuestPortalEffectPosition.set(sixthQuestPortalEffectTargetPosition);
+                if (bossArenaPhase2SkillEndAnim == null
+                        || bossArenaPhase2SkillEndAnim.isAnimationFinished(sixthQuestPortalActivationStateTime)) {
+                    finishSixthQuestPortalActivationChoice();
+                }
+            }
+            case NONE -> {
+            }
+        }
+    }
+
+    private void confirmSixthQuestPortalChoice(boolean enterCastle) {
+        if (!sixthQuestPortalChoiceVisible || sixthQuestPortalActivationPhase != PortalActivationPhase.LOOP) {
+            return;
+        }
+        sixthQuestPortalChoiceVisible = false;
+        sixthQuestPortalChoiceResult = enterCastle
+                ? PortalChoiceResult.ENTER_CASTLE
+                : PortalChoiceResult.CLOSE_PORTAL;
+        sixthQuestPortalActivationStateTime = 0f;
+        sixthQuestPortalActivationLoopTimer = 0f;
+        if (bossArenaPhase2SkillEndAnim != null) {
+            sixthQuestPortalActivationPhase = PortalActivationPhase.END;
+            return;
+        }
+        finishSixthQuestPortalActivationChoice();
+    }
+
+    private void finishSixthQuestPortalActivationChoice() {
+        PortalChoiceResult choiceResult = sixthQuestPortalChoiceResult;
+        clearSixthQuestPortalActivation();
+        applyVillagePortalVisualState();
+        if (choiceResult == PortalChoiceResult.ENTER_CASTLE) {
+            startMapTransition(MAP_ID_DEMON_CASTLE, "Spawn");
+            return;
+        }
+        if (hudRenderer != null) {
+            hudRenderer.showNotification(
+                    SIXTH_QUEST_NOTIFICATION_TITLE,
+                    "The portal closes.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
+        refreshFirstQuestGuidance();
     }
 
     private void applyVillagePortalVisualState() {
@@ -10752,10 +12031,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
-            startQuestDialogue(
-                    QuestDialogueId.SIXTH_QUEST_FINAL_PHASE_INTRO,
-                    SIXTH_QUEST_FINAL_PHASE_INTRO_SPEAKERS,
-                    SIXTH_QUEST_FINAL_PHASE_INTRO_DIALOGUE_LINES);
+            startBossArenaFinalIntroSequence();
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_ENDING && MAP_ID_VILLAGE.equals(world.activeMapId)) {
@@ -10815,12 +12091,20 @@ public class GameScreen extends ScreenAdapter {
         if (sixthQuestStage < SIXTH_QUEST_ENTER_PORTAL
                 || sixthQuestStage >= SIXTH_QUEST_ENDING
                 || !MAP_ID_VILLAGE.equals(world.activeMapId)
-                || !isVillagePortalActive()
-                || !isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
+                || !isPlayerWithinVillagePortalInteraction()) {
+            return false;
+        }
+        if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL) {
+            if (!isSixthQuestPortalActivationRunning()) {
+                startSixthQuestPortalActivation();
+            }
+            return true;
+        }
+        if (!isVillagePortalActive()) {
             return false;
         }
         if (sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_INTRO) {
-            startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_DEMON_SPAWN_LAYER_NAME);
+            startMapTransition(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
         } else {
             startMapTransition(MAP_ID_DEMON_CASTLE, "Spawn");
         }
@@ -11527,6 +12811,9 @@ public class GameScreen extends ScreenAdapter {
         if (camera == null) {
             return;
         }
+        if (isBossArenaFinalIntroActive()) {
+            return;
+        }
         float targetZoom = DEFAULT_ZOOM;
         if (MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId) && isAnyBossArenaPhase2DemonAttacking()) {
             targetZoom = DEFAULT_ZOOM * BOSS_ARENA_PHASE_2_ATTACK_ZOOM_MULTIPLIER;
@@ -11537,6 +12824,123 @@ public class GameScreen extends ScreenAdapter {
         if (Math.abs(camera.zoom - targetZoom) < 0.0005f) {
             camera.zoom = targetZoom;
         }
+    }
+
+    private void updateDialogueCamera(float delta) {
+        if (camera == null || !firstQuestDialogueActive) {
+            return;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float targetX = playerCenterX;
+        float targetY = playerCenterY;
+        if (resolveActiveDialogueFocusPoint(dialogueCameraFocusPoint)) {
+            targetX = (playerCenterX + dialogueCameraFocusPoint.x) * 0.5f;
+            targetY = (playerCenterY + dialogueCameraFocusPoint.y) * 0.5f;
+        }
+        float safeDelta = Math.max(0f, delta);
+        float alpha = 1f - (float) Math.exp(-DIALOGUE_CAMERA_SMOOTH_SPEED * safeDelta);
+        camera.position.x = lerp(camera.position.x, targetX, alpha);
+        camera.position.y = lerp(camera.position.y, targetY, alpha);
+        camera.position.z = 0f;
+        float targetZoom = DEFAULT_ZOOM * DIALOGUE_CAMERA_ZOOM_MULTIPLIER;
+        camera.zoom = lerp(camera.zoom, targetZoom, alpha);
+        if (Math.abs(camera.zoom - targetZoom) < 0.0005f) {
+            camera.zoom = targetZoom;
+        }
+    }
+
+    private boolean resolveActiveDialogueFocusPoint(Vector2 focusPoint) {
+        if (focusPoint == null || activeQuestDialogueId == null || activeQuestDialogueId == QuestDialogueId.NONE) {
+            return false;
+        }
+        return switch (activeQuestDialogueId) {
+            case FIRST_QUEST_FATHER, THIRD_QUEST_FATHER_RETURN -> setVectorToRectCenter(focusPoint, firstQuestFatherBounds());
+            case SECOND_QUEST_CAFE_OWNER, FOURTH_QUEST_CAFE_OWNER -> setVector(focusPoint, firstQuestCafeNpcPosition());
+            case SECOND_QUEST_SCIENTIST_INTRO,
+                    SECOND_QUEST_SCIENTIST_RETURN,
+                    THIRD_QUEST_SCIENTIST_SENDOFF,
+                    FOURTH_QUEST_SCIENTIST_REPORT,
+                    FOURTH_QUEST_SAMPLE_ANALYSIS,
+                    FOURTH_QUEST_SPATIAL_UNLOCK,
+                    FOURTH_QUEST_EPILOGUE,
+                    FIFTH_QUEST_LAB_ALARM,
+                    SIXTH_QUEST_PORTAL_BRIEFING -> setVectorToRectCenter(focusPoint, scientistNpcBounds());
+            case THIRD_QUEST_FATHER_TRAINING_INTRO,
+                    THIRD_QUEST_FATHER_AFTER_MOVEMENT,
+                    THIRD_QUEST_FATHER_AFTER_ATTACK,
+                    THIRD_QUEST_FATHER_PRE_SPAR,
+                    THIRD_QUEST_FATHER_COMPLETE,
+                    FOURTH_QUEST_INTERRUPTION -> setVectorToThirdQuestFather(focusPoint);
+            case SIXTH_QUEST_ENDING -> setVectorToRectCenter(focusPoint, sixthQuestEndingFatherBounds());
+            case FOURTH_QUEST_CAFE_MARK -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestCafeSiteBounds);
+            case FOURTH_QUEST_CENTER_MARK, FOURTH_QUEST_CENTER_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestCenterSiteBounds);
+            case FOURTH_QUEST_EDGE_MARK, FOURTH_QUEST_EDGE_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestEdgeSiteBounds);
+            case FOURTH_QUEST_ARRAY_SCAN_COMPLETE -> setVectorToFourthQuestArrayConsole(focusPoint);
+            case FOURTH_QUEST_BREACH_INTRO, FOURTH_QUEST_BREACH_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestBreachSiteBounds);
+            case FIFTH_QUEST_RUINS_INTRO, FIFTH_QUEST_PORTAL_AFTER -> setVectorToFifthQuestPortalArea(focusPoint);
+            case SIXTH_QUEST_CASTLE_ARRIVAL, SIXTH_QUEST_PHASE_1_INTRO, SIXTH_QUEST_PHASE_1_TRANSITION ->
+                    setVectorToSixthQuestBossPhase1(focusPoint);
+            case SIXTH_QUEST_FINAL_PHASE_INTRO -> setVectorToFinalPhaseBoss(focusPoint);
+            default -> false;
+        };
+    }
+
+    private boolean setVectorToThirdQuestFather(Vector2 target) {
+        ensureThirdQuestTrainingLayout();
+        return setVectorToRectCenter(target, thirdQuestFatherTrainingBounds);
+    }
+
+    private boolean setVectorToFifthQuestPortalArea(Vector2 target) {
+        ensureFifthQuestVillageLayout();
+        Rectangle focusBounds = fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds;
+        return setVectorToRectCenter(target, focusBounds);
+    }
+
+    private boolean setVectorToFourthQuestVillageSite(Vector2 target, Rectangle bounds) {
+        ensureFourthQuestVillageLayout();
+        return setVectorToRectCenter(target, bounds);
+    }
+
+    private boolean setVectorToFourthQuestArrayConsole(Vector2 target) {
+        ensureFourthQuestFloor2Layout();
+        return setVectorToRectCenter(target, fourthQuestArrayConsoleBounds);
+    }
+
+    private boolean setVectorToSixthQuestBossPhase1(Vector2 target) {
+        ensureSixthQuestCastleLayout();
+        return setVectorToRectCenter(target, sixthQuestBossPhase1SpawnBounds);
+    }
+
+    private boolean setVectorToFinalPhaseBoss(Vector2 target) {
+        if (target == null) {
+            return false;
+        }
+        for (int i = 0; i < bossArenaPhase2Demons.size; i++) {
+            BossArenaPhase2DemonInstance demon = bossArenaPhase2Demons.get(i);
+            if (demon != null && demon.health > 0f) {
+                target.set(demon.position.x, demon.position.y);
+                return true;
+            }
+        }
+        ensureSixthQuestFinalArenaLayout();
+        return setVectorToRectCenter(target, sixthQuestFinalPhaseSpawnBounds);
+    }
+
+    private boolean setVectorToRectCenter(Vector2 target, Rectangle bounds) {
+        if (target == null || bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+            return false;
+        }
+        target.set(bounds.x + bounds.width * 0.5f, bounds.y + bounds.height * 0.5f);
+        return true;
+    }
+
+    private boolean setVector(Vector2 target, Vector2 source) {
+        if (target == null || source == null) {
+            return false;
+        }
+        target.set(source);
+        return true;
     }
 
     private boolean isAnyBossArenaPhase2DemonAttacking() {
@@ -11927,9 +13331,221 @@ public class GameScreen extends ScreenAdapter {
     private void applyRuntimeAudioSettings() {
         GameSettingsService settingsService = settingsService();
         if (settingsService == null) {
+            if (villageMusic != null && villageMusicPlaying) {
+                villageMusic.setVolume(VILLAGE_MUSIC_BASE_VOLUME * clamp01(villageMusicFadeProgress));
+            }
+            if (demonBattleMusic != null && demonBattleMusicPlaying) {
+                demonBattleMusic.setVolume(DEMON_BATTLE_MUSIC_BASE_VOLUME * clamp01(demonBattleMusicFadeProgress));
+            }
+            if (sixthQuestEndingMusic != null && sixthQuestEndingMusicPlaying) {
+                sixthQuestEndingMusic.setVolume(SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME * clamp01(sixthQuestEndingMusicFadeProgress));
+            }
             return;
         }
+        if (villageMusic != null && villageMusicPlaying) {
+            villageMusic.setVolume(settingsService.scaleMusicVolume(VILLAGE_MUSIC_BASE_VOLUME)
+                    * clamp01(villageMusicFadeProgress));
+        }
+        if (demonBattleMusic != null && demonBattleMusicPlaying) {
+            settingsService.applyMusicVolume(
+                    demonBattleMusic,
+                    DEMON_BATTLE_MUSIC_BASE_VOLUME * clamp01(demonBattleMusicFadeProgress));
+        }
+        if (sixthQuestEndingMusic != null && sixthQuestEndingMusicPlaying) {
+            settingsService.applyMusicVolume(
+                    sixthQuestEndingMusic,
+                    SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME * clamp01(sixthQuestEndingMusicFadeProgress));
+        }
         settingsService.applyMusicVolume(evilWizardPreExplosionSfx, EVIL_WIZARD_PRE_EXPLOSION_SFX_VOLUME);
+    }
+
+    private void updateVillageMusic(float delta) {
+        boolean endingSequenceMusicActive = sixthQuestStage >= SIXTH_QUEST_ENDING
+                || endingMusicTransitionPhase != EndingMusicTransitionPhase.NONE
+                || sixthQuestEndingMusicPlaying
+                || sixthQuestEndingVideoSequenceActive;
+        boolean shouldPlayVillageMusic = MAP_ID_VILLAGE.equals(world.activeMapId) && !endingSequenceMusicActive;
+        if (!shouldPlayVillageMusic) {
+            stopVillageMusic();
+            return;
+        }
+        if (villageMusic == null) {
+            return;
+        }
+        if (!villageMusicPlaying || !villageMusic.isPlaying()) {
+            startVillageMusic();
+        }
+        if (VILLAGE_MUSIC_FADE_IN_SECONDS <= 0f) {
+            villageMusicFadeProgress = 1f;
+        } else {
+            villageMusicFadeProgress = Math.min(1f,
+                    villageMusicFadeProgress + Math.max(0f, delta) / VILLAGE_MUSIC_FADE_IN_SECONDS);
+        }
+    }
+
+    private void startVillageMusic() {
+        if (villageMusic == null) {
+            return;
+        }
+        villageMusic.stop();
+        villageMusic.setLooping(true);
+        villageMusic.setPosition(0f);
+        villageMusic.setVolume(0f);
+        villageMusic.play();
+        villageMusicFadeProgress = 0f;
+        villageMusicPlaying = true;
+    }
+
+    private void stopVillageMusic() {
+        villageMusicFadeProgress = 0f;
+        if (villageMusic != null) {
+            villageMusic.stop();
+        }
+        villageMusicPlaying = false;
+    }
+
+    private void updateDemonBattleMusic() {
+        if (endingMusicTransitionPhase == EndingMusicTransitionPhase.FADING_OUT_BATTLE) {
+            return;
+        }
+        if (!shouldPlayDemonBattleMusic()) {
+            stopDemonBattleMusic();
+            return;
+        }
+        if (demonBattleMusic == null) {
+            return;
+        }
+        if (!demonBattleMusicPlaying || !demonBattleMusic.isPlaying()) {
+            startDemonBattleMusic();
+        }
+    }
+
+    private boolean shouldPlayDemonBattleMusic() {
+        if (gameCompleted || sixthQuestStage >= SIXTH_QUEST_ENDING) {
+            return false;
+        }
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return false;
+        }
+        return bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.FOCUS_BOSS
+                || activeQuestDialogueId == QuestDialogueId.SIXTH_QUEST_FINAL_PHASE_INTRO
+                || sixthQuestStage >= SIXTH_QUEST_FINAL_PHASE_BATTLE;
+    }
+
+    private void startDemonBattleMusic() {
+        if (demonBattleMusic == null) {
+            return;
+        }
+        demonBattleMusic.stop();
+        demonBattleMusic.setLooping(true);
+        demonBattleMusic.setPosition(0f);
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            demonBattleMusic.setVolume(settingsService.scaleMusicVolume(DEMON_BATTLE_MUSIC_BASE_VOLUME));
+        } else {
+            demonBattleMusic.setVolume(DEMON_BATTLE_MUSIC_BASE_VOLUME);
+        }
+        demonBattleMusic.play();
+        demonBattleMusicFadeProgress = 1f;
+        demonBattleMusicPlaying = true;
+    }
+
+    private void stopDemonBattleMusic() {
+        if (demonBattleMusic != null) {
+            demonBattleMusic.stop();
+        }
+        demonBattleMusicFadeProgress = 0f;
+        demonBattleMusicPlaying = false;
+    }
+
+    private void updateSixthQuestEndingMusic(float delta) {
+        if (sixthQuestStage < SIXTH_QUEST_ENDING && !gameCompleted) {
+            endingMusicTransitionPhase = EndingMusicTransitionPhase.NONE;
+            sixthQuestEndingMusicFadeProgress = 0f;
+            stopSixthQuestEndingMusic();
+            return;
+        }
+
+        float safeDelta = Math.max(0f, delta);
+        switch (endingMusicTransitionPhase) {
+            case FADING_OUT_BATTLE -> {
+                if (SIXTH_QUEST_ENDING_MUSIC_FADE_OUT_SECONDS <= 0f) {
+                    demonBattleMusicFadeProgress = 0f;
+                } else {
+                    demonBattleMusicFadeProgress = Math.max(
+                            0f,
+                            demonBattleMusicFadeProgress - safeDelta / SIXTH_QUEST_ENDING_MUSIC_FADE_OUT_SECONDS);
+                }
+                if (demonBattleMusicFadeProgress <= 0f) {
+                    stopDemonBattleMusic();
+                    startSixthQuestEndingMusic();
+                    endingMusicTransitionPhase = EndingMusicTransitionPhase.FADING_IN_ENDING;
+                }
+            }
+            case FADING_IN_ENDING -> {
+                if (sixthQuestEndingMusic == null) {
+                    endingMusicTransitionPhase = EndingMusicTransitionPhase.NONE;
+                    return;
+                }
+                if (!sixthQuestEndingMusicPlaying || !sixthQuestEndingMusic.isPlaying()) {
+                    startSixthQuestEndingMusic();
+                }
+                if (SIXTH_QUEST_ENDING_MUSIC_FADE_IN_SECONDS <= 0f) {
+                    sixthQuestEndingMusicFadeProgress = 1f;
+                } else {
+                    sixthQuestEndingMusicFadeProgress = Math.min(
+                            1f,
+                            sixthQuestEndingMusicFadeProgress + safeDelta / SIXTH_QUEST_ENDING_MUSIC_FADE_IN_SECONDS);
+                }
+                if (sixthQuestEndingMusicFadeProgress >= 1f) {
+                    endingMusicTransitionPhase = EndingMusicTransitionPhase.NONE;
+                }
+            }
+            case NONE -> {
+                if (sixthQuestEndingMusicPlaying && sixthQuestEndingMusic != null && !sixthQuestEndingMusic.isPlaying()) {
+                    startSixthQuestEndingMusic();
+                    sixthQuestEndingMusicFadeProgress = 1f;
+                }
+            }
+        }
+    }
+
+    private void triggerSixthQuestEndingMusicTransition() {
+        if (sixthQuestEndingMusic == null) {
+            stopDemonBattleMusic();
+            return;
+        }
+        if (demonBattleMusicPlaying && demonBattleMusic != null && demonBattleMusic.isPlaying()) {
+            endingMusicTransitionPhase = EndingMusicTransitionPhase.FADING_OUT_BATTLE;
+            demonBattleMusicFadeProgress = Math.max(0.001f, demonBattleMusicFadeProgress);
+            sixthQuestEndingMusicFadeProgress = 0f;
+            stopSixthQuestEndingMusic();
+            return;
+        }
+        stopDemonBattleMusic();
+        startSixthQuestEndingMusic();
+        endingMusicTransitionPhase = EndingMusicTransitionPhase.FADING_IN_ENDING;
+    }
+
+    private void startSixthQuestEndingMusic() {
+        if (sixthQuestEndingMusic == null) {
+            return;
+        }
+        sixthQuestEndingMusic.stop();
+        sixthQuestEndingMusic.setLooping(true);
+        sixthQuestEndingMusic.setPosition(0f);
+        sixthQuestEndingMusic.setVolume(0f);
+        sixthQuestEndingMusic.play();
+        sixthQuestEndingMusicFadeProgress = 0f;
+        sixthQuestEndingMusicPlaying = true;
+    }
+
+    private void stopSixthQuestEndingMusic() {
+        if (sixthQuestEndingMusic != null) {
+            sixthQuestEndingMusic.stop();
+        }
+        sixthQuestEndingMusicFadeProgress = 0f;
+        sixthQuestEndingMusicPlaying = false;
     }
 
     private Sound loadOptionalAbsoluteSound(String absolutePath) {
@@ -11941,6 +13557,24 @@ public class GameScreen extends ScreenAdapter {
         } catch (RuntimeException error) {
             if (Gdx.app != null) {
                 Gdx.app.error("PixelRpgGame", "Failed to load sound: " + absolutePath, error);
+            }
+            return null;
+        }
+    }
+
+    private Music loadOptionalMusic(String internalPath) {
+        if (internalPath == null || internalPath.isBlank()) {
+            return null;
+        }
+        try {
+            FileHandle file = Gdx.files.internal(internalPath);
+            if (file == null || !file.exists()) {
+                return null;
+            }
+            return Gdx.audio.newMusic(file);
+        } catch (RuntimeException error) {
+            if (Gdx.app != null) {
+                Gdx.app.error("PixelRpgGame", "Failed to load music: " + internalPath, error);
             }
             return null;
         }
@@ -12341,11 +13975,48 @@ public class GameScreen extends ScreenAdapter {
                 BOSS_ARENA_PHASE_2_DEMON_HURT_FRAMES_DIR_ABSOLUTE_PATH,
                 BOSS_ARENA_PHASE_2_DEMON_HURT_FRAME_DURATION,
                 bossArenaPhase2DemonHurtFrameTextures);
+        bossArenaPhase2SkillStartAnim = loadOptionalAbsoluteFrameAnimation(
+                BOSS_ARENA_PHASE_2_SKILL_START_FRAMES_DIR_ABSOLUTE_PATH,
+                BOSS_ARENA_PHASE_2_SKILL_START_FRAME_DURATION,
+                bossArenaPhase2SkillStartFrameTextures);
+        bossArenaPhase2SkillLoopAnim = loadOptionalAbsoluteFrameAnimation(
+                BOSS_ARENA_PHASE_2_SKILL_LOOP_FRAMES_DIR_ABSOLUTE_PATH,
+                BOSS_ARENA_PHASE_2_SKILL_LOOP_FRAME_DURATION,
+                bossArenaPhase2SkillLoopFrameTextures);
+        bossArenaPhase2SkillEndAnim = loadOptionalAbsoluteFrameAnimation(
+                BOSS_ARENA_PHASE_2_SKILL_END_FRAMES_DIR_ABSOLUTE_PATH,
+                BOSS_ARENA_PHASE_2_SKILL_END_FRAME_DURATION,
+                bossArenaPhase2SkillEndFrameTextures);
+        if (golem1ExplosionTex != null) {
+            bossArenaPhase2ExplosionAnim = buildRawAnimation(
+                    golem1ExplosionTex,
+                    GOLEM_1_EXPLOSION_FRAMES,
+                    GOLEM_1_EXPLOSION_FRAME_WIDTH,
+                    GOLEM_1_EXPLOSION_FRAME_HEIGHT,
+                    BOSS_ARENA_PHASE_2_EXPLOSION_FRAME_DURATION);
+        } else {
+            bossArenaPhase2ExplosionAnim = loadOptionalAbsoluteFrameAnimation(
+                    BOSS_ARENA_PHASE_2_EXPLOSION_FRAMES_DIR_ABSOLUTE_PATH,
+                    BOSS_ARENA_PHASE_2_EXPLOSION_FRAME_DURATION,
+                    bossArenaPhase2ExplosionFrameTextures);
+        }
         if (bossArenaPhase2DemonAttackAnim != null) {
             bossArenaPhase2DemonAttackAnim.setPlayMode(Animation.PlayMode.NORMAL);
         }
         if (bossArenaPhase2DemonHurtAnim != null) {
             bossArenaPhase2DemonHurtAnim.setPlayMode(Animation.PlayMode.NORMAL);
+        }
+        if (bossArenaPhase2SkillStartAnim != null) {
+            bossArenaPhase2SkillStartAnim.setPlayMode(Animation.PlayMode.NORMAL);
+        }
+        if (bossArenaPhase2SkillLoopAnim != null) {
+            bossArenaPhase2SkillLoopAnim.setPlayMode(Animation.PlayMode.LOOP);
+        }
+        if (bossArenaPhase2SkillEndAnim != null) {
+            bossArenaPhase2SkillEndAnim.setPlayMode(Animation.PlayMode.NORMAL);
+        }
+        if (bossArenaPhase2ExplosionAnim != null) {
+            bossArenaPhase2ExplosionAnim.setPlayMode(Animation.PlayMode.NORMAL);
         }
         if (bossArenaPhase2DemonIdleAnim != null
                 || bossArenaPhase2DemonWalkAnim != null
@@ -12472,17 +14143,103 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void drawScreenFadeOverlay() {
-        if (screenFadeAlpha <= 0f || dayNightOverlayTex == null || uiCamera == null) {
+        float overlayAlpha = Math.max(screenFadeAlpha, sixthQuestEndingVideoFadeAlpha());
+        if (overlayAlpha <= 0f || dayNightOverlayTex == null || uiCamera == null) {
             return;
         }
         uiCamera.update();
         batch.setProjectionMatrix(uiCamera.combined);
         batch.begin();
         batch.setShader(null);
-        batch.setColor(0f, 0f, 0f, screenFadeAlpha);
+        batch.setColor(0f, 0f, 0f, overlayAlpha);
         batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
         batch.setColor(1f, 1f, 1f, 1f);
         batch.end();
+    }
+
+    private float sixthQuestEndingVideoFadeAlpha() {
+        if (!sixthQuestEndingVideoSequenceActive || sixthQuestEndingVideoTriggered) {
+            return 0f;
+        }
+        if (sixthQuestEndingVideoSequenceTimer <= SIXTH_QUEST_ENDING_VIDEO_DELAY_SECONDS) {
+            return 0f;
+        }
+        if (SIXTH_QUEST_ENDING_VIDEO_FADE_SECONDS <= 0f) {
+            return 1f;
+        }
+        return clamp01(
+                (sixthQuestEndingVideoSequenceTimer - SIXTH_QUEST_ENDING_VIDEO_DELAY_SECONDS)
+                        / SIXTH_QUEST_ENDING_VIDEO_FADE_SECONDS);
+    }
+
+    private void drawBossArenaTopLetterboxOverlay() {
+        if (hudRenderer == null
+                || !MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)
+                || !isBossArenaFinalIntroFocusActive()) {
+            return;
+        }
+        hudRenderer.drawLetterboxOverlay(batch);
+
+        float nightBlend = currentNightBlend();
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setShader(null);
+        drawPlayer(characterSaturation);
+        batch.end();
+    }
+
+    private float currentBossArenaHudHealth() {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return -1f;
+        }
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        return boss != null ? boss.health : -1f;
+    }
+
+    private float currentBossArenaHudMaxHealth() {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return 0f;
+        }
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        return boss != null ? boss.maxHealth : 0f;
+    }
+
+    private float currentBossArenaHudAlpha() {
+        if (!MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return 0f;
+        }
+        if (isBossArenaFinalIntroActive()) {
+            return 0f;
+        }
+        return clamp01(bossArenaHudRevealTimer / BOSS_ARENA_HUD_FADE_IN_SECONDS);
+    }
+
+    private float currentBossArenaPhase2ExplosionGrowthProgress() {
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        if (boss == null || boss.maxHealth <= 0f) {
+            return 0f;
+        }
+        return clamp01(1f - boss.health / boss.maxHealth);
+    }
+
+    private float currentBossArenaPhase2ExplosionRadiusTiles() {
+        float maxRadiusTiles = BOSS_ARENA_PHASE_2_EXPLOSION_MAX_DIAMETER_TILES * 0.5f;
+        return lerp(
+                BOSS_ARENA_PHASE_2_EXPLOSION_HIT_RADIUS_TILES,
+                maxRadiusTiles,
+                currentBossArenaPhase2ExplosionGrowthProgress());
+    }
+
+    private float currentBossArenaPhase2ExplosionDrawScale() {
+        float baseRadiusTiles = Math.max(0.001f, BOSS_ARENA_PHASE_2_EXPLOSION_HIT_RADIUS_TILES);
+        return BOSS_ARENA_PHASE_2_EXPLOSION_DRAW_SCALE
+                * (currentBossArenaPhase2ExplosionRadiusTiles() / baseRadiusTiles);
+    }
+
+    private boolean shouldShowHudQuestPanel() {
+        return !MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId);
     }
 
     private void drawPlayerColorAura(float nightBlend) {
@@ -12509,7 +14266,10 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void updateQuestBlur(float delta) {
-        boolean blurVisible = (hudRenderer != null && hudRenderer.isMainMenuVisible()) || isFirstQuestOverlayActive();
+        boolean blurVisible = (hudRenderer != null && hudRenderer.isMainMenuVisible())
+                || isFirstQuestOverlayActive()
+                || isSixthQuestPortalActivationRunning()
+                || isBossArenaFinalIntroFocusActive();
         if (QUEST_BLUR_TRANSITION_SECONDS <= 0f) {
             questBlurProgress = blurVisible ? 1f : 0f;
             return;
@@ -12574,6 +14334,7 @@ public class GameScreen extends ScreenAdapter {
         drawThirdQuestTrainingGround(batch);
         drawFourthQuestWorldHints(batch);
         drawFifthQuestWorldHints(batch);
+        drawSixthQuestPortalActivationEffect(characterSaturation);
         drawEvilWizards(characterSaturation, true);
         drawGolem1s(characterSaturation, true);
         drawBossArenaPhase2Demons(characterSaturation, true);
@@ -12582,6 +14343,8 @@ public class GameScreen extends ScreenAdapter {
         drawFirstQuestCafeNpc(characterSaturation, true);
         drawFifthQuestLabVillagers(characterSaturation, true);
         drawThirdQuestVillageFather(batch);
+        drawSixthQuestEndingScientist(characterSaturation);
+        drawSixthQuestEndingFather(batch);
         drawPlayer(characterSaturation);
         drawSpawnedBat(characterSaturation);
         drawFifthQuestLabVillagers(characterSaturation, false);
@@ -12589,6 +14352,7 @@ public class GameScreen extends ScreenAdapter {
         drawRewardChests(characterSaturation, false);
         drawFifthQuestDemons(characterSaturation, false);
         drawBossArenaPhase2Demons(characterSaturation, false);
+        drawBossArenaPhase2Explosions(characterSaturation);
         drawGolem1s(characterSaturation, false);
         drawEvilWizards(characterSaturation, false);
         // Explosion effects should sit above both character and golems.
@@ -12700,6 +14464,123 @@ public class GameScreen extends ScreenAdapter {
                         DEFAULT_TILE_SIZE,
                         DEFAULT_TILE_SIZE);
             }
+        }
+    }
+
+    private void drawSixthQuestEndingFather(SpriteBatch batch) {
+        Rectangle fatherBounds = sixthQuestEndingFatherBounds();
+        if (batch == null
+                || fatherBounds == null
+                || thirdQuestFatherVillageTiles == null
+                || thirdQuestFatherVillageTiles.length < 4) {
+            return;
+        }
+        float fadeAlpha = sixthQuestEndingNpcFadeAlpha();
+        if (fadeAlpha <= 0f) {
+            return;
+        }
+
+        int talkFrame = Math.max(0, SIXTH_QUEST_ENDING_FATHER_TALKING_FRAME_INDEX);
+        int baseColumn = 2 + talkFrame * 5;
+        int[] sourceRows = {3, 2, 1};
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        for (int row = 0; row < sourceRows.length; row++) {
+            int sourceRow = sourceRows[row];
+            if (sourceRow < 0 || sourceRow >= thirdQuestFatherVillageTiles.length) {
+                continue;
+            }
+            TextureRegion[] rowRegions = thirdQuestFatherVillageTiles[sourceRow];
+            if (rowRegions == null || baseColumn + 1 >= rowRegions.length) {
+                continue;
+            }
+            for (int col = 0; col < 2; col++) {
+                TextureRegion region = rowRegions[baseColumn + col];
+                if (region == null) {
+                    continue;
+                }
+                batch.draw(
+                        region,
+                        fatherBounds.x + col * DEFAULT_TILE_SIZE,
+                        fatherBounds.y + row * DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE);
+            }
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawSixthQuestEndingScientist(float saturation) {
+        if (batch == null || sixthQuestEndingScientistAnim == null) {
+            return;
+        }
+        Rectangle scientistBounds = sixthQuestEndingScientistBounds();
+        if (scientistBounds == null) {
+            return;
+        }
+        float fadeAlpha = sixthQuestEndingNpcFadeAlpha();
+        if (fadeAlpha <= 0f) {
+            return;
+        }
+        TextureRegion frame = sixthQuestEndingScientistAnim.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        batch.draw(frame, scientistBounds.x, scientistBounds.y, scientistBounds.width, scientistBounds.height);
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private float sixthQuestEndingNpcFadeAlpha() {
+        if (!sixthQuestEndingNpcFadeActive) {
+            return 1f;
+        }
+        if (SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS <= 0f) {
+            return 0f;
+        }
+        return 1f - clamp01(sixthQuestEndingNpcFadeTimer / SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS);
+    }
+
+    private void drawSixthQuestPortalActivationEffect(float saturation) {
+        drawSixthQuestPortalActivationEffect(saturation, 1f);
+    }
+
+    private void drawSixthQuestPortalActivationEffect(float saturation, float alphaMultiplier) {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || !isSixthQuestPortalActivationRunning()) {
+            return;
+        }
+        Animation<TextureRegion> portalAnim = switch (sixthQuestPortalActivationPhase) {
+            case START -> bossArenaPhase2SkillStartAnim;
+            case LOOP -> bossArenaPhase2SkillLoopAnim;
+            case END -> bossArenaPhase2SkillEndAnim;
+            case NONE -> null;
+        };
+        if (portalAnim == null) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        boolean looping = sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP;
+        TextureRegion portalFrame = portalAnim.getKeyFrame(sixthQuestPortalActivationStateTime, looping);
+        if (portalFrame != null) {
+            float drawWidth = portalFrame.getRegionWidth() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
+            float drawHeight = portalFrame.getRegionHeight() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
+            float drawX = sixthQuestPortalEffectPosition.x - drawWidth * 0.5f;
+            float drawY = sixthQuestPortalEffectPosition.y - drawHeight * 0.5f;
+            batch.setColor(1f, 1f, 1f, clamp01(alphaMultiplier));
+            batch.draw(portalFrame, drawX, drawY, drawWidth, drawHeight);
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+        if (saturationShader != null) {
+            batch.setShader(null);
         }
     }
 
@@ -12851,6 +14732,9 @@ public class GameScreen extends ScreenAdapter {
         if (scientistBounds == null) {
             return;
         }
+        float fadeAlpha = FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS <= 0f
+                ? 1f
+                : clamp01(fifthQuestLabVillagersFadeTimer / FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS);
         float scientistCenterX = scientistBounds.x + scientistBounds.width * 0.5f;
         float scientistCenterY = scientistBounds.y + scientistBounds.height * 0.5f;
         drawFifthQuestVillager(
@@ -12858,17 +14742,19 @@ public class GameScreen extends ScreenAdapter {
                 scientistCenterX - 72f,
                 scientistCenterY - 10f,
                 saturation,
-                drawBehindPlayer);
+                drawBehindPlayer,
+                fadeAlpha);
         drawFifthQuestVillager(
                 fifthQuestOldWomanIdleAnim,
-                scientistCenterX + 76f,
+                scientistCenterX + 76f - FIFTH_QUEST_OLD_WOMAN_X_SHIFT,
                 scientistCenterY - 16f,
                 saturation,
-                drawBehindPlayer);
+                drawBehindPlayer,
+                fadeAlpha);
     }
 
     private void drawFifthQuestVillager(Animation<TextureRegion> animation, float centerX, float centerY,
-                                        float saturation, boolean drawBehindPlayer) {
+                                        float saturation, boolean drawBehindPlayer, float alpha) {
         if (animation == null) {
             return;
         }
@@ -12887,7 +14773,9 @@ public class GameScreen extends ScreenAdapter {
             batch.setShader(saturationShader);
             saturationShader.setUniformf("u_saturation", saturation);
         }
+        batch.setColor(1f, 1f, 1f, clamp01(alpha));
         batch.draw(frame, centerX - drawW * 0.5f, centerY - drawH * 0.5f, drawW, drawH);
+        batch.setColor(1f, 1f, 1f, 1f);
         if (saturationShader != null) {
             batch.setShader(null);
         }
@@ -13040,18 +14928,49 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
+        boolean portalActivationOverlayActive = isSixthQuestPortalActivationRunning();
+        boolean questOverlayActive = isFirstQuestOverlayActive();
+        boolean bossArenaIntroOverlayActive = isBossArenaFinalIntroFocusActive();
+
         uiCamera.update();
         batch.setProjectionMatrix(uiCamera.combined);
         batch.begin();
         batch.setShader(null);
         batch.setColor(1f, 1f, 1f, 1f);
-        if (isFirstQuestOverlayActive()) {
-            batch.setColor(0f, 0f, 0f, FIRST_QUEST_OVERLAY_DIM_ALPHA);
+        if (questOverlayActive || portalActivationOverlayActive || bossArenaIntroOverlayActive) {
+            batch.setColor(0f, 0f, 0f, FIRST_QUEST_OVERLAY_DIM_ALPHA * clamp01(questBlurProgress));
             batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
             batch.setColor(1f, 1f, 1f, 1f);
             if (firstQuestDialogueActive) {
+                batch.end();
+                drawDialogueForegroundActors();
+                uiCamera.update();
+                batch.setProjectionMatrix(uiCamera.combined);
+                batch.begin();
+                batch.setShader(null);
+                batch.setColor(1f, 1f, 1f, 1f);
+            } else if (portalActivationOverlayActive) {
+                batch.end();
+                drawSixthQuestPortalForegroundActors();
+                uiCamera.update();
+                batch.setProjectionMatrix(uiCamera.combined);
+                batch.begin();
+                batch.setShader(null);
+                batch.setColor(1f, 1f, 1f, 1f);
+            } else if (bossArenaIntroOverlayActive) {
+                batch.end();
+                drawBossArenaFinalIntroForegroundActors();
+                uiCamera.update();
+                batch.setProjectionMatrix(uiCamera.combined);
+                batch.begin();
+                batch.setShader(null);
+                batch.setColor(1f, 1f, 1f, 1f);
+            }
+            if (firstQuestDialogueActive) {
                 drawFirstQuestDialogueOverlay(batch);
-            } else {
+            } else if (sixthQuestPortalChoiceVisible) {
+                drawSixthQuestPortalChoiceOverlay(batch);
+            } else if (firstQuestItemCardVisible) {
                 drawFirstQuestItemCardOverlay(batch);
             }
         } else {
@@ -13059,6 +14978,441 @@ public class GameScreen extends ScreenAdapter {
             drawFirstQuestPrompt(batch);
         }
         batch.end();
+    }
+
+    private void drawSixthQuestPortalForegroundActors() {
+        if (batch == null
+                || camera == null
+                || world.mapRenderer == null
+                || !isSixthQuestPortalActivationRunning()
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+
+        float nightBlend = currentNightBlend();
+        float worldSaturation = lerp(1f, NIGHT_WORLD_SATURATION, nightBlend);
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+
+        camera.update();
+        world.mapRenderer.setView(camera);
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setShader(null);
+        drawSixthQuestPortalActivationEffect(characterSaturation);
+        batch.end();
+
+        int portalLayerIndex = findTopLevelLayerIndexContaining(VILLAGE_PORTAL_GROUP_NAME);
+        if (portalLayerIndex >= 0) {
+            renderMapWithSaturation(new int[]{portalLayerIndex}, worldSaturation);
+        }
+
+        batch.begin();
+        batch.setShader(null);
+        if (sixthQuestPortalChoiceVisible && sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP) {
+            drawSixthQuestPortalActivationEffect(characterSaturation, 0.55f);
+        }
+        drawPlayer(characterSaturation);
+        batch.end();
+    }
+
+    private void drawBossArenaFinalIntroForegroundActors() {
+        if (batch == null
+                || camera == null
+                || world.mapRenderer == null
+                || !isBossArenaFinalIntroFocusActive()
+                || !MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
+            return;
+        }
+
+        BossArenaPhase2DemonInstance boss = findBossArenaPhase2Leader();
+        if (boss == null) {
+            return;
+        }
+
+        float nightBlend = currentNightBlend();
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+
+        camera.update();
+        world.mapRenderer.setView(camera);
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setShader(null);
+        drawSingleBossArenaPhase2Demon(boss, characterSaturation);
+        drawPlayer(characterSaturation);
+        batch.end();
+    }
+
+    private void drawSingleBossArenaPhase2Demon(BossArenaPhase2DemonInstance demon, float saturation) {
+        if (demon == null
+                || (bossArenaPhase2DemonIdleAnim == null
+                && bossArenaPhase2DemonWalkAnim == null
+                && bossArenaPhase2DemonAttackAnim == null
+                && bossArenaPhase2DemonHurtAnim == null)) {
+            return;
+        }
+
+        boolean loop = true;
+        Animation<TextureRegion> activeAnim;
+        if (demon.hurting && bossArenaPhase2DemonHurtAnim != null) {
+            activeAnim = bossArenaPhase2DemonHurtAnim;
+            loop = false;
+        } else if (demon.attacking && bossArenaPhase2DemonAttackAnim != null) {
+            activeAnim = bossArenaPhase2DemonAttackAnim;
+            loop = false;
+        } else if (demon.moving && bossArenaPhase2DemonWalkAnim != null) {
+            activeAnim = bossArenaPhase2DemonWalkAnim;
+        } else if (bossArenaPhase2DemonIdleAnim != null) {
+            activeAnim = bossArenaPhase2DemonIdleAnim;
+        } else if (bossArenaPhase2DemonWalkAnim != null) {
+            activeAnim = bossArenaPhase2DemonWalkAnim;
+        } else if (bossArenaPhase2DemonAttackAnim != null) {
+            activeAnim = bossArenaPhase2DemonAttackAnim;
+        } else {
+            activeAnim = bossArenaPhase2DemonHurtAnim;
+        }
+
+        if (activeAnim == null) {
+            return;
+        }
+
+        float animationTime;
+        if (demon.hurting) {
+            animationTime = demon.hurtStateTime;
+        } else if (demon.attacking) {
+            animationTime = demon.attackStateTime;
+        } else {
+            animationTime = demon.stateTime;
+        }
+
+        TextureRegion frame = demon.attacking && activeAnim == bossArenaPhase2DemonAttackAnim
+                ? currentBossArenaPhase2DemonAttackFrame(animationTime)
+                : activeAnim.getKeyFrame(animationTime, loop);
+        if (frame == null) {
+            return;
+        }
+
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        float drawW = frame.getRegionWidth() * BOSS_ARENA_PHASE_2_DEMON_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * BOSS_ARENA_PHASE_2_DEMON_DRAW_SCALE;
+        float drawX = demon.position.x - drawW * 0.5f;
+        float drawY = demon.position.y - drawH * 0.5f;
+        float originX = drawW * 0.5f;
+        float originY = drawH * 0.5f;
+        float scaleX = demon.facingLeft ? 1f : -1f;
+        batch.draw(frame, drawX, drawY, originX, originY, drawW, drawH, scaleX, 1f, 0f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private void drawDialogueForegroundActors() {
+        if (batch == null || camera == null || world.mapRenderer == null || !firstQuestDialogueActive) {
+            return;
+        }
+
+        float nightBlend = currentNightBlend();
+        float worldSaturation = lerp(1f, NIGHT_WORLD_SATURATION, nightBlend);
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+
+        camera.update();
+        world.mapRenderer.setView(camera);
+
+        int speakerLayerIndex = activeDialogueSpeakerTopLevelLayerIndex();
+        if (speakerLayerIndex >= 0) {
+            renderMapWithSaturation(new int[]{speakerLayerIndex}, worldSaturation);
+        }
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setShader(null);
+        drawRuntimeDialogueSpeaker(characterSaturation);
+        drawPlayer(characterSaturation);
+        batch.end();
+    }
+
+    private int activeDialogueSpeakerTopLevelLayerIndex() {
+        if (world.map == null || activeQuestDialogueId == null || activeQuestDialogueId == QuestDialogueId.NONE) {
+            return -1;
+        }
+        return switch (activeQuestDialogueId) {
+            case FIRST_QUEST_FATHER, THIRD_QUEST_FATHER_RETURN -> findTopLevelLayerIndexContaining(FIRST_QUEST_FATHER_LAYER_NAME);
+            case SECOND_QUEST_SCIENTIST_INTRO,
+                    SECOND_QUEST_SCIENTIST_RETURN,
+                    THIRD_QUEST_SCIENTIST_SENDOFF,
+                    FOURTH_QUEST_SCIENTIST_REPORT,
+                    FOURTH_QUEST_SAMPLE_ANALYSIS,
+                    FOURTH_QUEST_SPATIAL_UNLOCK,
+                    FOURTH_QUEST_EPILOGUE,
+                    FIFTH_QUEST_LAB_ALARM,
+                    SIXTH_QUEST_PORTAL_BRIEFING -> activeScientistTopLevelLayerIndex();
+            default -> -1;
+        };
+    }
+
+    private int activeScientistTopLevelLayerIndex() {
+        if (world.npcAnimationFrames.size == 0
+                || world.npcAnimationFrameIndex < 0
+                || world.npcAnimationFrameIndex >= world.npcAnimationFrames.size) {
+            return -1;
+        }
+        return findTopLevelLayerIndexContaining(world.npcAnimationFrames.get(world.npcAnimationFrameIndex));
+    }
+
+    private void drawRuntimeDialogueSpeaker(float characterSaturation) {
+        if (activeQuestDialogueId == null) {
+            return;
+        }
+        switch (activeQuestDialogueId) {
+            case SECOND_QUEST_CAFE_OWNER, FOURTH_QUEST_CAFE_OWNER -> {
+                drawFirstQuestCafeNpc(characterSaturation, true);
+                drawFirstQuestCafeNpc(characterSaturation, false);
+            }
+            case THIRD_QUEST_FATHER_TRAINING_INTRO,
+                    THIRD_QUEST_FATHER_AFTER_MOVEMENT,
+                    THIRD_QUEST_FATHER_AFTER_ATTACK,
+                    THIRD_QUEST_FATHER_PRE_SPAR,
+                    THIRD_QUEST_FATHER_COMPLETE,
+                    FOURTH_QUEST_INTERRUPTION -> drawThirdQuestVillageFather(batch);
+            case SIXTH_QUEST_ENDING -> {
+                drawSixthQuestEndingScientist(characterSaturation);
+                drawSixthQuestEndingFather(batch);
+            }
+            default -> {
+            }
+        }
+    }
+
+    private int findTopLevelLayerIndexContaining(String layerName) {
+        if (world.map == null || layerName == null || layerName.isBlank()) {
+            return -1;
+        }
+        MapLayers topLevelLayers = world.map.getLayers();
+        for (int i = 0; i < topLevelLayers.getCount(); i++) {
+            MapLayer layer = topLevelLayers.get(i);
+            if (layerName.equalsIgnoreCase(layer.getName())) {
+                return i;
+            }
+            if (layer instanceof MapGroupLayer groupLayer
+                    && findLayerByName(groupLayer.getLayers(), layerName) != null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int findTopLevelLayerIndexContaining(MapLayer targetLayer) {
+        if (world.map == null || targetLayer == null) {
+            return -1;
+        }
+        MapLayers topLevelLayers = world.map.getLayers();
+        for (int i = 0; i < topLevelLayers.getCount(); i++) {
+            MapLayer layer = topLevelLayers.get(i);
+            if (layer == targetLayer) {
+                return i;
+            }
+            if (layer instanceof MapGroupLayer groupLayer
+                    && containsLayerRecursive(groupLayer.getLayers(), targetLayer)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean containsLayerRecursive(MapLayers layers, MapLayer targetLayer) {
+        if (layers == null || targetLayer == null) {
+            return false;
+        }
+        for (MapLayer layer : layers) {
+            if (layer == targetLayer) {
+                return true;
+            }
+            if (layer instanceof MapGroupLayer groupLayer
+                    && containsLayerRecursive(groupLayer.getLayers(), targetLayer)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void drawDialogueForegroundHighlights(SpriteBatch batch) {
+        if (batch == null
+                || !firstQuestDialogueActive
+                || uiCamera == null
+                || camera == null
+                || questBlurFrameRegion == null) {
+            return;
+        }
+
+        boolean hasCombinedBounds = projectDialogueHighlightWorldBounds(player.bounds, dialogueHighlightCombinedScreenBounds);
+        if (resolveActiveDialogueHighlightWorldBounds(dialogueHighlightWorldBounds)
+                && projectDialogueHighlightWorldBounds(dialogueHighlightWorldBounds, dialogueHighlightScreenBounds)) {
+            if (hasCombinedBounds) {
+                mergeRectangles(dialogueHighlightCombinedScreenBounds, dialogueHighlightScreenBounds);
+            } else {
+                dialogueHighlightCombinedScreenBounds.set(dialogueHighlightScreenBounds);
+                hasCombinedBounds = true;
+            }
+        }
+
+        if (!hasCombinedBounds || !clampScreenBoundsToUi(dialogueHighlightCombinedScreenBounds)) {
+            return;
+        }
+
+        Texture blurSourceTexture = questBlurFrameRegion.getTexture();
+        if (blurSourceTexture == null) {
+            return;
+        }
+
+        float uSpan = questBlurFrameRegion.getU2() - questBlurFrameRegion.getU();
+        float vSpan = questBlurFrameRegion.getV2() - questBlurFrameRegion.getV();
+        float u1 = questBlurFrameRegion.getU()
+                + (dialogueHighlightCombinedScreenBounds.x / uiCamera.viewportWidth) * uSpan;
+        float u2 = questBlurFrameRegion.getU()
+                + ((dialogueHighlightCombinedScreenBounds.x + dialogueHighlightCombinedScreenBounds.width)
+                / uiCamera.viewportWidth) * uSpan;
+        float v1 = questBlurFrameRegion.getV()
+                + (dialogueHighlightCombinedScreenBounds.y / uiCamera.viewportHeight) * vSpan;
+        float v2 = questBlurFrameRegion.getV()
+                + ((dialogueHighlightCombinedScreenBounds.y + dialogueHighlightCombinedScreenBounds.height)
+                / uiCamera.viewportHeight) * vSpan;
+
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(
+                blurSourceTexture,
+                dialogueHighlightCombinedScreenBounds.x,
+                dialogueHighlightCombinedScreenBounds.y,
+                dialogueHighlightCombinedScreenBounds.width,
+                dialogueHighlightCombinedScreenBounds.height,
+                u1,
+                v1,
+                u2,
+                v2);
+    }
+
+    private boolean resolveActiveDialogueHighlightWorldBounds(Rectangle out) {
+        if (out == null || activeQuestDialogueId == null || activeQuestDialogueId == QuestDialogueId.NONE) {
+            return false;
+        }
+        return switch (activeQuestDialogueId) {
+            case FIRST_QUEST_FATHER, THIRD_QUEST_FATHER_RETURN -> setRectangle(out, firstQuestFatherBounds());
+            case SECOND_QUEST_CAFE_OWNER, FOURTH_QUEST_CAFE_OWNER -> setRectangle(out, firstQuestCafeNpcVisualBounds());
+            case SECOND_QUEST_SCIENTIST_INTRO,
+                    SECOND_QUEST_SCIENTIST_RETURN,
+                    THIRD_QUEST_SCIENTIST_SENDOFF,
+                    FOURTH_QUEST_SCIENTIST_REPORT,
+                    FOURTH_QUEST_SAMPLE_ANALYSIS,
+                    FOURTH_QUEST_SPATIAL_UNLOCK,
+                    FOURTH_QUEST_EPILOGUE,
+                    FIFTH_QUEST_LAB_ALARM,
+                    SIXTH_QUEST_PORTAL_BRIEFING -> setRectangle(out, scientistNpcBounds());
+            case THIRD_QUEST_FATHER_TRAINING_INTRO,
+                    THIRD_QUEST_FATHER_AFTER_MOVEMENT,
+                    THIRD_QUEST_FATHER_AFTER_ATTACK,
+                    THIRD_QUEST_FATHER_PRE_SPAR,
+                    THIRD_QUEST_FATHER_COMPLETE,
+                    FOURTH_QUEST_INTERRUPTION -> setRectangleToThirdQuestFather(out);
+            case SIXTH_QUEST_ENDING -> setRectangle(out, sixthQuestEndingFatherBounds());
+            default -> setRectangleToDialogueFocusFallback(out);
+        };
+    }
+
+    private Rectangle firstQuestCafeNpcVisualBounds() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || firstQuestCafeNpcIdleAnim == null) {
+            return null;
+        }
+        Vector2 npcPosition = firstQuestCafeNpcPosition();
+        if (npcPosition == null) {
+            return null;
+        }
+        TextureRegion frame = firstQuestCafeNpcIdleAnim.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return null;
+        }
+        float drawW = frame.getRegionWidth() * FIRST_QUEST_CAFE_NPC_DRAW_SCALE;
+        float drawH = frame.getRegionHeight() * FIRST_QUEST_CAFE_NPC_DRAW_SCALE;
+        dialogueHighlightWorldBounds.set(
+                npcPosition.x - drawW * 0.5f,
+                npcPosition.y - drawH * 0.5f,
+                drawW,
+                drawH);
+        return dialogueHighlightWorldBounds;
+    }
+
+    private boolean setRectangleToThirdQuestFather(Rectangle out) {
+        ensureThirdQuestTrainingLayout();
+        return setRectangle(out, thirdQuestFatherTrainingBounds);
+    }
+
+    private boolean setRectangleToDialogueFocusFallback(Rectangle out) {
+        if (out == null || !resolveActiveDialogueFocusPoint(dialogueCameraFocusPoint)) {
+            return false;
+        }
+        out.set(
+                dialogueCameraFocusPoint.x - DIALOGUE_FOREGROUND_FALLBACK_TARGET_WIDTH * 0.5f,
+                dialogueCameraFocusPoint.y - DIALOGUE_FOREGROUND_FALLBACK_TARGET_HEIGHT * 0.5f,
+                DIALOGUE_FOREGROUND_FALLBACK_TARGET_WIDTH,
+                DIALOGUE_FOREGROUND_FALLBACK_TARGET_HEIGHT);
+        return true;
+    }
+
+    private boolean setRectangle(Rectangle out, Rectangle source) {
+        if (out == null || source == null || source.width <= 0f || source.height <= 0f) {
+            return false;
+        }
+        out.set(source);
+        return true;
+    }
+
+    private boolean projectDialogueHighlightWorldBounds(Rectangle worldBounds, Rectangle screenBounds) {
+        if (worldBounds == null
+                || screenBounds == null
+                || camera == null
+                || uiCamera == null
+                || worldBounds.width <= 0f
+                || worldBounds.height <= 0f) {
+            return false;
+        }
+        dialogueHighlightProjectionMin.set(worldBounds.x, worldBounds.y, 0f);
+        dialogueHighlightProjectionMax.set(worldBounds.x + worldBounds.width, worldBounds.y + worldBounds.height, 0f);
+        camera.project(dialogueHighlightProjectionMin);
+        camera.project(dialogueHighlightProjectionMax);
+        float minX = Math.min(dialogueHighlightProjectionMin.x, dialogueHighlightProjectionMax.x) - DIALOGUE_FOREGROUND_SCREEN_PADDING_X;
+        float minY = Math.min(dialogueHighlightProjectionMin.y, dialogueHighlightProjectionMax.y) - DIALOGUE_FOREGROUND_SCREEN_PADDING_Y;
+        float maxX = Math.max(dialogueHighlightProjectionMin.x, dialogueHighlightProjectionMax.x) + DIALOGUE_FOREGROUND_SCREEN_PADDING_X;
+        float maxY = Math.max(dialogueHighlightProjectionMin.y, dialogueHighlightProjectionMax.y) + DIALOGUE_FOREGROUND_SCREEN_PADDING_Y;
+        screenBounds.set(minX, minY, maxX - minX, maxY - minY);
+        return screenBounds.width > 0f && screenBounds.height > 0f;
+    }
+
+    private void mergeRectangles(Rectangle base, Rectangle addition) {
+        if (base == null || addition == null) {
+            return;
+        }
+        float minX = Math.min(base.x, addition.x);
+        float minY = Math.min(base.y, addition.y);
+        float maxX = Math.max(base.x + base.width, addition.x + addition.width);
+        float maxY = Math.max(base.y + base.height, addition.y + addition.height);
+        base.set(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    private boolean clampScreenBoundsToUi(Rectangle bounds) {
+        if (bounds == null || uiCamera == null) {
+            return false;
+        }
+        float minX = Math.max(0f, bounds.x);
+        float minY = Math.max(0f, bounds.y);
+        float maxX = Math.min(uiCamera.viewportWidth, bounds.x + bounds.width);
+        float maxY = Math.min(uiCamera.viewportHeight, bounds.y + bounds.height);
+        if (maxX <= minX || maxY <= minY) {
+            return false;
+        }
+        bounds.set(minX, minY, maxX - minX, maxY - minY);
+        return true;
     }
 
     private void drawFirstQuestMarkers(SpriteBatch batch) {
@@ -13509,13 +15863,16 @@ public class GameScreen extends ScreenAdapter {
         }
         if ((fifthQuestStage == FIFTH_QUEST_COMPLETE && sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL)
                 && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            drawQuestMarkerForObjectLayer(batch, FIFTH_QUEST_PORTAL_LAYER_NAME, bobOffset, true);
+            drawVillagePortalQuestMarker(batch, sixthQuestPortalGuideBounds(), bobOffset);
             return;
         }
         if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
                 && sixthQuestStage < SIXTH_QUEST_ENDING
                 && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            drawQuestMarkerForObjectLayer(batch, FIFTH_QUEST_PORTAL_LAYER_NAME, bobOffset, true);
+            Rectangle portalMarkerBounds = isSixthQuestPortalActivationRunning()
+                    ? sixthQuestActualPortalBounds()
+                    : sixthQuestPortalGuideBounds();
+            drawVillagePortalQuestMarker(batch, portalMarkerBounds, bobOffset);
             return;
         }
         if (MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
@@ -13571,6 +15928,10 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawQuestMarkerForObjectLayer(SpriteBatch batch, String layerName, float bobOffset, boolean directional) {
         Rectangle targetBounds = objectLayerBounds(findLayerByName(layerName));
+        drawQuestMarkerForBounds(batch, targetBounds, bobOffset, directional);
+    }
+
+    private void drawQuestMarkerForBounds(SpriteBatch batch, Rectangle targetBounds, float bobOffset, boolean directional) {
         if (targetBounds == null) {
             return;
         }
@@ -13579,6 +15940,18 @@ public class GameScreen extends ScreenAdapter {
                 targetBounds.y + targetBounds.height + 20f + bobOffset,
                 directional ? "v" : "!",
                 directional,
+                0.98f, 0.85f, 0.35f);
+    }
+
+    private void drawVillagePortalQuestMarker(SpriteBatch batch, Rectangle targetBounds, float bobOffset) {
+        if (targetBounds == null) {
+            return;
+        }
+        drawQuestMarker(batch,
+                targetBounds.x + targetBounds.width * 0.5f,
+                targetBounds.y + targetBounds.height + 20f + bobOffset + VILLAGE_PORTAL_QUEST_MARKER_Y_OFFSET,
+                "v",
+                true,
                 0.98f, 0.85f, 0.35f);
     }
 
@@ -13698,7 +16071,9 @@ public class GameScreen extends ScreenAdapter {
         }
         if (sixthQuestStage > SIXTH_QUEST_DISABLED) {
             return switch (sixthQuestStage) {
-                case SIXTH_QUEST_ENTER_PORTAL -> "Enter the Portal.";
+                case SIXTH_QUEST_ENTER_PORTAL -> sixthQuestPortalChoiceVisible
+                        ? "Choose whether to enter the final stage."
+                        : "Go to the dormant portal.";
                 case SIXTH_QUEST_OUTER_ASSAULT -> "Defeat the demons blocking the route to the inner gate.";
                 case SIXTH_QUEST_SEAL_A_BATTLE, SIXTH_QUEST_SEAL_A_DESTROY -> "Break the first Castle Seal.";
                 case SIXTH_QUEST_SEAL_B_BATTLE, SIXTH_QUEST_SEAL_B_DESTROY -> "Break the second Castle Seal.";
@@ -14014,8 +16389,10 @@ public class GameScreen extends ScreenAdapter {
         if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
                 && sixthQuestStage < SIXTH_QUEST_ENDING
                 && MAP_ID_VILLAGE.equals(world.activeMapId)
-                && isPlayerWithinObjectLayer(FIFTH_QUEST_PORTAL_LAYER_NAME)) {
-            return "Use the interact key/button to enter the Portal";
+                && isPlayerWithinVillagePortalInteraction()) {
+            return isSixthQuestPortalActivationRunning()
+                    ? null
+                    : "Use the interact key/button to awaken the portal";
         }
         if (sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY
                 && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
@@ -14142,6 +16519,10 @@ public class GameScreen extends ScreenAdapter {
         if (uiCamera == null) {
             return;
         }
+        if (firstQuestFatherDialogueBoxTex != null) {
+            drawFirstQuestFatherDialogueOverlay(batch);
+            return;
+        }
         float panelWidth = Math.min(uiCamera.viewportWidth * 0.72f, 760f);
         float panelHeight = Math.min(uiCamera.viewportHeight * 0.42f, 320f);
         float panelX = (uiCamera.viewportWidth - panelWidth) * 0.5f;
@@ -14176,6 +16557,161 @@ public class GameScreen extends ScreenAdapter {
                 uiCamera.viewportWidth * 0.5f,
                 panelY + 34f,
                 0.76f, 0.72f, 0.66f, 1f);
+    }
+
+    private void drawFirstQuestFatherDialogueOverlay(SpriteBatch batch) {
+        if (uiCamera == null || firstQuestFatherDialogueBoxTex == null) {
+            return;
+        }
+        float drawWidth = Math.min(uiCamera.viewportWidth * FIRST_QUEST_FATHER_DIALOGUE_BOX_WIDTH_RATIO,
+                FIRST_QUEST_FATHER_DIALOGUE_BOX_MAX_WIDTH);
+        float aspectRatio = firstQuestFatherDialogueBoxTex.getHeight() / (float) firstQuestFatherDialogueBoxTex.getWidth();
+        float drawHeight = drawWidth * aspectRatio;
+        float drawX = (uiCamera.viewportWidth - drawWidth) * 0.5f;
+        float drawY = FIRST_QUEST_FATHER_DIALOGUE_BOX_BOTTOM_MARGIN;
+        float scale = drawWidth / firstQuestFatherDialogueBoxTex.getWidth();
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(firstQuestFatherDialogueBoxTex, drawX, drawY, drawWidth, drawHeight);
+
+        String speaker = activeQuestDialogueSpeakers.length == 0
+                ? ""
+                : activeQuestDialogueSpeakers[Math.max(0,
+                Math.min(activeQuestDialogueSpeakers.length - 1, firstQuestDialogueLineIndex))];
+        speaker = resolveStorySpeaker(speaker);
+        if (firstQuestTitleFont != null) {
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * FIRST_QUEST_OVERLAY_HEADER_SCALE * FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_SCALE_MULTIPLIER,
+                    baseScaleY * FIRST_QUEST_OVERLAY_HEADER_SCALE * FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_SCALE_MULTIPLIER);
+            drawCenteredQuestText(batch, firstQuestTitleFont, speaker,
+                    drawX + drawWidth * FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_CENTER_X_RATIO,
+                    drawY + drawHeight - FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_BASELINE_FROM_TOP * scale
+                            + FIRST_QUEST_FATHER_DIALOGUE_BOX_SPEAKER_OFFSET_Y,
+                    0.94f, 0.90f, 0.78f, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+
+        String line = activeQuestDialogueLines.length == 0
+                ? ""
+                : activeQuestDialogueLines[Math.max(0,
+                Math.min(activeQuestDialogueLines.length - 1, firstQuestDialogueLineIndex))];
+        float baseBodyScaleX = firstQuestBodyFont == null ? 1f : firstQuestBodyFont.getData().scaleX;
+        float baseBodyScaleY = firstQuestBodyFont == null ? 1f : firstQuestBodyFont.getData().scaleY;
+        if (firstQuestBodyFont != null) {
+            firstQuestBodyFont.getData().setScale(
+                    baseBodyScaleX * FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_SCALE_MULTIPLIER,
+                    baseBodyScaleY * FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_SCALE_MULTIPLIER);
+        }
+        drawWrappedQuestTextAligned(batch, firstQuestBodyFont, line,
+                drawX + FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_PADDING_LEFT * scale
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_OFFSET_X,
+                drawY + drawHeight - FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_TOP_FROM_TOP * scale
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_OFFSET_Y,
+                drawWidth - (FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_PADDING_LEFT
+                + FIRST_QUEST_FATHER_DIALOGUE_BOX_TEXT_PADDING_RIGHT) * scale,
+                Align.left,
+                0.27f, 0.19f, 0.09f, 1f);
+        if (firstQuestBodyFont != null) {
+            firstQuestBodyFont.getData().setScale(baseBodyScaleX, baseBodyScaleY);
+        }
+        drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
+                drawX + drawWidth - FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_RIGHT_PADDING * scale
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_X,
+                drawY + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_BOTTOM_PADDING * scale
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y,
+                0.44f, 0.33f, 0.20f, 1f);
+    }
+
+    private void drawSixthQuestPortalChoiceOverlay(SpriteBatch batch) {
+        if (uiCamera == null) {
+            return;
+        }
+        float drawWidth = Math.min(uiCamera.viewportWidth * SIXTH_QUEST_PORTAL_CHOICE_BOX_WIDTH_RATIO,
+                SIXTH_QUEST_PORTAL_CHOICE_BOX_MAX_WIDTH);
+        float drawHeight;
+        float drawX = (uiCamera.viewportWidth - drawWidth) * 0.5f;
+        float drawY = SIXTH_QUEST_PORTAL_CHOICE_BOX_BOTTOM_MARGIN;
+        if (firstQuestFatherDialogueBoxTex != null) {
+            float aspectRatio = firstQuestFatherDialogueBoxTex.getHeight() / (float) firstQuestFatherDialogueBoxTex.getWidth();
+            drawHeight = drawWidth * aspectRatio;
+            batch.setColor(1f, 1f, 1f, 1f);
+            batch.draw(firstQuestFatherDialogueBoxTex, drawX, drawY, drawWidth, drawHeight);
+        } else {
+            drawHeight = Math.min(uiCamera.viewportHeight * 0.42f, 320f);
+            drawQuestPanel(batch, drawX, drawY, drawWidth, drawHeight);
+        }
+        float scale = firstQuestFatherDialogueBoxTex != null
+                ? drawWidth / firstQuestFatherDialogueBoxTex.getWidth()
+                : 1f;
+
+        if (firstQuestTitleFont != null) {
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * FIRST_QUEST_OVERLAY_HEADER_SCALE * 1.65f,
+                    baseScaleY * FIRST_QUEST_OVERLAY_HEADER_SCALE * 1.65f);
+            drawCenteredQuestText(batch, firstQuestTitleFont, "Portal",
+                    drawX + drawWidth * SIXTH_QUEST_PORTAL_CHOICE_TITLE_CENTER_X_RATIO,
+                    drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TITLE_BASELINE_FROM_TOP * scale
+                            + SIXTH_QUEST_PORTAL_CHOICE_TITLE_OFFSET_Y,
+                    0.94f, 0.90f, 0.78f, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+
+        String portalPrompt = "Enter the final stage and step into the Demon Castle?";
+        drawWrappedQuestTextAligned(batch, firstQuestBodyFont, portalPrompt,
+                drawX + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT * scale + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_X,
+                drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TEXT_TOP_FROM_TOP * scale
+                        + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_Y,
+                drawWidth - (SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT
+                + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_RIGHT) * scale,
+                Align.left,
+                0.27f, 0.19f, 0.09f, 1f);
+
+        float buttonWidth = SIXTH_QUEST_PORTAL_CHOICE_BUTTON_WIDTH * scale;
+        float buttonHeight = SIXTH_QUEST_PORTAL_CHOICE_BUTTON_HEIGHT * scale;
+        float buttonY = drawY + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING * scale;
+        float centerX = drawX + drawWidth * 0.5f;
+        sixthQuestPortalChoiceYesBounds.set(
+                centerX - SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP * 0.5f * scale - buttonWidth,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+        sixthQuestPortalChoiceNoBounds.set(
+                centerX + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP * 0.5f * scale,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+        drawSixthQuestPortalChoiceButton(batch, sixthQuestPortalChoiceYesBounds, "Yes", sixthQuestPortalChoiceIndex == 0);
+        drawSixthQuestPortalChoiceButton(batch, sixthQuestPortalChoiceNoBounds, "No", sixthQuestPortalChoiceIndex == 1);
+
+        drawCenteredQuestText(batch, firstQuestHintFont, "Choose with Left/Right, Enter, or click",
+                drawX + drawWidth - SIXTH_QUEST_PORTAL_CHOICE_HINT_RIGHT_PADDING * scale,
+                drawY + SIXTH_QUEST_PORTAL_CHOICE_HINT_BOTTOM_PADDING * scale,
+                0.44f, 0.33f, 0.20f, 1f);
+    }
+
+    private void drawSixthQuestPortalChoiceButton(SpriteBatch batch, Rectangle bounds, String text, boolean selected) {
+        if (batch == null || bounds == null || dayNightOverlayTex == null) {
+            return;
+        }
+        if (selected) {
+            batch.setColor(0.71f, 0.56f, 0.22f, 0.36f);
+        } else {
+            batch.setColor(0f, 0f, 0f, 0.34f);
+        }
+        batch.draw(dayNightOverlayTex, bounds.x, bounds.y, bounds.width, bounds.height);
+        batch.setColor(selected ? 0.88f : 0.44f, selected ? 0.70f : 0.31f, selected ? 0.30f : 0.16f, 0.95f);
+        drawQuestRectOutline(batch, bounds, 2f);
+        drawCenteredQuestText(batch, firstQuestBodyFont, text,
+                bounds.x + bounds.width * 0.5f,
+                bounds.y + bounds.height * 0.65f,
+                selected ? 0.24f : 0.92f,
+                selected ? 0.16f : 0.88f,
+                selected ? 0.07f : 0.80f,
+                1f);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private String resolveStorySpeaker(String speaker) {
@@ -14254,6 +16790,9 @@ public class GameScreen extends ScreenAdapter {
         if (activeQuestItemCardId == QuestItemCardId.SECOND_QUEST_SCORCHED_FRAGMENT) {
             return SECOND_QUEST_FRAGMENT_CARD_IMAGE_OFFSET_Y;
         }
+        if (activeQuestItemCardId == QuestItemCardId.FOURTH_QUEST_CONDENSED_CORE) {
+            return FOURTH_QUEST_CONDENSED_CORE_CARD_IMAGE_OFFSET_Y;
+        }
         return 0f;
     }
 
@@ -14284,11 +16823,17 @@ public class GameScreen extends ScreenAdapter {
     private void drawWrappedQuestText(SpriteBatch batch, BitmapFont font, String text,
                                       float x, float topY, float width,
                                       float r, float g, float b, float a) {
+        drawWrappedQuestTextAligned(batch, font, text, x, topY, width, Align.center, r, g, b, a);
+    }
+
+    private void drawWrappedQuestTextAligned(SpriteBatch batch, BitmapFont font, String text,
+                                             float x, float topY, float width, int align,
+                                             float r, float g, float b, float a) {
         if (font == null || text == null) {
             return;
         }
         font.setColor(r, g, b, a);
-        font.draw(batch, text, x, topY, width, Align.center, true);
+        font.draw(batch, text, x, topY, width, align, true);
         font.setColor(1f, 1f, 1f, 1f);
     }
 
@@ -15164,7 +17709,9 @@ public class GameScreen extends ScreenAdapter {
             } else {
                 animationTime = demon.stateTime;
             }
-            TextureRegion frame = activeAnim.getKeyFrame(animationTime, loop);
+            TextureRegion frame = demon.attacking && activeAnim == bossArenaPhase2DemonAttackAnim
+                    ? currentBossArenaPhase2DemonAttackFrame(animationTime)
+                    : activeAnim.getKeyFrame(animationTime, loop);
             if (frame == null) {
                 continue;
             }
@@ -15181,6 +17728,96 @@ public class GameScreen extends ScreenAdapter {
         if (saturationShader != null) {
             batch.setShader(null);
         }
+    }
+
+    private void drawBossArenaPhase2Explosions(float saturation) {
+        if (bossArenaPhase2Explosions.size == 0 || bossArenaPhase2ExplosionAnim == null) {
+            return;
+        }
+        for (int i = 0; i < bossArenaPhase2Explosions.size; i++) {
+            BossArenaPhase2ExplosionInstance burst = bossArenaPhase2Explosions.get(i);
+            if (burst == null || burst.active) {
+                continue;
+            }
+            drawBossArenaPhase2ExplosionTelegraph(burst);
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        for (int i = 0; i < bossArenaPhase2Explosions.size; i++) {
+            BossArenaPhase2ExplosionInstance burst = bossArenaPhase2Explosions.get(i);
+            if (!burst.active) {
+                continue;
+            }
+            TextureRegion frame = bossArenaPhase2ExplosionAnim.getKeyFrame(burst.stateTime, false);
+            if (frame == null) {
+                continue;
+            }
+            float drawScale = currentBossArenaPhase2ExplosionDrawScale();
+            float drawW = frame.getRegionWidth() * drawScale;
+            float drawH = frame.getRegionHeight() * drawScale;
+            float drawX = burst.position.x - drawW * 0.5f;
+            float drawY = burst.position.y - drawH * 0.5f;
+            batch.draw(frame, drawX, drawY, drawW, drawH);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
+    private void drawBossArenaPhase2ExplosionTelegraph(BossArenaPhase2ExplosionInstance burst) {
+        if (burst == null || burst.active) {
+            return;
+        }
+        TextureRegion telegraphRegion = shadowRegion;
+        if (telegraphRegion == null && dayNightOverlayTex == null) {
+            return;
+        }
+
+        float telegraphDuration = Math.max(0.001f, BOSS_ARENA_PHASE_2_EXPLOSION_CAST_DELAY_SECONDS);
+        float progress = clamp01(1f - burst.delayTimer / telegraphDuration);
+        float pulse = 0.5f + 0.5f * (float) Math.sin(progress * (float) Math.PI * 6f);
+        float baseRadius = currentBossArenaPhase2ExplosionRadiusTiles() * DEFAULT_TILE_SIZE;
+        float outerRadius = baseRadius * (1.08f + 0.06f * pulse);
+        float innerRadius = outerRadius * 0.74f;
+
+        batch.setShader(null);
+        batch.setColor(0.92f, 0.08f, 0.08f, clamp01(0.2f + 0.22f * progress + 0.08f * pulse));
+        if (telegraphRegion != null) {
+            batch.draw(
+                    telegraphRegion,
+                    burst.position.x - outerRadius,
+                    burst.position.y - outerRadius,
+                    outerRadius * 2f,
+                    outerRadius * 2f);
+        } else {
+            batch.draw(
+                    dayNightOverlayTex,
+                    burst.position.x - outerRadius,
+                    burst.position.y - outerRadius,
+                    outerRadius * 2f,
+                    outerRadius * 2f);
+        }
+
+        batch.setColor(1f, 0.2f, 0.2f, clamp01(0.1f + 0.1f * progress));
+        if (telegraphRegion != null) {
+            batch.draw(
+                    telegraphRegion,
+                    burst.position.x - innerRadius,
+                    burst.position.y - innerRadius,
+                    innerRadius * 2f,
+                    innerRadius * 2f);
+        } else {
+            batch.draw(
+                    dayNightOverlayTex,
+                    burst.position.x - innerRadius,
+                    burst.position.y - innerRadius,
+                    innerRadius * 2f,
+                    innerRadius * 2f);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private TextureRegion resolveRewardChestFrame(RewardChestInstance chest) {

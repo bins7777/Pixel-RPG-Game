@@ -1,8 +1,10 @@
 package com.pixelrpg.game.ui;
 
+import java.io.File;
 import java.util.Locale;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -12,8 +14,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.pixelrpg.game.entities.PlayerLevelStats;
 import com.pixelrpg.game.settings.GameSettingsService;
 
@@ -21,9 +23,11 @@ import com.pixelrpg.game.settings.GameSettingsService;
  * Draws the fixed HUD and top spawn notification panel.
  */
 public class HudRenderer {
+    private static final String PROJECT_ASSETS_DIRECTORY = "core/assets";
     private static final String VILLAGE_SPAWN_NOTIFICATION_TITLE = "Notification";
     private static final String VILLAGE_SPAWN_NOTIFICATION_MESSAGE = "Welcome to the Village.";
     private static final float VILLAGE_SPAWN_NOTIFICATION_DURATION_SECONDS = 6f;
+    private static final float QUEST_GUIDANCE_NOTIFICATION_DURATION_SECONDS = 5f;
     private static final float VILLAGE_SPAWN_NOTIFICATION_FADE_SECONDS = 1f;
     private static final float VILLAGE_SPAWN_NOTIFICATION_TOP_MARGIN = 16f;
     private static final float VILLAGE_SPAWN_NOTIFICATION_SIDE_MARGIN = 24f;
@@ -69,10 +73,52 @@ public class HudRenderer {
     private static final int MAIN_MENU_TITLE_FONT_SIZE = 16;
     private static final int MAIN_MENU_TAB_FONT_SIZE = 18;
     private static final int MAIN_MENU_BODY_FONT_SIZE = 15;
-    private static final String[] MAIN_MENU_TABS = {"Game", "Quest", "Settings"};
-    private static final String[] GAME_MENU_ACTIONS = {"Resume", "Main Menu", "Reload Autosave", "Exit Game"};
+    private static final String[] MAIN_MENU_TABS = {"Game", "Settings"};
+    private static final String[] GAME_MENU_ACTIONS = {"Resume", "Main Menu", "Reload Save", "Exit Game"};
     private static final String[] SETTINGS_MENU_ITEMS = {"Music Volume", "SFX Volume", "Fullscreen", "VSync"};
     private static final int MAIN_MENU_SETTINGS_STEP_PERCENT = 10;
+    private static final float GAME_MENU_GROUP_X_OFFSET = -15f;
+    private static final float MAIN_MENU_CHOICE_TEXT_SCALE = 0.7f;
+    private static final float SETTINGS_SLIDER_TRACK_HEIGHT_RATIO = 0.22f;
+    private static final float SETTINGS_SLIDER_TRACK_MIN_WIDTH = 74f;
+    private static final float SETTINGS_SLIDER_TRACK_WIDTH_RATIO = 0.30f;
+    private static final float SETTINGS_SLIDER_RIGHT_PADDING = 12f;
+    private static final float SETTINGS_SLIDER_VALUE_GAP = 10f;
+    private static final float SETTINGS_SLIDER_VALUE_MIN_WIDTH = 40f;
+    private static final float SETTINGS_SLIDER_THUMB_WIDTH = 10f;
+    private static final float SETTINGS_SLIDER_THUMB_HEIGHT_RATIO = 1.9f;
+    private static final String QUEST_PANEL_PATH = "ui/objectives/Panel Open.png";
+    private static final String QUEST_PANEL_CLOSED_PATH = "ui/objectives/Panel Closed.png";
+    private static final String QUEST_PANEL_ICON_OPEN_PATH = "ui/objectives/Icons/IconOpen.png";
+    private static final String QUEST_PANEL_ICON_CLOSE_PATH = "ui/objectives/Icons/IconClose.png";
+    private static final float QUEST_PANEL_MAX_HEIGHT_RATIO = 1f;
+    private static final float QUEST_PANEL_SIDE_MARGIN = 0f;
+    private static final float QUEST_PANEL_VERTICAL_OFFSET = 0f;
+    private static final float QUEST_PANEL_TEXT_LEFT_PADDING = 92f;
+    private static final float QUEST_PANEL_TEXT_RIGHT_PADDING = 20f;
+    private static final int QUEST_PANEL_HEADER_FONT_SIZE = 15;
+    private static final int QUEST_PANEL_QUEST_TITLE_FONT_SIZE = 13;
+    private static final int QUEST_PANEL_PROMPT_FONT_SIZE = 13;
+    private static final float QUEST_PANEL_HEADER_TOP_OFFSET = 15f;
+    private static final float QUEST_PANEL_HEADER_SCALE = 1.05f;
+    private static final float QUEST_PANEL_QUEST_TITLE_BASELINE_TOP_OFFSET = 96f;
+    private static final float QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT = 46f;
+    private static final float QUEST_PANEL_QUEST_TITLE_SCALE = 1.0f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BASELINE_TOP_OFFSET = 146f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BOTTOM_OFFSET = 52f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_SCALE = 0.92f;
+    private static final float QUEST_PANEL_AREA_BASELINE_OFFSET_Y = 108f;
+    private static final float QUEST_PANEL_AREA_TEXT_SCALE = 1.0f;
+    private static final float QUEST_PANEL_ICON_OFFSET_X = 22f;
+    private static final float QUEST_PANEL_ICON_OFFSET_Y = 16f;
+    private static final float QUEST_PANEL_HEADER_CENTER_X_RATIO = 0.51f;
+    private static final float QUEST_PANEL_CLOSED_HEIGHT_RATIO = 0.90f;
+    private static final float QUEST_PANEL_TOGGLE_HITBOX_WIDTH = 60f;
+    private static final float QUEST_PANEL_TOGGLE_HITBOX_HEIGHT = 44f;
+    private static final float QUEST_PANEL_CLOSED_X_OFFSET = -6f;
+    private static final float BOSS_HUD_BAR_WIDTH = 320f;
+    private static final float BOSS_HUD_BAR_TOP_MARGIN = 18f;
+    private static final float BOSS_HUD_BAR_HEIGHT_SCALE = 1.0f;
     private static final float CHAT_PANEL_WIDTH = 360f;
     private static final float CHAT_PANEL_HEIGHT = 172f;
     private static final float CHAT_PANEL_LEFT_MARGIN = 18f;
@@ -95,6 +141,9 @@ public class HudRenderer {
     private BitmapFont uiMainMenuTitleFont;
     private BitmapFont uiMainMenuTabFont;
     private BitmapFont uiMainMenuBodyFont;
+    private BitmapFont uiQuestPanelHeaderFont;
+    private BitmapFont uiQuestPanelQuestTitleFont;
+    private BitmapFont uiQuestPanelPromptFont;
     private GlyphLayout uiLayout;
 
     private Texture uiOverlayBackTex;
@@ -115,6 +164,10 @@ public class HudRenderer {
     private Texture uiMainMenuPanel4Tex;
     private Texture uiMainMenuTabSelectedTex;
     private Texture uiMainMenuCloseTex;
+    private Texture uiQuestPanelTex;
+    private Texture uiQuestPanelClosedTex;
+    private Texture uiQuestPanelIconOpenTex;
+    private Texture uiQuestPanelIconCloseTex;
 
     private final GameSettingsService settingsService;
     private String topNotificationTitle;
@@ -133,6 +186,8 @@ public class HudRenderer {
     private final Rectangle[] settingsRowBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
     private final Rectangle[] settingsDecreaseBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
     private final Rectangle[] settingsIncreaseBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
+    private final Rectangle[] settingsSliderTrackBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
+    private final Rectangle[] settingsSliderValueBounds = new Rectangle[SETTINGS_MENU_ITEMS.length];
     private final Rectangle mainMenuPanelBounds = new Rectangle();
     private final Rectangle mainMenuLeftCardBounds = new Rectangle();
     private final Rectangle mainMenuRightCardBounds = new Rectangle();
@@ -146,6 +201,11 @@ public class HudRenderer {
     private boolean chatOpen = false;
     private boolean chatCursorVisible = false;
     private float chatCursorTimer = 0f;
+    private int activeSettingsSliderDragIndex = -1;
+    private boolean questPanelExpanded = true;
+    private boolean questPanelToggleVisible = false;
+    private final Rectangle questPanelBounds = new Rectangle();
+    private final Rectangle questPanelToggleBounds = new Rectangle();
 
     public HudRenderer(OrthographicCamera uiCamera, GameSettingsService settingsService) {
         this.uiCamera = uiCamera;
@@ -160,6 +220,8 @@ public class HudRenderer {
             settingsRowBounds[i] = new Rectangle();
             settingsDecreaseBounds[i] = new Rectangle();
             settingsIncreaseBounds[i] = new Rectangle();
+            settingsSliderTrackBounds[i] = new Rectangle();
+            settingsSliderValueBounds[i] = new Rectangle();
         }
     }
 
@@ -171,18 +233,21 @@ public class HudRenderer {
         uiMainMenuTitleFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, MAIN_MENU_TITLE_FONT_SIZE);
         uiMainMenuTabFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, MAIN_MENU_TAB_FONT_SIZE);
         uiMainMenuBodyFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, MAIN_MENU_BODY_FONT_SIZE);
+        uiQuestPanelHeaderFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_HEADER_FONT_SIZE);
+        uiQuestPanelQuestTitleFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_QUEST_TITLE_FONT_SIZE);
+        uiQuestPanelPromptFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_PROMPT_FONT_SIZE);
         uiLayout = new GlyphLayout();
 
-        uiOverlayBackTex = new Texture(Gdx.files.internal("ui/character_player/Overlay Border + Overlay Level.png"));
+        uiOverlayBackTex = loadRequiredTexture("ui/character_player/Overlay Border + Overlay Level.png");
         uiOverlayBorderTex = null;
         uiLevelBadgeTex = null;
-        uiAvatarTex = new Texture(Gdx.files.internal("ui/character_player/Avatar.png"));
-        uiAvatarCircleTex = new Texture(Gdx.files.internal("ui/character_player/AvatarCircle.png"));
-        uiBarBackgroundTex = new Texture(Gdx.files.internal("ui/character_player/ProgressBar/BqBar.png"));
-        uiBarBorderTex = new Texture(Gdx.files.internal("ui/character_player/ProgressBar/Border.png"));
-        uiBarHealthTex = new Texture(Gdx.files.internal("ui/character_player/ProgressBar/BarHealth.png"));
-        uiBarManaTex = new Texture(Gdx.files.internal("ui/character_player/ProgressBar/BarMana.png"));
-        uiSpawnNotificationTex = new Texture(Gdx.files.internal("ui/addons/message_notification_02/Panel + Border.png"));
+        uiAvatarTex = loadRequiredTexture("ui/character_player/Avatar.png");
+        uiAvatarCircleTex = loadRequiredTexture("ui/character_player/AvatarCircle.png");
+        uiBarBackgroundTex = loadRequiredTexture("ui/character_player/ProgressBar/BqBar.png");
+        uiBarBorderTex = loadRequiredTexture("ui/character_player/ProgressBar/Border.png");
+        uiBarHealthTex = loadRequiredTexture("ui/character_player/ProgressBar/BarHealth.png");
+        uiBarManaTex = loadRequiredTexture("ui/character_player/ProgressBar/BarMana.png");
+        uiSpawnNotificationTex = loadRequiredTexture("ui/addons/message_notification_02/Panel + Border.png");
         uiBlackBarTex = createSolidTexture(1, 1, 0, 0, 0, 255);
         uiMainMenuPanelTex = loadOptionalTexture(MAIN_MENU_PANEL_PATH);
         uiMainMenuPanel1Tex = loadOptionalTexture(MAIN_MENU_PANEL_1_PATH);
@@ -191,6 +256,10 @@ public class HudRenderer {
         uiMainMenuPanel4Tex = loadOptionalTexture(MAIN_MENU_PANEL_4_PATH);
         uiMainMenuTabSelectedTex = loadOptionalTexture(MAIN_MENU_TAB_SELECTED_PATH);
         uiMainMenuCloseTex = loadOptionalTexture(MAIN_MENU_CLOSE_PATH);
+        uiQuestPanelTex = loadOptionalTexture(QUEST_PANEL_PATH);
+        uiQuestPanelClosedTex = loadOptionalTexture(QUEST_PANEL_CLOSED_PATH);
+        uiQuestPanelIconOpenTex = loadOptionalTexture(QUEST_PANEL_ICON_OPEN_PATH);
+        uiQuestPanelIconCloseTex = loadOptionalTexture(QUEST_PANEL_ICON_CLOSE_PATH);
 
         uiOverlayBackTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         uiAvatarTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
@@ -208,6 +277,10 @@ public class HudRenderer {
         setNearestFilter(uiMainMenuPanel4Tex);
         setNearestFilter(uiMainMenuTabSelectedTex);
         setNearestFilter(uiMainMenuCloseTex);
+        setNearestFilter(uiQuestPanelTex);
+        setNearestFilter(uiQuestPanelClosedTex);
+        setNearestFilter(uiQuestPanelIconOpenTex);
+        setNearestFilter(uiQuestPanelIconCloseTex);
     }
 
     public void resize(int width, int height) {
@@ -228,6 +301,9 @@ public class HudRenderer {
     }
 
     public void showNotification(String title, String message, float durationSeconds) {
+        if (sameNotification(title, message)) {
+            return;
+        }
         topNotificationTitle = title;
         topNotificationMessage = message;
         topNotificationDuration = Math.max(0f, durationSeconds);
@@ -236,11 +312,14 @@ public class HudRenderer {
     }
 
     public void showPersistentNotification(String title, String message) {
+        if (sameNotification(title, message)) {
+            return;
+        }
         topNotificationTitle = title;
         topNotificationMessage = message;
-        topNotificationDuration = 0f;
-        topNotificationTimer = 0f;
-        topNotificationPersistent = true;
+        topNotificationDuration = QUEST_GUIDANCE_NOTIFICATION_DURATION_SECONDS;
+        topNotificationTimer = topNotificationDuration;
+        topNotificationPersistent = false;
     }
 
     public void clearNotification() {
@@ -257,11 +336,13 @@ public class HudRenderer {
         selectedGameActionIndex = 0;
         selectedConfirmationIndex = 0;
         confirmationAction = PauseMenuAction.NONE;
+        activeSettingsSliderDragIndex = -1;
     }
 
     public void closeMainMenu() {
         mainMenuVisible = false;
         confirmationAction = PauseMenuAction.NONE;
+        activeSettingsSliderDragIndex = -1;
     }
 
     public void toggleMainMenu() {
@@ -283,6 +364,7 @@ public class HudRenderer {
     public void cancelMainMenuConfirmation() {
         confirmationAction = PauseMenuAction.NONE;
         selectedConfirmationIndex = 0;
+        activeSettingsSliderDragIndex = -1;
     }
 
     public void selectPreviousMainMenuItem() {
@@ -316,6 +398,7 @@ public class HudRenderer {
             selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex - 1, 2);
             return;
         }
+        activeSettingsSliderDragIndex = -1;
         activePauseMenuTab = PauseMenuTab.values()[wrapIndex(activePauseMenuTab.ordinal() - 1, PauseMenuTab.values().length)];
     }
 
@@ -324,6 +407,7 @@ public class HudRenderer {
             selectedConfirmationIndex = wrapIndex(selectedConfirmationIndex + 1, 2);
             return;
         }
+        activeSettingsSliderDragIndex = -1;
         activePauseMenuTab = PauseMenuTab.values()[wrapIndex(activePauseMenuTab.ordinal() + 1, PauseMenuTab.values().length)];
     }
 
@@ -394,12 +478,14 @@ public class HudRenderer {
 
         for (int i = 0; i < mainMenuTabBounds.length; i++) {
             if (mainMenuTabBounds[i].contains(worldX, worldY)) {
+                activeSettingsSliderDragIndex = -1;
                 activePauseMenuTab = PauseMenuTab.values()[i];
                 return PauseMenuAction.NONE;
             }
         }
 
         if (activePauseMenuTab == PauseMenuTab.GAME) {
+            activeSettingsSliderDragIndex = -1;
             for (int i = 0; i < gameActionBounds.length; i++) {
                 if (gameActionBounds[i].contains(worldX, worldY)) {
                     selectedGameActionIndex = i;
@@ -415,19 +501,45 @@ public class HudRenderer {
                     continue;
                 }
                 selectedSettingsIndex = i;
-                if (i <= 1) {
-                    if (settingsDecreaseBounds[i].contains(worldX, worldY)) {
-                        adjustSelectedMainMenuSetting(-1);
-                    } else {
-                        adjustSelectedMainMenuSetting(1);
-                    }
+                if (isSliderSetting(i)) {
+                    activeSettingsSliderDragIndex = i;
+                    updateDraggedSettingsSlider(worldX);
                 } else {
+                    activeSettingsSliderDragIndex = -1;
                     adjustSelectedMainMenuSetting(1);
                 }
                 break;
             }
         }
         return PauseMenuAction.NONE;
+    }
+
+    public boolean handleQuestPanelClick(float screenX, float screenY) {
+        if (mainMenuVisible || uiCamera == null || !questPanelToggleVisible) {
+            return false;
+        }
+        float worldX = screenX;
+        float worldY = uiCamera.viewportHeight - screenY;
+        if (!questPanelToggleBounds.contains(worldX, worldY)) {
+            return false;
+        }
+        questPanelExpanded = !questPanelExpanded;
+        return true;
+    }
+
+    public void handleMainMenuDrag(float screenX, float screenY) {
+        if (!mainMenuVisible || uiCamera == null || activeSettingsSliderDragIndex < 0 || settingsService == null) {
+            return;
+        }
+        float worldX = screenX;
+        @SuppressWarnings("unused")
+        float worldY = uiCamera.viewportHeight - screenY;
+        updateMainMenuLayout();
+        updateDraggedSettingsSlider(worldX);
+    }
+
+    public void endMainMenuDrag() {
+        activeSettingsSliderDragIndex = -1;
     }
 
     public void openChat() {
@@ -507,7 +619,8 @@ public class HudRenderer {
     }
 
     public void draw(SpriteBatch batch, float currentHealth, float maxHealth, float currentMana, float maxMana, int playerLevel,
-                     String menuQuestTitle, String menuQuestObjective, String currentRegionName) {
+                     String menuQuestTitle, String menuQuestObjective, String currentRegionName, boolean showQuestPanel,
+                     float bossCurrentHealth, float bossMaxHealth, float bossHudAlpha) {
         if (uiCamera == null || uiOverlayBackTex == null || uiBarBackgroundTex == null) {
             return;
         }
@@ -631,6 +744,13 @@ public class HudRenderer {
 
         drawTopNotification(batch);
         drawLetterboxBars(batch);
+        drawBossHudBar(batch, bossCurrentHealth, bossMaxHealth, bossHudAlpha);
+        questPanelToggleVisible = false;
+        questPanelBounds.set(0f, 0f, 0f, 0f);
+        questPanelToggleBounds.set(0f, 0f, 0f, 0f);
+        if (showQuestPanel) {
+            drawQuestPanel(batch, menuQuestTitle, menuQuestObjective, currentRegionName);
+        }
         // Layer 9: HP text in front of all HUD layers.
         if (healthTextFront != null && uiFont != null && uiLayout != null) {
             uiFont.setColor(1f, 1f, 1f, 1f);
@@ -654,6 +774,39 @@ public class HudRenderer {
         batch.end();
     }
 
+    private void drawBossHudBar(SpriteBatch batch, float bossCurrentHealth, float bossMaxHealth, float bossHudAlpha) {
+        if (batch == null
+                || uiCamera == null
+                || uiBarBackgroundTex == null
+                || uiBarBorderTex == null
+                || uiBarHealthTex == null
+                || bossMaxHealth <= 0f
+                || bossCurrentHealth < 0f
+                || bossHudAlpha <= 0f) {
+            return;
+        }
+
+        float barWidth = BOSS_HUD_BAR_WIDTH;
+        float barHeight = uiBarBackgroundTex.getHeight() * HUD_BAR_SCALE * BOSS_HUD_BAR_HEIGHT_SCALE;
+        float borderWidth = barWidth * HUD_BAR_BORDER_SCALE;
+        float borderHeight = barHeight * HUD_BAR_BORDER_SCALE;
+        float borderInsetX = (borderWidth - barWidth) * 0.5f;
+        float borderInsetY = (borderHeight - barHeight) * 0.5f;
+        float x = (uiCamera.viewportWidth - barWidth) * 0.5f;
+        float y = uiCamera.viewportHeight
+                - Math.min(HUD_LETTERBOX_BAR_HEIGHT, uiCamera.viewportHeight * 0.5f)
+                - BOSS_HUD_BAR_TOP_MARGIN
+                - barHeight;
+
+        float clampedAlpha = clamp01(bossHudAlpha);
+        Color previousColor = batch.getColor();
+        batch.setColor(previousColor.r, previousColor.g, previousColor.b, previousColor.a * clampedAlpha);
+        drawBarBackground(batch, x, y, barWidth, barHeight);
+        drawBarFill(batch, x, y, barWidth, barHeight, bossCurrentHealth / bossMaxHealth, uiBarHealthTex);
+        drawBarBorder(batch, x - borderInsetX + HUD_BAR_BORDER_X_OFFSET, y - borderInsetY, borderWidth, borderHeight);
+        batch.setColor(previousColor);
+    }
+
     public void dispose() {
         if (uiFont != null) uiFont.dispose();
         if (uiNotificationTitleFont != null) uiNotificationTitleFont.dispose();
@@ -661,6 +814,9 @@ public class HudRenderer {
         if (uiMainMenuTitleFont != null) uiMainMenuTitleFont.dispose();
         if (uiMainMenuTabFont != null) uiMainMenuTabFont.dispose();
         if (uiMainMenuBodyFont != null) uiMainMenuBodyFont.dispose();
+        if (uiQuestPanelHeaderFont != null) uiQuestPanelHeaderFont.dispose();
+        if (uiQuestPanelQuestTitleFont != null) uiQuestPanelQuestTitleFont.dispose();
+        if (uiQuestPanelPromptFont != null) uiQuestPanelPromptFont.dispose();
         if (uiOverlayBackTex != null) uiOverlayBackTex.dispose();
         if (uiOverlayBorderTex != null) uiOverlayBorderTex.dispose();
         if (uiLevelBadgeTex != null) uiLevelBadgeTex.dispose();
@@ -679,6 +835,10 @@ public class HudRenderer {
         if (uiMainMenuPanel4Tex != null) uiMainMenuPanel4Tex.dispose();
         if (uiMainMenuTabSelectedTex != null) uiMainMenuTabSelectedTex.dispose();
         if (uiMainMenuCloseTex != null) uiMainMenuCloseTex.dispose();
+        if (uiQuestPanelTex != null) uiQuestPanelTex.dispose();
+        if (uiQuestPanelClosedTex != null) uiQuestPanelClosedTex.dispose();
+        if (uiQuestPanelIconOpenTex != null) uiQuestPanelIconOpenTex.dispose();
+        if (uiQuestPanelIconCloseTex != null) uiQuestPanelIconCloseTex.dispose();
     }
 
     private void drawBarBackground(SpriteBatch batch, float x, float y, float width, float height) {
@@ -709,6 +869,19 @@ public class HudRenderer {
         batch.setColor(1f, 1f, 1f, 1f);
         batch.draw(uiBlackBarTex, 0f, uiCamera.viewportHeight - barHeight, width, barHeight);
         batch.draw(uiBlackBarTex, 0f, 0f, width, barHeight);
+    }
+
+    public void drawLetterboxOverlay(SpriteBatch batch) {
+        if (batch == null || uiCamera == null || uiBlackBarTex == null) {
+            return;
+        }
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(null);
+        batch.setColor(1f, 1f, 1f, 1f);
+        drawLetterboxBars(batch);
+        batch.end();
     }
 
     private void drawTopNotification(SpriteBatch batch) {
@@ -745,12 +918,106 @@ public class HudRenderer {
         float messageY = panelY + panelHeight - (74f * scale)
                 - VILLAGE_SPAWN_NOTIFICATION_TEXT_DOWN_OFFSET
                 + VILLAGE_SPAWN_NOTIFICATION_MESSAGE_UP_OFFSET;
+        String summaryMessage = summarizeNotificationMessage(
+                uiNotificationMessageFont,
+                topNotificationMessage,
+                Math.max(1f, panelWidth - 92f * scale));
 
         drawCenteredText(batch, uiNotificationTitleFont, topNotificationTitle, textCenterX, titleY,
                 0.8902f, 0.5216f, 0f, 1f, alpha);
-        drawCenteredText(batch, uiNotificationMessageFont, topNotificationMessage, textCenterX, messageY,
+        drawCenteredText(batch, uiNotificationMessageFont, summaryMessage, textCenterX, messageY,
                 0.83f, 0.81f, 0.75f, 1f, alpha);
         batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawQuestPanel(SpriteBatch batch, String questTitle, String questObjective, String currentRegionName) {
+        questPanelToggleVisible = false;
+        questPanelBounds.set(0f, 0f, 0f, 0f);
+        questPanelToggleBounds.set(0f, 0f, 0f, 0f);
+        if (mainMenuVisible
+                || uiCamera == null
+                || uiQuestPanelTex == null
+                || uiQuestPanelHeaderFont == null
+                || uiQuestPanelQuestTitleFont == null
+                || uiQuestPanelPromptFont == null
+                || uiLayout == null
+                || questTitle == null
+                || questTitle.isBlank()
+                || "No active quest".equalsIgnoreCase(questTitle.trim())) {
+            return;
+        }
+
+        float maxHeight = uiCamera.viewportHeight * QUEST_PANEL_MAX_HEIGHT_RATIO;
+        float maxWidth = Math.max(1f, uiCamera.viewportWidth - QUEST_PANEL_SIDE_MARGIN * 2f);
+        float scale = Math.min(
+                1f,
+                Math.min(maxHeight / uiQuestPanelTex.getHeight(), maxWidth / uiQuestPanelTex.getWidth()));
+        Texture panelTexture = questPanelExpanded || uiQuestPanelClosedTex == null ? uiQuestPanelTex : uiQuestPanelClosedTex;
+        float openDrawHeight = uiQuestPanelTex.getHeight() * scale;
+        float drawWidth = panelTexture.getWidth() * scale;
+        float drawHeight = panelTexture.getHeight() * scale;
+        float panelX = uiCamera.viewportWidth - drawWidth - QUEST_PANEL_SIDE_MARGIN
+                + (questPanelExpanded ? 0f : QUEST_PANEL_CLOSED_X_OFFSET);
+        float openPanelY = (uiCamera.viewportHeight - openDrawHeight) * 0.5f + QUEST_PANEL_VERTICAL_OFFSET;
+        float panelTopY = openPanelY + openDrawHeight;
+        float panelY = panelTopY - drawHeight;
+        float panelCenterX = panelX + drawWidth * 0.5f;
+        questPanelBounds.set(panelX, panelY, drawWidth, drawHeight);
+        questPanelToggleBounds.set(
+                panelX,
+                panelTopY - QUEST_PANEL_TOGGLE_HITBOX_HEIGHT * scale,
+                QUEST_PANEL_TOGGLE_HITBOX_WIDTH * scale,
+                QUEST_PANEL_TOGGLE_HITBOX_HEIGHT * scale);
+        questPanelToggleVisible = true;
+
+        batch.setColor(1f, 1f, 1f, 0.97f);
+        batch.draw(panelTexture, panelX, panelY, drawWidth, drawHeight);
+        Texture iconTexture = questPanelExpanded ? uiQuestPanelIconOpenTex : uiQuestPanelIconCloseTex;
+        if (iconTexture != null) {
+            float iconWidth = iconTexture.getWidth() * scale;
+            float iconHeight = iconTexture.getHeight() * scale;
+            float iconX = panelX + QUEST_PANEL_ICON_OFFSET_X * scale;
+            float iconY = panelTopY - (QUEST_PANEL_ICON_OFFSET_Y * scale) - iconHeight;
+            batch.draw(iconTexture, iconX, iconY, iconWidth, iconHeight);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (!questPanelExpanded) {
+            return;
+        }
+
+        float contentX = panelX + QUEST_PANEL_TEXT_LEFT_PADDING * scale;
+        float contentWidth = drawWidth - (QUEST_PANEL_TEXT_LEFT_PADDING + QUEST_PANEL_TEXT_RIGHT_PADDING) * scale;
+        float questHeaderBaselineY = panelY + drawHeight - QUEST_PANEL_HEADER_TOP_OFFSET * scale;
+        float questTitleBaselineY = panelY + drawHeight - QUEST_PANEL_QUEST_TITLE_BASELINE_TOP_OFFSET * scale;
+        float objectiveTextBaselineY = panelY + drawHeight - QUEST_PANEL_OBJECTIVE_TEXT_BASELINE_TOP_OFFSET * scale;
+        float objectiveTextBottomY = panelY + QUEST_PANEL_OBJECTIVE_TEXT_BOTTOM_OFFSET * scale;
+        float regionBaselineY = panelY + QUEST_PANEL_AREA_BASELINE_OFFSET_Y * scale;
+
+        drawMenuCenteredTextScaled(batch, uiQuestPanelHeaderFont, "Objectives",
+                panelCenterX, questHeaderBaselineY,
+                0.84f, 0.84f, 0.84f, 1f,
+                QUEST_PANEL_HEADER_SCALE);
+        drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont, questTitle,
+                new Rectangle(contentX, questTitleBaselineY - 30f * scale, contentWidth, QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT * scale),
+                questTitleBaselineY,
+                Align.left,
+                0.82f, 0.82f, 0.82f, 0.96f,
+                QUEST_PANEL_QUEST_TITLE_SCALE);
+        drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont,
+                questObjective == null || questObjective.isBlank() ? "Explore the world." : questObjective,
+                new Rectangle(contentX, objectiveTextBottomY, contentWidth, objectiveTextBaselineY - objectiveTextBottomY),
+                objectiveTextBaselineY,
+                Align.left,
+                0.54f, 0.77f, 0.26f, 1f,
+                QUEST_PANEL_OBJECTIVE_TEXT_SCALE);
+        if (currentRegionName != null && !currentRegionName.isBlank()) {
+            drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont, "Area: " + currentRegionName,
+                    new Rectangle(contentX, panelY + 16f * scale, contentWidth, 28f * scale),
+                    regionBaselineY,
+                    Align.left,
+                    0.68f, 0.68f, 0.68f, 1f,
+                    QUEST_PANEL_AREA_TEXT_SCALE);
+        }
     }
 
     private void drawMainMenu(SpriteBatch batch, float currentHealth, float maxHealth,
@@ -853,7 +1120,7 @@ public class HudRenderer {
 
             if (activePauseMenuTab == PauseMenuTab.GAME) {
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Game",
-                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
+                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f + GAME_MENU_GROUP_X_OFFSET,
                         mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
                         0.78f, 0.78f, 0.78f, 1f);
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Hero",
@@ -863,7 +1130,8 @@ public class HudRenderer {
                 for (int i = 0; i < GAME_MENU_ACTIONS.length; i++) {
                     drawMenuRow(batch, gameActionBounds[i], GAME_MENU_ACTIONS[i],
                             selectedGameActionIndex == i && confirmationAction == PauseMenuAction.NONE,
-                            i == GAME_MENU_ACTIONS.length - 1);
+                            i == GAME_MENU_ACTIONS.length - 1,
+                            MAIN_MENU_CHOICE_TEXT_SCALE);
                 }
                 float heroBaseY = mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f;
                 drawMenuCenteredText(batch, uiMainMenuBodyFont,
@@ -886,44 +1154,9 @@ public class HudRenderer {
                         mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
                         heroBaseY - bodyLineStep * 3f,
                         0.78f, 0.66f, 0.66f, 1f);
-            } else if (activePauseMenuTab == PauseMenuTab.QUEST) {
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Current Quest",
-                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
-                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
-                        0.78f, 0.78f, 0.78f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Journey",
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
-                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
-                        0.83f, 0.73f, 0.73f, 1f);
-                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeQuestTitle,
-                        new Rectangle(mainMenuLeftCardBounds.x + 14f, mainMenuLeftCardBounds.y + 68f,
-                                mainMenuLeftCardBounds.width - 28f, mainMenuLeftCardBounds.height - 84f),
-                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 58f,
-                        Align.center,
-                        0.79f, 0.73f, 0.58f, 1f);
-                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeQuestObjective,
-                        new Rectangle(mainMenuLeftCardBounds.x + 14f, mainMenuLeftCardBounds.y + 24f,
-                                mainMenuLeftCardBounds.width - 28f, mainMenuLeftCardBounds.height - 132f),
-                        mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 112f,
-                        Align.center,
-                        0.72f, 0.72f, 0.72f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Current Region",
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
-                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
-                        0.78f, 0.66f, 0.66f, 1f);
-                drawWrappedMenuText(batch, uiMainMenuBodyFont, safeRegion,
-                        new Rectangle(mainMenuRightCardBounds.x + 14f, mainMenuRightCardBounds.y + 40f,
-                                mainMenuRightCardBounds.width - 28f, mainMenuRightCardBounds.height - 94f),
-                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 100f,
-                        Align.center,
-                        0.78f, 0.66f, 0.66f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, "You are carrying the story forward.",
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
-                        mainMenuRightCardBounds.y + 40f,
-                        0.72f, 0.72f, 0.72f, 1f);
             } else {
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Settings",
-                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f,
+                        mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f + GAME_MENU_GROUP_X_OFFSET,
                         mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
                         0.78f, 0.78f, 0.78f, 1f);
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Selected",
@@ -932,8 +1165,9 @@ public class HudRenderer {
                         0.83f, 0.73f, 0.73f, 1f);
                 for (int i = 0; i < SETTINGS_MENU_ITEMS.length; i++) {
                     String valueText = settingsValueText(i);
-                    drawSettingsRow(batch, settingsRowBounds[i], SETTINGS_MENU_ITEMS[i], valueText,
-                            selectedSettingsIndex == i && confirmationAction == PauseMenuAction.NONE);
+                    drawSettingsRow(batch, i, settingsRowBounds[i], SETTINGS_MENU_ITEMS[i], valueText,
+                            selectedSettingsIndex == i && confirmationAction == PauseMenuAction.NONE,
+                            MAIN_MENU_CHOICE_TEXT_SCALE);
                 }
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, SETTINGS_MENU_ITEMS[selectedSettingsIndex],
                         mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
@@ -1008,15 +1242,15 @@ public class HudRenderer {
         float rowHeight = 34f * scale;
         float rowGap = 12f * scale;
         float gameRowWidth = (cardW - 36f * scale) * 0.75f;
-        float gameRowX = leftCardX + (cardW - gameRowWidth) * 0.5f;
+        float gameRowX = leftCardX + (cardW - gameRowWidth) * 0.5f + GAME_MENU_GROUP_X_OFFSET;
         float gameStartY = cardY + cardH - 92f * scale;
         for (int i = 0; i < gameActionBounds.length; i++) {
             float rowY = gameStartY - i * (rowHeight + rowGap);
             gameActionBounds[i].set(gameRowX, rowY, gameRowWidth, rowHeight);
         }
 
-        float settingsRowX = leftCardX + 16f * scale;
-        float settingsRowWidth = cardW - 32f * scale;
+        float settingsRowX = gameRowX;
+        float settingsRowWidth = gameRowWidth;
         float settingsStartY = cardY + cardH - 92f * scale;
         float valueAreaWidth = Math.max(72f * scale, settingsRowWidth * 0.34f);
         for (int i = 0; i < settingsRowBounds.length; i++) {
@@ -1024,6 +1258,14 @@ public class HudRenderer {
             settingsRowBounds[i].set(settingsRowX, rowY, settingsRowWidth, rowHeight);
             settingsDecreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth, rowY, valueAreaWidth * 0.5f, rowHeight);
             settingsIncreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth * 0.5f, rowY, valueAreaWidth * 0.5f, rowHeight);
+            float sliderTrackWidth = Math.max(SETTINGS_SLIDER_TRACK_MIN_WIDTH * scale, settingsRowWidth * SETTINGS_SLIDER_TRACK_WIDTH_RATIO);
+            float sliderTrackHeight = Math.max(4f * scale, rowHeight * SETTINGS_SLIDER_TRACK_HEIGHT_RATIO);
+            float sliderValueWidth = Math.max(SETTINGS_SLIDER_VALUE_MIN_WIDTH * scale, valueAreaWidth - sliderTrackWidth - SETTINGS_SLIDER_VALUE_GAP * scale);
+            float sliderValueX = settingsRowX + settingsRowWidth - SETTINGS_SLIDER_RIGHT_PADDING * scale - sliderValueWidth;
+            float sliderTrackX = sliderValueX - SETTINGS_SLIDER_VALUE_GAP * scale - sliderTrackWidth;
+            float sliderTrackY = rowY + (rowHeight - sliderTrackHeight) * 0.5f;
+            settingsSliderTrackBounds[i].set(sliderTrackX, sliderTrackY, sliderTrackWidth, sliderTrackHeight);
+            settingsSliderValueBounds[i].set(sliderValueX, rowY, sliderValueWidth, rowHeight);
         }
 
         float confirmWidth = drawWidth * 0.42f;
@@ -1060,7 +1302,7 @@ public class HudRenderer {
         return action;
     }
 
-    private void drawMenuRow(SpriteBatch batch, Rectangle bounds, String text, boolean selected, boolean danger) {
+    private void drawMenuRow(SpriteBatch batch, Rectangle bounds, String text, boolean selected, boolean danger, float textScale) {
         if (uiBlackBarTex == null || uiMainMenuBodyFont == null) {
             return;
         }
@@ -1072,33 +1314,80 @@ public class HudRenderer {
         }
         batch.draw(uiBlackBarTex, bounds.x, bounds.y, bounds.width, bounds.height);
         batch.setColor(1f, 1f, 1f, 1f);
-        drawMenuCenteredText(batch, uiMainMenuBodyFont, text,
+        drawMenuCenteredTextScaled(batch, uiMainMenuBodyFont, text,
                 bounds.x + bounds.width * 0.5f,
                 bounds.y + bounds.height * 0.68f,
                 danger && selected ? 0.92f : 0.86f,
                 selected ? (danger ? 0.48f : 0.75f) : 0.82f,
                 selected ? (danger ? 0.40f : 0.66f) : 0.82f,
-                1f);
+                1f,
+                textScale);
     }
 
-    private void drawSettingsRow(SpriteBatch batch, Rectangle bounds, String label, String value, boolean selected) {
+    private void drawSettingsRow(SpriteBatch batch, int index, Rectangle bounds, String label, String value, boolean selected, float textScale) {
         if (uiBlackBarTex == null || uiMainMenuBodyFont == null) {
             return;
         }
         batch.setColor(selected ? 0.40f : 0f, selected ? 0.24f : 0f, selected ? 0.18f : 0f, selected ? 0.78f : 0.42f);
         batch.draw(uiBlackBarTex, bounds.x, bounds.y, bounds.width, bounds.height);
         batch.setColor(1f, 1f, 1f, 1f);
-        drawMenuText(batch, uiMainMenuBodyFont, label,
+        drawMenuTextScaled(batch, uiMainMenuBodyFont, label,
                 bounds.x + 10f,
                 bounds.y + bounds.height * 0.68f,
-                0.82f, 0.82f, 0.82f, 1f);
-        drawMenuText(batch, uiMainMenuBodyFont, value,
+                0.82f, 0.82f, 0.82f, 1f, textScale);
+        if (isSliderSetting(index)) {
+            drawSettingsSlider(batch, index, selected, textScale);
+            drawMenuTextScaled(batch, uiMainMenuBodyFont, value,
+                    settingsSliderValueBounds[index].x,
+                    bounds.y + bounds.height * 0.68f,
+                    selected ? 0.90f : 0.76f,
+                    selected ? 0.74f : 0.76f,
+                    selected ? 0.58f : 0.76f,
+                    1f,
+                    textScale);
+            return;
+        }
+        drawMenuTextScaled(batch, uiMainMenuBodyFont, value,
                 bounds.x + bounds.width - 78f,
                 bounds.y + bounds.height * 0.68f,
                 selected ? 0.90f : 0.76f,
                 selected ? 0.74f : 0.76f,
                 selected ? 0.58f : 0.76f,
-                1f);
+                1f,
+                textScale);
+    }
+
+    private void drawSettingsSlider(SpriteBatch batch, int index, boolean selected, float textScale) {
+        Rectangle trackBounds = settingsSliderTrackBounds[index];
+        if (trackBounds == null || trackBounds.width <= 0f || trackBounds.height <= 0f || settingsService == null) {
+            return;
+        }
+
+        float progress = isSliderSetting(index)
+                ? clamp01(settingsVolumePercent(index) / 100f)
+                : 0f;
+        float filledWidth = trackBounds.width * progress;
+        batch.setColor(0f, 0f, 0f, selected ? 0.72f : 0.52f);
+        batch.draw(uiBlackBarTex, trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+        batch.setColor(selected ? 0.92f : 0.74f, selected ? 0.70f : 0.62f, selected ? 0.34f : 0.44f, 0.95f);
+        batch.draw(uiBlackBarTex, trackBounds.x, trackBounds.y, filledWidth, trackBounds.height);
+
+        float thumbWidth = Math.min(trackBounds.width, Math.max(SETTINGS_SLIDER_THUMB_WIDTH, trackBounds.height * 1.2f));
+        float thumbHeight = trackBounds.height * SETTINGS_SLIDER_THUMB_HEIGHT_RATIO;
+        float thumbCenterX = trackBounds.x + filledWidth;
+        if (progress <= 0f) {
+            thumbCenterX = trackBounds.x;
+        } else if (progress >= 1f) {
+            thumbCenterX = trackBounds.x + trackBounds.width;
+        }
+        float thumbX = Math.max(trackBounds.x, Math.min(trackBounds.x + trackBounds.width - thumbWidth, thumbCenterX - thumbWidth * 0.5f));
+        float thumbY = trackBounds.y + (trackBounds.height - thumbHeight) * 0.5f;
+
+        batch.setColor(0f, 0f, 0f, 0.90f);
+        batch.draw(uiBlackBarTex, thumbX - 1f, thumbY - 1f, thumbWidth + 2f, thumbHeight + 2f);
+        batch.setColor(selected ? 0.96f : 0.88f, selected ? 0.84f : 0.76f, selected ? 0.56f : 0.66f, 1f);
+        batch.draw(uiBlackBarTex, thumbX, thumbY, thumbWidth, thumbHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private void drawMainMenuConfirmation(SpriteBatch batch) {
@@ -1128,8 +1417,8 @@ public class HudRenderer {
                 Align.center,
                 0.74f, 0.74f, 0.74f, 1f);
 
-        drawMenuRow(batch, confirmationYesBounds, "Yes", selectedConfirmationIndex == 0, false);
-        drawMenuRow(batch, confirmationNoBounds, "No", selectedConfirmationIndex == 1, false);
+        drawMenuRow(batch, confirmationYesBounds, "Yes", selectedConfirmationIndex == 0, false, 1f);
+        drawMenuRow(batch, confirmationNoBounds, "No", selectedConfirmationIndex == 1, false, 1f);
     }
 
     private String settingsValueText(int index) {
@@ -1157,7 +1446,7 @@ public class HudRenderer {
 
     private String confirmationTitleText() {
         return switch (confirmationAction) {
-            case RELOAD_AUTOSAVE -> "Reload Autosave?";
+            case RELOAD_AUTOSAVE -> "Reload Save?";
             case EXIT_GAME -> "Exit Game?";
             default -> "";
         };
@@ -1165,7 +1454,7 @@ public class HudRenderer {
 
     private String confirmationMessageText() {
         return switch (confirmationAction) {
-            case RELOAD_AUTOSAVE -> "Discard the current unsaved moment-to-moment progress and reload the last autosave.";
+            case RELOAD_AUTOSAVE -> "Discard the current unsaved moment-to-moment progress and reload the current save.";
             case EXIT_GAME -> "Close the game now?";
             default -> "";
         };
@@ -1183,6 +1472,19 @@ public class HudRenderer {
         font.setColor(r, g, b, a);
         font.draw(batch, uiLayout, bounds.x, baselineY);
         font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawWrappedMenuTextScaled(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
+                                           float baselineY, int align, float r, float g, float b, float a,
+                                           float scaleMultiplier) {
+        if (font == null || text == null || text.isBlank() || uiLayout == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        drawWrappedMenuText(batch, font, text, bounds, baselineY, align, r, g, b, a);
+        font.getData().setScale(baseScaleX, baseScaleY);
     }
 
     private void drawChat(SpriteBatch batch) {
@@ -1277,6 +1579,20 @@ public class HudRenderer {
         drawMenuText(batch, font, text, textX, baselineY, r, g, b, a);
     }
 
+    private void drawMenuCenteredTextScaled(SpriteBatch batch, BitmapFont font, String text, float centerX, float baselineY,
+                                            float r, float g, float b, float a, float scaleMultiplier) {
+        if (font == null || uiLayout == null || text == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        uiLayout.setText(font, text);
+        float textX = centerX - uiLayout.width * 0.5f;
+        drawMenuText(batch, font, text, textX, baselineY, r, g, b, a);
+        font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
     private void drawMenuText(SpriteBatch batch, BitmapFont font, String text, float x, float y,
                               float r, float g, float b, float a) {
         if (font == null || text == null) {
@@ -1287,6 +1603,18 @@ public class HudRenderer {
         font.setColor(r, g, b, a);
         font.draw(batch, text, x, y);
         font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawMenuTextScaled(SpriteBatch batch, BitmapFont font, String text, float x, float y,
+                                    float r, float g, float b, float a, float scaleMultiplier) {
+        if (font == null || text == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        drawMenuText(batch, font, text, x, y, r, g, b, a);
+        font.getData().setScale(baseScaleX, baseScaleY);
     }
 
     private String fitText(BitmapFont font, String text, float maxWidth) {
@@ -1308,6 +1636,100 @@ public class HudRenderer {
         return ellipsis;
     }
 
+    private String summarizeNotificationMessage(BitmapFont font, String text, float maxWidth) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String normalized = text.replace('\n', ' ').replace('\r', ' ').trim();
+        while (normalized.contains("  ")) {
+            normalized = normalized.replace("  ", " ");
+        }
+        String[] prefixes = {
+                "Objective Updated:",
+                "Quest Updated:",
+                "Quest Started:",
+                "New Objective:",
+                "Current Objective:"
+        };
+        for (String prefix : prefixes) {
+            if (normalized.regionMatches(true, 0, prefix, 0, prefix.length())) {
+                normalized = normalized.substring(prefix.length()).trim();
+                break;
+            }
+        }
+        String compact = normalized
+                .replace("Use the interact key/button to ", "Interact to ")
+                .replace("Bring the ", "Bring ")
+                .replace("Deliver the ", "Deliver ")
+                .replace("Go to the ", "Go to ")
+                .replace("Return to the ", "Return to ")
+                .replace("Speak with the ", "Speak with ")
+                .replace("Defeat the ", "Defeat ")
+                .replace("Investigate the ", "Investigate ")
+                .replace("Activate the ", "Activate ")
+                .replace("outside the cafe", "outside cafe")
+                .replace("the cafe owner", "cafe owner")
+                .replace("Research Lab Floor ", "Lab Floor ")
+                .replace("Research Lab", "Lab")
+                .replace("Herb-and-Spice", "Herb & Spice");
+        String articleLight = compact
+                .replace(" the ", " ")
+                .replace(" a ", " ")
+                .replace(" an ", " ");
+
+        if (fitsText(font, normalized, maxWidth)) {
+            return normalized;
+        }
+        if (fitsText(font, compact, maxWidth)) {
+            return compact;
+        }
+        if (fitsText(font, articleLight, maxWidth)) {
+            return articleLight;
+        }
+        return fitTextWholeWords(font, articleLight, maxWidth);
+    }
+
+    private boolean sameNotification(String title, String message) {
+        if (title == null || message == null) {
+            return false;
+        }
+        return title.equals(topNotificationTitle) && message.equals(topNotificationMessage);
+    }
+
+    private boolean fitsText(BitmapFont font, String text, float maxWidth) {
+        if (font == null || text == null || text.isBlank() || maxWidth <= 0f || uiLayout == null) {
+            return false;
+        }
+        uiLayout.setText(font, text);
+        return uiLayout.width <= maxWidth;
+    }
+
+    private String fitTextWholeWords(BitmapFont font, String text, float maxWidth) {
+        if (text == null || text.isBlank() || font == null || maxWidth <= 0f || uiLayout == null) {
+            return "";
+        }
+        String[] words = text.trim().split("\\s+");
+        if (words.length == 0) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            String candidate = builder.length() == 0 ? word : builder + " " + word;
+            uiLayout.setText(font, candidate);
+            if (uiLayout.width > maxWidth) {
+                break;
+            }
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append(word);
+        }
+        if (builder.length() > 0) {
+            return builder.toString();
+        }
+        return words[0];
+    }
+
     private int wrapIndex(int index, int size) {
         if (size <= 0) {
             return 0;
@@ -1315,12 +1737,21 @@ public class HudRenderer {
         return (index % size + size) % size;
     }
 
+    private Texture loadRequiredTexture(String path) {
+        FileHandle handle = resolveAssetHandle(path);
+        if (!handle.exists()) {
+            throw new IllegalStateException("Missing required HUD texture: " + path);
+        }
+        return new Texture(handle);
+    }
+
     private Texture loadOptionalTexture(String path) {
-        if (!Gdx.files.internal(path).exists()) {
+        FileHandle handle = resolveAssetHandle(path);
+        if (!handle.exists()) {
             Gdx.app.error("HudRenderer", "Missing menu texture: " + path);
             return null;
         }
-        return new Texture(Gdx.files.internal(path));
+        return new Texture(handle);
     }
 
     private void setNearestFilter(Texture texture) {
@@ -1330,14 +1761,15 @@ public class HudRenderer {
     }
 
     private BitmapFont loadUiFont(String fontPath, int size) {
-        if (!Gdx.files.internal(fontPath).exists()) {
+        FileHandle handle = resolveAssetHandle(fontPath);
+        if (!handle.exists()) {
             Gdx.app.error("HudRenderer", "Missing font: " + fontPath + ". Using default BitmapFont.");
             return new BitmapFont();
         }
 
         FreeTypeFontGenerator generator = null;
         try {
-            generator = new FreeTypeFontGenerator(Gdx.files.internal(fontPath));
+            generator = new FreeTypeFontGenerator(handle);
             FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
             params.size = size;
             params.magFilter = Texture.TextureFilter.Linear;
@@ -1352,6 +1784,18 @@ public class HudRenderer {
 
     private String formatValue(int value) {
         return String.format(Locale.US, "%,d", value);
+    }
+
+    private FileHandle resolveAssetHandle(String path) {
+        FileHandle internalHandle = Gdx.files.internal(path);
+        if (internalHandle.exists()) {
+            return internalHandle;
+        }
+        File fallbackFile = new File(PROJECT_ASSETS_DIRECTORY, path.replace("/", File.separator));
+        if (fallbackFile.exists()) {
+            return Gdx.files.absolute(fallbackFile.getAbsolutePath());
+        }
+        return internalHandle;
     }
 
     private Texture createSolidTexture(int width, int height, int r, int g, int b, int a) {
@@ -1372,6 +1816,38 @@ public class HudRenderer {
         return Math.max(0f, Math.min(1f, value));
     }
 
+    private boolean isSliderSetting(int index) {
+        return index == 0 || index == 1;
+    }
+
+    private int settingsVolumePercent(int index) {
+        if (settingsService == null) {
+            return 0;
+        }
+        return switch (index) {
+            case 0 -> settingsService.getMusicVolumePercent();
+            case 1 -> settingsService.getSfxVolumePercent();
+            default -> 0;
+        };
+    }
+
+    private void updateDraggedSettingsSlider(float worldX) {
+        if (!isSliderSetting(activeSettingsSliderDragIndex) || settingsService == null) {
+            return;
+        }
+        Rectangle trackBounds = settingsSliderTrackBounds[activeSettingsSliderDragIndex];
+        if (trackBounds == null || trackBounds.width <= 0f) {
+            return;
+        }
+        float progress = clamp01((worldX - trackBounds.x) / trackBounds.width);
+        int percent = Math.round(progress * 100f);
+        if (activeSettingsSliderDragIndex == 0) {
+            settingsService.setMusicVolumePercent(percent);
+        } else if (activeSettingsSliderDragIndex == 1) {
+            settingsService.setSfxVolumePercent(percent);
+        }
+    }
+
     public enum PauseMenuAction {
         NONE,
         RESUME,
@@ -1382,7 +1858,6 @@ public class HudRenderer {
 
     private enum PauseMenuTab {
         GAME,
-        QUEST,
         SETTINGS
     }
 }

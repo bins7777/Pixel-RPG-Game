@@ -2,6 +2,7 @@ package com.pixelrpg.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.pixelrpg.game.intro.IntroPlaybackService;
 import com.pixelrpg.game.settings.GameSettingsService;
 import com.pixelrpg.game.screens.CharacterNameScreen;
@@ -21,17 +22,27 @@ public class PixelRpgGame extends Game {
     private static final String NEW_GAME_START_SPAWN_LAYER = "FIRST-SPAWN";
 
     private final IntroPlaybackService introPlaybackService;
+    private final IntroPlaybackService endingPlaybackService;
     private final GameSettingsService settingsService = new GameSettingsService();
     private String pendingNewGameCharacterName = DEFAULT_CHARACTER_NAME;
+    private Music persistentMusic;
+    private float persistentMusicBaseVolume = 1f;
 
     public PixelRpgGame() {
-        this(IntroPlaybackService.NO_OP);
+        this(IntroPlaybackService.NO_OP, IntroPlaybackService.NO_OP);
     }
 
     public PixelRpgGame(IntroPlaybackService introPlaybackService) {
+        this(introPlaybackService, IntroPlaybackService.NO_OP);
+    }
+
+    public PixelRpgGame(IntroPlaybackService introPlaybackService, IntroPlaybackService endingPlaybackService) {
         this.introPlaybackService = introPlaybackService == null
                 ? IntroPlaybackService.NO_OP
                 : introPlaybackService;
+        this.endingPlaybackService = endingPlaybackService == null
+                ? IntroPlaybackService.NO_OP
+                : endingPlaybackService;
     }
 
     @Override
@@ -45,10 +56,12 @@ public class PixelRpgGame extends Game {
     }
 
     public void showMainMenu() {
+        stopPersistentMusic(true);
         replaceScreen(new MainMenuScreen(this));
     }
 
     public void startGame() {
+        stopPersistentMusic(true);
         replaceScreen(new CharacterNameScreen(this));
     }
 
@@ -62,10 +75,12 @@ public class PixelRpgGame extends Game {
     }
 
     public void showLoadGame() {
+        stopPersistentMusic(true);
         replaceScreen(new LoadGameScreen(this));
     }
 
     public void loadGame(String slotId) {
+        stopPersistentMusic(true);
         SaveGameData saveData = SaveGameService.load(slotId);
         if (saveData == null) {
             showLoadGame();
@@ -79,8 +94,71 @@ public class PixelRpgGame extends Game {
     }
 
     public void startGameAfterIntro() {
+        stopPersistentMusic(true);
         replaceScreen(createNewGameScreen(pendingNewGameCharacterName));
         pendingNewGameCharacterName = DEFAULT_CHARACTER_NAME;
+    }
+
+    public void handoffPersistentMusic(Music music, float baseVolume) {
+        if (persistentMusic != null && persistentMusic != music) {
+            try {
+                persistentMusic.stop();
+            } catch (Exception ignored) {
+            }
+            try {
+                persistentMusic.dispose();
+            } catch (Exception ignored) {
+            }
+        }
+        persistentMusic = music;
+        persistentMusicBaseVolume = baseVolume <= 0f ? 1f : baseVolume;
+    }
+
+    public void playEndingVideo() {
+        if (endingPlaybackService.isAvailable()) {
+            replaceScreen(new IntroScreen(
+                    this,
+                    endingPlaybackService,
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            showMainMenu();
+                        }
+                    },
+                    false));
+            return;
+        }
+        showMainMenu();
+    }
+
+    @Override
+    public void render() {
+        applyPersistentMusicVolume();
+        super.render();
+    }
+
+    private void applyPersistentMusicVolume() {
+        if (persistentMusic == null) {
+            return;
+        }
+        settingsService.applyMusicVolume(persistentMusic, persistentMusicBaseVolume);
+    }
+
+    private void stopPersistentMusic(boolean dispose) {
+        if (persistentMusic == null) {
+            return;
+        }
+        try {
+            persistentMusic.stop();
+        } catch (Exception ignored) {
+        }
+        if (dispose) {
+            try {
+                persistentMusic.dispose();
+            } catch (Exception ignored) {
+            }
+        }
+        persistentMusic = null;
     }
 
     private void replaceScreen(Screen nextScreen) {

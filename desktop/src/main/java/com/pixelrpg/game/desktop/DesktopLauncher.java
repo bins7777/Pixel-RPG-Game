@@ -25,6 +25,7 @@ public class DesktopLauncher {
         boolean vsync = parseBoolean(props.getProperty("vsync"), true);
         int foregroundFps = parseInt(props.getProperty("foregroundFps"), 60);
         String introVideoPath = resolveIntroVideoPath(props.getProperty("introVideoPath", "").trim());
+        String endingVideoPath = resolveIntroVideoPath(props.getProperty("endingVideoPath", "").trim());
 
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle(title);
@@ -37,7 +38,9 @@ public class DesktopLauncher {
         config.setBackBufferConfig(8, 8, 8, 8, 16, 8, 0);
         JavaFxIntroPlaybackService introPlaybackService =
                 new JavaFxIntroPlaybackService(introVideoPath, title, width, height);
-        new Lwjgl3Application(new PixelRpgGame(introPlaybackService), config);
+        JavaFxIntroPlaybackService endingPlaybackService =
+                new JavaFxIntroPlaybackService(endingVideoPath, title, width, height);
+        new Lwjgl3Application(new PixelRpgGame(introPlaybackService, endingPlaybackService), config);
     }
 
     private static String resolveIntroVideoPath(String configuredPath) {

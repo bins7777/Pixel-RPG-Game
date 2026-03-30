@@ -69,6 +69,7 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
         if (!ensureToolkitStarted()) {
             return false;
         }
+        stopPlaybackSynchronously(false, true);
         if (!playbackActive.compareAndSet(false, true)) {
             return false;
         }
@@ -166,21 +167,7 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
 
     @Override
     public void dispose() {
-        if (!TOOLKIT_STARTED.get()) {
-            playbackActive.set(false);
-            ready = false;
-            return;
-        }
-        if (Platform.isFxApplicationThread()) {
-            finishPlayback(false);
-            return;
-        }
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                finishPlayback(false);
-            }
-        });
+        stopPlaybackSynchronously(false, true);
     }
 
     private boolean ensureToolkitStarted() {
@@ -345,11 +332,47 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
         }
     }
 
+    private void stopPlaybackSynchronously(boolean invokeCallback, boolean force) {
+        if (!TOOLKIT_STARTED.get()) {
+            resetPlaybackState();
+            return;
+        }
+        if (Platform.isFxApplicationThread()) {
+            finishPlayback(invokeCallback, force);
+            return;
+        }
+
+        CountDownLatch cleanupLatch = new CountDownLatch(1);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    finishPlayback(invokeCallback, force);
+                } finally {
+                    cleanupLatch.countDown();
+                }
+            }
+        });
+        try {
+            cleanupLatch.await();
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            resetPlaybackState();
+        }
+    }
+
     private void finishPlayback(boolean invokeCallback) {
-        if (!playbackActive.get() && !finishing.get()) {
+        finishPlayback(invokeCallback, false);
+    }
+
+    private void finishPlayback(boolean invokeCallback, boolean force) {
+        if (!force && !playbackActive.get() && !finishing.get()) {
             return;
         }
         if (!finishing.compareAndSet(false, true)) {
+            if (force) {
+                resetPlaybackState();
+            }
             return;
         }
 
@@ -372,6 +395,15 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             mediaPlayer = null;
         }
 
+        resetPlaybackState();
+
+        if (callback != null) {
+            callback.run();
+        }
+    }
+
+    private void resetPlaybackState() {
+        completionCallback = null;
         mediaView = null;
         scene = null;
         root = null;
@@ -387,10 +419,6 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             backBuffer = null;
             frameRevision = 0L;
             consumedRevision = -1L;
-        }
-
-        if (callback != null) {
-            callback.run();
         }
     }
 }
