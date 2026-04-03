@@ -170,12 +170,25 @@ public class GameScreen extends ScreenAdapter {
     private static final String FIRST_QUEST_CAFE_NPC_IDLE_DIRECTORY =
             PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "NPC"
                     + File.separator + "Idle1";
+    private static final String QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "GAME SFX";
+    private static final String NPC_SOUNDS_DIRECTORY_ABSOLUTE_PATH =
+            PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "NPC-Sounds";
     private static final String VILLAGE_MUSIC_ABSOLUTE_PATH =
-            PROJECT_ROOT_ABSOLUTE_PATH + File.separator + "DSA GAME" + File.separator + "GAME SFX"
-                    + File.separator + "Village-Music.mp3";
+            QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH + File.separator + "Village-Music.mp3";
+    private static final String SAD_VILLAGE_MUSIC_ABSOLUTE_PATH =
+            QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH + File.separator + "Sad-Village-Music.mp3";
+    private static final String VILLAGE_COMBAT_MUSIC_ABSOLUTE_PATH =
+            QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH + File.separator + "Combat-music.mp3";
+    private static final String CASTLE_MUSIC_ABSOLUTE_PATH =
+            QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH + File.separator + "Castle-Music.mp3";
     private static final String DEMON_BATTLE_MUSIC_ABSOLUTE_PATH =
-            "C:" + File.separator + "Users" + File.separator + "user" + File.separator + "Desktop"
-                    + File.separator + "GAME SFX" + File.separator + "Demon-Music.mp3";
+            QUEST_AUDIO_DIRECTORY_ABSOLUTE_PATH + File.separator + "Demon-Music.mp3";
+    private static final String INDOOR_FOOTSTEP_LOOP_SFX_PATH = "sounds/Footstep sound.mp3";
+    private static final String TYPEWRITER_LOOP_SFX_PATH = "sounds/Typewriter.mp3";
+    private static final String FIFTH_QUEST_VILLAGER_SCREAM_SFX_PATH = "sounds/Villager-Scream.mp3";
+    private static final String DEMON_FIRST_INTERACTION_SFX_PATH = "sounds/Demon-Neutral1.mp3";
+    private static final String DEMON_NEUTRAL_2_SFX_PATH = "sounds/Demon-Neutral2.mp3";
     private static final String GUI_FONT_PATH = "fonts/Berry Rotunda.ttf";
     private static final int FIRST_QUEST_TITLE_FONT_SIZE = 22;
     private static final int FIRST_QUEST_BODY_FONT_SIZE = 16;
@@ -189,11 +202,30 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIRST_QUEST_MARKER_BOB_AMPLITUDE = 6f;
     private static final float FIRST_QUEST_OVERLAY_DIM_ALPHA = 0.72f;
     private static final float FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS = 5f;
+    private static final float FIRST_QUEST_DIALOGUE_TYPEWRITER_CHARACTERS_PER_SECOND = 36f;
+    private static final String QUEST_SEAL_MARKER_TEXT = "{seal}";
     private static final float QUEST_ARROW_MARKER_SCALE = 1.5f;
     private static final float QUEST_ARROW_MARKER_OUTLINE_OFFSET = 2f;
+    private static final float QUEST_SEAL_MARKER_SIZE = 30f;
+    private static final float QUEST_SEAL_MARKER_CORE_SIZE = 13f;
+    private static final float QUEST_SEAL_MARKER_RUNE_LENGTH = 12f;
+    private static final float QUEST_SEAL_MARKER_RUNE_THICKNESS = 2.4f;
+    private static final float QUEST_SEAL_MARKER_ORBIT_OFFSET = 10f;
+    private static final float QUEST_SEAL_MARKER_ORBIT_SIZE = 3.2f;
     private static final float VILLAGE_MUSIC_BASE_VOLUME = 1f;
     private static final float VILLAGE_MUSIC_FADE_IN_SECONDS = 5f;
+    private static final float VILLAGE_MUSIC_FADE_OUT_TO_COMBAT_SECONDS = 1f;
+    private static final float VILLAGE_MUSIC_RETURN_FROM_COMBAT_FADE_IN_SECONDS = 1f;
+    private static final float VILLAGE_COMBAT_MUSIC_BASE_VOLUME = 1f;
+    private static final float CASTLE_MUSIC_BASE_VOLUME = 1f;
     private static final float DEMON_BATTLE_MUSIC_BASE_VOLUME = 1f;
+    private static final float INDOOR_FOOTSTEP_LOOP_BASE_VOLUME = 1f;
+    private static final float TYPEWRITER_LOOP_SFX_BASE_VOLUME = 1f;
+    private static final float TYPEWRITER_LOOP_SFX_FADE_OUT_SECONDS = 0.3f;
+    private static final float NPC_DIALOGUE_SFX_BASE_VOLUME = 1f;
+    private static final float BAKERY_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER = 1.4f;
+    private static final float SCIENTIST_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER = 2.6f;
+    private static final float SCIENTIST_NEUTRAL_2_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER = 1.3f;
     private static final String SIXTH_QUEST_ENDING_MUSIC_ASSET_PATH = "music/ending/Ending-Waltz.mp3";
     private static final float SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME = 1f;
     private static final float SIXTH_QUEST_ENDING_MUSIC_FADE_OUT_SECONDS = 3f;
@@ -247,6 +279,12 @@ public class GameScreen extends ScreenAdapter {
     private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING = 62f;
     private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_RIGHT_PADDING = 160f;
     private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_BOTTOM_PADDING = 34f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TITLE_EXTRA_OFFSET_Y = -8f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_TEXT_EXTRA_OFFSET_Y = -15f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_EXTRA_OFFSET_Y = 30f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_EXTRA_OFFSET_X = -120f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_HINT_EXTRA_OFFSET_Y = 40f;
+    private static final float SIXTH_QUEST_PORTAL_CHOICE_BUTTON_TEXT_SCALE = 0.65f;
     private static final float FIRST_QUEST_ITEM_CARD_HEADER_OFFSET_Y = -10f;
     private static final float SECOND_QUEST_FRAGMENT_CARD_IMAGE_OFFSET_Y = -24f;
     private static final float FOURTH_QUEST_CONDENSED_CORE_CARD_IMAGE_OFFSET_Y = -89f;
@@ -262,7 +300,17 @@ public class GameScreen extends ScreenAdapter {
     private static final String FOURTH_QUEST_LAB_FLOOR_2_LAYER_NAME = "ENTRANCE-Research-Lab-Floor-2";
     private static final String FOURTH_QUEST_LAB_FLOOR_2_EXIT_LAYER_NAME = "EXIT-Research-Lab-Floor-2";
     private static final String FOURTH_QUEST_VILLAGE_EDGE_LAYER_NAME = "ENTRANCE-Dungeon";
+    private static final String FOURTH_QUEST_AREA_1_LAYER_NAME = "TMR-Area1";
+    private static final String FOURTH_QUEST_AREA_2_LAYER_NAME = "TMR-Area2";
+    private static final String FOURTH_QUEST_AREA_3_LAYER_NAME = "TMR-Area3";
     private static final String FIFTH_QUEST_PORTAL_LAYER_NAME = "ENTRANCE-Dungeon";
+    private static final String FIFTH_QUEST_AREA_GROUP_LAYER_NAME = "Embers at the Gate";
+    private static final String FIFTH_QUEST_AREA_LAYER_NAME = "EATG";
+    private static final String FIFTH_QUEST_CAMERA_GROUP_LAYER_NAME = "CAMERA-EATG";
+    private static final String FIFTH_QUEST_CAMERA_TRIGGER_LAYER_NAME = "Trigger";
+    private static final String FIFTH_QUEST_CAMERA_1_LAYER_NAME = "Camera1";
+    private static final String FIFTH_QUEST_CAMERA_2_LAYER_NAME = "Camera2";
+    private static final String FIFTH_QUEST_CAMERA_3_LAYER_NAME = "Camera3";
     private static final String VILLAGE_PORTAL_GROUP_NAME = "PORTAL";
     private static final String FIFTH_QUEST_FIGHTING_AREA_LAYER_NAME = "FIGHTING AREA";
     private static final String VILLAGE_PORTAL_ACTIVE_LAYER_NAME = "PORTAL-Active";
@@ -323,7 +371,15 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIFTH_QUEST_COMMANDER_DAMAGE = 34f;
     private static final float FIFTH_QUEST_COMMANDER_SPEED = 48f;
     private static final float FIFTH_QUEST_DEMON_SPEED_MULTIPLIER = 0.6f;
+    private static final float FIFTH_QUEST_SPAWN_MIN_DISTANCE_FROM_PLAYER = 64f;
+    private static final float FIFTH_QUEST_SPAWN_MIN_DISTANCE_BETWEEN_DEMONS = 28f;
     private static final float FIFTH_QUEST_COMMANDER_CALLOUT_SECONDS = 2.3f;
+    private static final float FIFTH_QUEST_INTRO_CAMERA_SEGMENT_SECONDS = 3f;
+    private static final float FIFTH_QUEST_FIRST_ENCOUNTER_INTRO_SECONDS = 2.2f;
+    private static final float FIFTH_QUEST_FIRST_ENCOUNTER_INTRO_ZOOM_MULTIPLIER = 0.72f;
+    private static final float FIFTH_QUEST_ZOMBIE_SFX_COOLDOWN_SECONDS = 0.45f;
+    private static final float FIFTH_QUEST_ZOMBIE_INTRO_SFX_VOLUME_MULTIPLIER = 1.05f;
+    private static final float FIFTH_QUEST_ZOMBIE_ATTACK_SFX_VOLUME_MULTIPLIER = 0.85f;
     private static final float SIXTH_QUEST_OUTER_ASSAULT_WIDTH = 156f;
     private static final float SIXTH_QUEST_OUTER_ASSAULT_HEIGHT = 110f;
     private static final float SIXTH_QUEST_SEAL_WIDTH = 118f;
@@ -351,6 +407,13 @@ public class GameScreen extends ScreenAdapter {
     private static final float SIXTH_QUEST_ENDING_SCIENTIST_DRAW_SCALE = 0.75f;
     private static final float SIXTH_QUEST_ENDING_SCIENTIST_FRAME_DURATION = 0.12f;
     private static final float SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS = 3f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_NPC_FADE_IN_SECONDS = 1.5f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_WIDTH = 57.96f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_HEIGHT = 64f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_FATHER_CENTER_OFFSET_X = 56f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_FATHER_BOTTOM_OFFSET_Y = 0f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_CENTER_OFFSET_X = -56f;
+    private static final float FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_BOTTOM_OFFSET_Y = 0f;
     private static final float THIRD_QUEST_TRAINING_MARKER_REACH_DISTANCE = 22f;
     private static final int THIRD_QUEST_DUMMY_HITS_REQUIRED = 5;
     private static final int THIRD_QUEST_TUTORIAL_BAT_COUNT = 3;
@@ -368,24 +431,24 @@ public class GameScreen extends ScreenAdapter {
     private static final float THIRD_QUEST_SPAR_CALL_OUT_SECONDS = 2.8f;
     private static final String[] FIRST_QUEST_FATHER_DIALOGUE_LINES = {
             "You're awake. I need your help before the inn fills up.",
-            "Take this Herb-and-Spice bundle to the cafe for me.",
+            "Take this Herb-and-Spice bundle to the bakery for me.",
             "Leave this room, pass through the inn, and head out to the village.",
-            "You'll find the cafe there. Keep the bundle safe until you arrive."
+            "You'll find the bakery there. Keep the bundle safe until you arrive."
     };
     private static final String[] SECOND_QUEST_CAFE_OWNER_SPEAKERS = {
-            "Cafe Owner",
-            "Cafe Owner",
-            "Cafe Owner",
+            "Bakery Owner",
+            "Bakery Owner",
+            "Bakery Owner",
             "Character",
-            "Cafe Owner",
+            "Bakery Owner",
             "Character",
             "Character",
-            "Cafe Owner",
-            "Cafe Owner"
+            "Bakery Owner",
+            "Bakery Owner"
     };
     private static final String[] SECOND_QUEST_CAFE_OWNER_DIALOGUE_LINES = {
             "Thank you, dear. But... before you go, there is something I need to show you.",
-            "I found this near the cafe door just before you arrived.",
+            "I found this near the bakery door just before you arrived.",
             "At first I thought it was only soot, but it was still warm.",
             "...That smell.",
             "You know it?",
@@ -573,7 +636,7 @@ public class GameScreen extends ScreenAdapter {
     };
     private static final String[] FOURTH_QUEST_INTERRUPTION_DIALOGUE_LINES = {
             "There you are!",
-            "Something is wrong near the cafe!",
+            "Something is wrong near the bakery!",
             "There are burn marks on the ground... and the air smells strange again!",
             "So it has begun.",
             "The mark returned...",
@@ -600,7 +663,7 @@ public class GameScreen extends ScreenAdapter {
     };
     private static final String[] FOURTH_QUEST_SCIENTIST_REPORT_DIALOGUE_LINES = {
             "You returned quickly. That alone tells me this is not good news.",
-            "A villager found fresh burn marks near the cafe.",
+            "A villager found fresh burn marks near the bakery.",
             "The smell is the same.",
             "Then the residue is spreading faster than I feared.",
             "The fragment you brought before was only a trace.",
@@ -617,8 +680,8 @@ public class GameScreen extends ScreenAdapter {
             "If corruption appears, destroy it and bring me what remains."
     };
     private static final String[] FOURTH_QUEST_CAFE_OWNER_SPEAKERS = {
-            "Cafe Owner",
-            "Cafe Owner",
+            "Bakery Owner",
+            "Bakery Owner",
             "Character"
     };
     private static final String[] FOURTH_QUEST_CAFE_OWNER_DIALOGUE_LINES = {
@@ -796,16 +859,14 @@ public class GameScreen extends ScreenAdapter {
     private static final String[] FIFTH_QUEST_RUINS_INTRO_SPEAKERS = {
             "Character",
             "Character",
-            "Father",
             "Character",
             "Character"
     };
     private static final String[] FIFTH_QUEST_RUINS_INTRO_DIALOGUE_LINES = {
-            "This place...",
-            "After all these years, it still smells the same.",
-            "You do not have to face it alone.",
-            "I know.",
-            "But I do have to face it."
+            "So many years, and I still remember every road here.",
+            "This was home before the demon turned it into ash.",
+            "I used to think leaving it behind would make this hurt less.",
+            "It didn't."
     };
     private static final String[] FIFTH_QUEST_PORTAL_AFTER_SPEAKERS = {
             "Scientist",
@@ -1009,9 +1070,18 @@ public class GameScreen extends ScreenAdapter {
     private static final float HEALTH_REGEN_PER_SECOND = 1.5f;
     private static final float POST_DASH_MOVEMENT_LOCK_SECONDS = 0.2f;
     private static final float DASH_ATTACK_TELEPORT_TILES = 4f;
+    private static final float DASH_ATTACK_ABILITY_COOLDOWN_SECONDS = 3f;
+    private static final float SPATIAL_DASH_ABILITY_COOLDOWN_SECONDS = 5f;
+    private static final float DASH_ATTACK_DAMAGE_MULTIPLIER = 2.5f;
+    private static final float SPATIAL_DASH_DAMAGE_MULTIPLIER = 4f;
     private static final float DEFAULT_TILE_SIZE = 16f;
     private static final float TELEPORT_CAMERA_SMOOTH_DURATION = 0.25f;
     private static final float TELEPORT_CAMERA_SMOOTH_SPEED = 14f;
+    private static final int ABILITY_COOLDOWN_CIRCLE_TEXTURE_SIZE = 96;
+    private static final float ABILITY_COOLDOWN_ICON_SIZE = 42f;
+    private static final float ABILITY_COOLDOWN_ICON_GAP = 12f;
+    private static final float ABILITY_COOLDOWN_MARGIN_RIGHT = 24f;
+    private static final float ABILITY_COOLDOWN_MARGIN_BOTTOM = 28f;
     private static final float PLAYER_DRAW_SCALE = 1.0296f;
     private static final float PLAYER_SCALE_MULTIPLIER = 1.25f;
     private static final float PLAYER_DRAW_SCALE_X = 0.7f;
@@ -1375,7 +1445,9 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIFTH_QUEST_DEMON_SHADOW_DOWN_OFFSET_TILES = 1.8f;
     private static final float FIFTH_QUEST_DEMON_SHADOW_ALPHA = 0.7f;
     private static final float FIFTH_QUEST_VILLAGER_DRAW_SCALE = 0.52f;
-    private static final float FIFTH_QUEST_OLD_WOMAN_X_SHIFT = 5.3f * DEFAULT_TILE_SIZE + 5f;
+    private static final float FIFTH_QUEST_LAB_FATHER_OFFSET_X = -88f;
+    private static final float FIFTH_QUEST_LAB_FATHER_OFFSET_Y = 6f;
+    private static final float FIFTH_QUEST_OLD_WOMAN_X_SHIFT = 7.8f * DEFAULT_TILE_SIZE + 5f;
     private static final float FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS = 2f;
     private static final float BOSS_ARENA_PHASE_2_DETECTION_CENTER_DOWN_OFFSET_TILES = 7.5f;
     private static final float ENEMY_HITBOX_DEBUG_FILL_ALPHA = 0.26f;
@@ -1465,6 +1537,13 @@ public class GameScreen extends ScreenAdapter {
         FOCUS_BOSS
     }
 
+    private enum FifthQuestIntroCameraPhase {
+        NONE,
+        CAMERA_1,
+        CAMERA_2,
+        CAMERA_3
+    }
+
     private enum QuestDialogueId {
         NONE,
         FIRST_QUEST_FATHER,
@@ -1512,6 +1591,15 @@ public class GameScreen extends ScreenAdapter {
         THIRD_QUEST_DASH_ATTACK_UNLOCKED,
         FOURTH_QUEST_SPATIAL_DASH_UNLOCKED,
         SIXTH_QUEST_CLEAR
+    }
+
+    private enum NpcDialogueVoiceSet {
+        NONE,
+        FATHER,
+        BAKERY,
+        SCIENTIST,
+        DEMON,
+        ZOMBIE
     }
 
     private enum FifthQuestDemonType {
@@ -1704,6 +1792,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture vignetteTex;
     private Texture dayNightOverlayTex;
     private Texture playerAuraTex;
+    private Texture abilityCooldownCircleTex;
     private HudRenderer hudRenderer;
     private Texture jumpUpAttackTex;
     private Texture jumpDownAttackTex;
@@ -1755,7 +1844,25 @@ public class GameScreen extends ScreenAdapter {
     private Sound evilWizardAttack1Sfx;
     private Sound evilWizardAttack2Sfx;
     private Sound golem1ExplosionSfx;
+    private Sound indoorFootstepLoopSfx;
+    private Sound typewriterLoopSfx;
+    private Sound fifthQuestVillagerScreamSfx;
+    private Sound demonFirstInteractionSfx;
+    private Sound demonNeutral2Sfx;
+    private final Sound[] fatherNeutralDialogueSfx = new Sound[3];
+    private Sound fatherHappyDialogueSfx;
+    private Sound fatherSadDialogueSfx;
+    private final Sound[] bakeryNeutralDialogueSfx = new Sound[3];
+    private Sound bakeryWorryDialogueSfx;
+    private final Sound[] scientistNeutralDialogueSfx = new Sound[3];
+    private Sound scientistConfuseDialogueSfx;
+    private Sound scientistSadDialogueSfx;
+    private final Sound[] zombieDialogueSfx = new Sound[2];
+    private Sound activeDialogueVoiceSfx;
     private Music villageMusic;
+    private Music sadVillageMusic;
+    private Music villageCombatMusic;
+    private Music castleMusic;
     private Music demonBattleMusic;
     private Music sixthQuestEndingMusic;
     private Music evilWizardPreExplosionSfx;
@@ -1770,7 +1877,22 @@ public class GameScreen extends ScreenAdapter {
     private float villageMusicFadeProgress = 0f;
     private float demonBattleMusicFadeProgress = 1f;
     private float sixthQuestEndingMusicFadeProgress = 0f;
+    private float dashAttackAbilityCooldownTimer = 0f;
+    private float spatialDashAbilityCooldownTimer = 0f;
+    private long indoorFootstepLoopId = -1L;
+    private long typewriterLoopSfxId = -1L;
+    private long activeDialogueVoiceSfxId = -1L;
+    private float typewriterLoopSfxFadeTimer = 0f;
+    private int fatherNeutralDialogueSfxIndex = 0;
+    private int bakeryNeutralDialogueSfxIndex = 0;
+    private int scientistNeutralDialogueSfxIndex = 0;
+    private int demonDialogueSfxIndex = 0;
+    private int zombieDialogueSfxIndex = 0;
     private boolean villageMusicPlaying = false;
+    private boolean sadVillageMusicPlaying = false;
+    private boolean villageCombatMusicPlaying = false;
+    private boolean villageMusicSuppressedForCombat = false;
+    private boolean castleMusicPlaying = false;
     private boolean demonBattleMusicPlaying = false;
     private boolean sixthQuestEndingMusicPlaying = false;
     private EndingMusicTransitionPhase endingMusicTransitionPhase = EndingMusicTransitionPhase.NONE;
@@ -1877,6 +1999,8 @@ public class GameScreen extends ScreenAdapter {
     private QuestItemCardId activeQuestItemCardId = QuestItemCardId.NONE;
     private String[] activeQuestDialogueSpeakers = new String[0];
     private String[] activeQuestDialogueLines = new String[0];
+    private float activeQuestDialogueTypewriterProgress = 0f;
+    private int activeQuestDialogueVisibleCharacterCount = 0;
     private String activeQuestItemTitle = "";
     private String activeQuestItemDescription = "";
     private Texture activeQuestItemTexture;
@@ -1926,6 +2050,7 @@ public class GameScreen extends ScreenAdapter {
             new Rectangle()
     };
     private final Rectangle fifthQuestRuinsIntroBounds = new Rectangle();
+    private final Rectangle fifthQuestIntroTriggerBounds = new Rectangle();
     private final Rectangle fifthQuestOuterRuinsBounds = new Rectangle();
     private final Rectangle fifthQuestMidRuinsBounds = new Rectangle();
     private final Rectangle fifthQuestFightingAreaBounds = new Rectangle();
@@ -1935,6 +2060,16 @@ public class GameScreen extends ScreenAdapter {
             new Rectangle(),
             new Rectangle()
     };
+    private final Rectangle[] fifthQuestIntroCameraBounds = {
+            new Rectangle(),
+            new Rectangle(),
+            new Rectangle()
+    };
+    private final Rectangle fifthQuestPortalDialogueFatherBounds = new Rectangle();
+    private final Rectangle fifthQuestPortalDialogueScientistBounds = new Rectangle();
+    private final Rectangle fifthQuestPortalDialogueCombinedBounds = new Rectangle();
+    private final Vector2 fifthQuestIntroCameraStart = new Vector2();
+    private final Vector2 fifthQuestIntroCameraTarget = new Vector2();
     private final Rectangle sixthQuestOuterCastleBounds = new Rectangle();
     private final Rectangle sixthQuestSealABounds = new Rectangle();
     private final Rectangle sixthQuestSealAInteractBounds = new Rectangle();
@@ -1958,6 +2093,18 @@ public class GameScreen extends ScreenAdapter {
     private int fifthQuestCommanderCalloutIndex = 0;
     private float fifthQuestLabVillagersFadeTimer = 0f;
     private boolean fifthQuestLabVillagersVisibleLastFrame = false;
+    private boolean fifthQuestRuinsIntroTriggered = false;
+    private FifthQuestIntroCameraPhase fifthQuestIntroCameraPhase = FifthQuestIntroCameraPhase.NONE;
+    private float fifthQuestIntroCameraTimer = 0f;
+    private float fifthQuestIntroCameraStartZoom = DEFAULT_ZOOM;
+    private boolean fifthQuestFirstEncounterIntroPlayed = false;
+    private boolean fifthQuestFirstEncounterIntroActive = false;
+    private float fifthQuestFirstEncounterIntroTimer = 0f;
+    private int fifthQuestFirstEncounterIntroEncounterId = FIFTH_QUEST_ENCOUNTER_NONE;
+    private final Vector2 fifthQuestFirstEncounterIntroFocus = new Vector2();
+    private float fifthQuestZombieSfxCooldownTimer = 0f;
+    private float fifthQuestPortalDialogueNpcFadeTimer = 0f;
+    private boolean fifthQuestPortalDialogueNpcVisibleLastFrame = false;
     private boolean sixthQuestCastleLayoutReady = false;
     private boolean sixthQuestFinalArenaLayoutReady = false;
     private boolean sixthQuestEncounterSpawned = false;
@@ -1970,12 +2117,18 @@ public class GameScreen extends ScreenAdapter {
     private float sixthQuestPortalActivationLoopTimer = 0f;
     private boolean sixthQuestPortalChoiceVisible = false;
     private int sixthQuestPortalChoiceIndex = 0;
+    private boolean fifthQuestDeathChoicePending = false;
+    private boolean fifthQuestDeathChoiceVisible = false;
+    private int fifthQuestDeathChoiceIndex = 1;
     private final Vector2 sixthQuestPortalEffectStartPosition = new Vector2();
     private final Vector2 sixthQuestPortalEffectTargetPosition = new Vector2();
     private final Vector2 sixthQuestPortalEffectPosition = new Vector2();
     private final Rectangle sixthQuestPortalChoiceYesBounds = new Rectangle();
     private final Rectangle sixthQuestPortalChoiceNoBounds = new Rectangle();
     private final Vector3 sixthQuestPortalChoiceUiPoint = new Vector3();
+    private final Rectangle fifthQuestDeathChoiceQuestBounds = new Rectangle();
+    private final Rectangle fifthQuestDeathChoiceFightBounds = new Rectangle();
+    private final Vector3 fifthQuestDeathChoiceUiPoint = new Vector3();
     private boolean infiniteHealthEnabled = false;
     private final Vector3 questMarkerProjection = new Vector3();
     private final Vector2 dialogueCameraFocusPoint = new Vector2();
@@ -2229,6 +2382,7 @@ public class GameScreen extends ScreenAdapter {
         vignetteTex = createVignetteTexture(VIGNETTE_SIZE, VIGNETTE_INNER, VIGNETTE_OUTER, VIGNETTE_MAX_ALPHA);
         dayNightOverlayTex = createSolidTexture(1f, 1f, 1f, 1f);
         playerAuraTex = createPlayerAuraTexture(PLAYER_AURA_TEXTURE_SIZE);
+        abilityCooldownCircleTex = createCooldownCircleTexture(ABILITY_COOLDOWN_CIRCLE_TEXTURE_SIZE);
 
         loadMapCatalog();
         loadMap(world.activeMapId, initialSpawnLayer);
@@ -2245,15 +2399,19 @@ public class GameScreen extends ScreenAdapter {
         }
         applyRuntimeAudioSettings();
         updateVillageMusic(delta);
+        updateCastleMusic();
+        updateVillageCombatMusic();
         updateDemonBattleMusic();
         updateSixthQuestEndingMusic(delta);
         clearCameraShakeOffsetFromCameraPosition();
         if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
             if (handleMainMenuInput()) {
+                stopIndoorFootstepLoop();
                 return;
             }
             if (hudRenderer != null && hudRenderer.isMainMenuVisible()) {
                 player.moving = false;
+                updateIndoorFootstepLoop();
                 centerCameraOnPlayer();
                 hudRenderer.update(delta);
                 updateQuestBlur(delta);
@@ -2282,6 +2440,7 @@ public class GameScreen extends ScreenAdapter {
                         currentBossArenaHudMaxHealth(),
                         currentBossArenaHudAlpha());
                 drawFirstQuestUi();
+                drawAbilityCooldownUi();
                 drawMapTransitionOverlay();
                 drawScreenFadeOverlay();
                 drawBossArenaTopLetterboxOverlay();
@@ -2313,6 +2472,8 @@ public class GameScreen extends ScreenAdapter {
         updateGolemFightZoneDarkMode(delta);
         updateBoss1IntroSequence(delta);
         updateBossArenaFinalIntroSequence(delta);
+        updateFifthQuestIntroCameraSequence(delta);
+        updateFifthQuestFirstEncounterIntro(delta);
         updateBossArenaHudReveal(delta);
         if (isMapTransitionActive()
                 || isEntranceDoorInputBlocked()
@@ -2321,6 +2482,8 @@ public class GameScreen extends ScreenAdapter {
                 || isFirstBossDoorInputBlocked()
                 || isBoss1IntroActive()
                 || isBossArenaFinalIntroActive()
+                || isFifthQuestIntroCameraActive()
+                || isFifthQuestFirstEncounterIntroActive()
                 || isPlayerHazardHitReactionActive()
                 || isPlayerDead()) {
             if (!isBoss1IntroStepDownActive() && !isBossArenaFinalIntroAutoWalkActive()) {
@@ -2345,8 +2508,12 @@ public class GameScreen extends ScreenAdapter {
         updateNpcAnimation(delta);
         updatePlayerStamina(delta);
         updatePlayerHealth(delta);
+        updatePlayerAbilityCooldowns(delta);
         updateFirstQuest(delta);
         updateFifthQuestLabVillagers(delta);
+        updateQuestDialogueTypewriter(delta);
+        updateTypewriterLoopSfx(delta);
+        updateIndoorFootstepLoop();
         hudRenderer.update(delta);
         updateQuestBlur(delta);
         updateBossArenaPhase2AttackZoom(delta);
@@ -2379,6 +2546,7 @@ public class GameScreen extends ScreenAdapter {
                 currentBossArenaHudMaxHealth(),
                 currentBossArenaHudAlpha());
         drawFirstQuestUi();
+        drawAbilityCooldownUi();
         drawMapTransitionOverlay();
         drawScreenFadeOverlay();
         drawBossArenaTopLetterboxOverlay();
@@ -2396,7 +2564,12 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void hide() {
+        stopActiveDialogueVoiceSfx();
+        stopTypewriterLoopSfxImmediately();
+        stopIndoorFootstepLoop();
         stopVillageMusic();
+        stopSadVillageMusic();
+        stopVillageCombatMusic();
         stopDemonBattleMusic();
         stopSixthQuestEndingMusic();
         writeAutosave();
@@ -2405,6 +2578,9 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        stopActiveDialogueVoiceSfx();
+        stopTypewriterLoopSfxImmediately();
+        stopIndoorFootstepLoop();
         writeAutosave();
         restoreInputProcessor();
         unloadMap();
@@ -2420,6 +2596,7 @@ public class GameScreen extends ScreenAdapter {
         if (vignetteTex != null) vignetteTex.dispose();
         if (dayNightOverlayTex != null) dayNightOverlayTex.dispose();
         if (playerAuraTex != null) playerAuraTex.dispose();
+        if (abilityCooldownCircleTex != null) abilityCooldownCircleTex.dispose();
         if (jumpUpAttackTex != null) jumpUpAttackTex.dispose();
         if (jumpDownAttackTex != null) jumpDownAttackTex.dispose();
         if (idleUpAttackTex != null) idleUpAttackTex.dispose();
@@ -2471,7 +2648,13 @@ public class GameScreen extends ScreenAdapter {
         if (evilWizardAttack1Sfx != null) evilWizardAttack1Sfx.dispose();
         if (evilWizardAttack2Sfx != null) evilWizardAttack2Sfx.dispose();
         if (golem1ExplosionSfx != null) golem1ExplosionSfx.dispose();
+        if (indoorFootstepLoopSfx != null) indoorFootstepLoopSfx.dispose();
+        if (typewriterLoopSfx != null) typewriterLoopSfx.dispose();
+        disposeNpcDialogueVoiceSfx();
         if (villageMusic != null) villageMusic.dispose();
+        if (sadVillageMusic != null) sadVillageMusic.dispose();
+        if (villageCombatMusic != null) villageCombatMusic.dispose();
+        if (castleMusic != null) castleMusic.dispose();
         if (demonBattleMusic != null) demonBattleMusic.dispose();
         if (sixthQuestEndingMusic != null) sixthQuestEndingMusic.dispose();
         if (evilWizardPreExplosionSfx != null) evilWizardPreExplosionSfx.dispose();
@@ -2554,6 +2737,9 @@ public class GameScreen extends ScreenAdapter {
         firstQuestBodyFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_BODY_FONT_SIZE);
         firstQuestHintFont = loadQuestFont(GUI_FONT_PATH, FIRST_QUEST_HINT_FONT_SIZE);
         villageMusic = loadOptionalAbsoluteMusic(VILLAGE_MUSIC_ABSOLUTE_PATH);
+        sadVillageMusic = loadOptionalAbsoluteMusic(SAD_VILLAGE_MUSIC_ABSOLUTE_PATH);
+        villageCombatMusic = loadOptionalAbsoluteMusic(VILLAGE_COMBAT_MUSIC_ABSOLUTE_PATH);
+        castleMusic = loadOptionalAbsoluteMusic(CASTLE_MUSIC_ABSOLUTE_PATH);
         demonBattleMusic = loadOptionalAbsoluteMusic(DEMON_BATTLE_MUSIC_ABSOLUTE_PATH);
         sixthQuestEndingMusic = loadOptionalMusic(SIXTH_QUEST_ENDING_MUSIC_ASSET_PATH);
         firstQuestLayout = new GlyphLayout();
@@ -2888,6 +3074,7 @@ public class GameScreen extends ScreenAdapter {
         player.dashing = false;
         player.dashTimer = 0f;
         player.dashCooldownTimer = 0f;
+        resetPlayerAbilityCooldowns();
         player.dashAttackActive = false;
         player.dashAttackMoveDuration = 0f;
         player.dashAttackFollowupQueued = false;
@@ -3094,6 +3281,11 @@ public class GameScreen extends ScreenAdapter {
         fifthQuestCommanderCalloutIndex = 0;
         fifthQuestLabVillagersFadeTimer = 0f;
         fifthQuestLabVillagersVisibleLastFrame = false;
+        fifthQuestPortalDialogueNpcFadeTimer = 0f;
+        fifthQuestPortalDialogueNpcVisibleLastFrame = false;
+        fifthQuestRuinsIntroTriggered = false;
+        fifthQuestIntroCameraPhase = FifthQuestIntroCameraPhase.NONE;
+        fifthQuestIntroCameraTimer = 0f;
         sixthQuestCastleLayoutReady = false;
         sixthQuestFinalArenaLayoutReady = false;
         sixthQuestEncounterSpawned = false;
@@ -3540,6 +3732,10 @@ public class GameScreen extends ScreenAdapter {
         return bossArenaFinalIntroPhase == BossArenaFinalIntroPhase.FOCUS_BOSS;
     }
 
+    private boolean isFifthQuestFirstEncounterIntroActive() {
+        return fifthQuestFirstEncounterIntroActive && fifthQuestFirstEncounterIntroTimer > 0f;
+    }
+
     private boolean isPlayerHazardHitReactionActive() {
         return playerHazardHitReactionTimer > 0f;
     }
@@ -3561,6 +3757,9 @@ public class GameScreen extends ScreenAdapter {
         if (!isPlayerDead()) {
             return;
         }
+        if (fifthQuestDeathChoiceVisible) {
+            return;
+        }
         if (!playerDead) {
             startPlayerDeath();
         }
@@ -3576,6 +3775,10 @@ public class GameScreen extends ScreenAdapter {
             playerDeathStateTime += delta;
         }
         if (playerDeathStateTime >= Math.max(0.1f, respawnDelay)) {
+            if (fifthQuestDeathChoicePending) {
+                showFifthQuestDeathChoice();
+                return;
+            }
             respawnPlayerAfterDeath();
         }
     }
@@ -3608,6 +3811,32 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void applyFifthQuestDemonDamageToPlayer(float damage) {
+        float safeDamage = Math.max(0f, damage);
+        if (player.currentHealth > 0f
+                && !infiniteHealthEnabled
+                && player.currentHealth - safeDamage <= 0f
+                && shouldOfferFifthQuestDeathChoice()) {
+            fifthQuestDeathChoicePending = true;
+        }
+        applyDamageToPlayer(safeDamage);
+    }
+
+    private boolean shouldOfferFifthQuestDeathChoice() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || gameCompleted) {
+            return false;
+        }
+        return switch (fifthQuestStage) {
+            case FIFTH_QUEST_OUTER_RUINS_BATTLE,
+                    FIFTH_QUEST_MID_RUINS_BATTLE,
+                    FIFTH_QUEST_ANCHOR_1_BATTLE,
+                    FIFTH_QUEST_ANCHOR_2_BATTLE,
+                    FIFTH_QUEST_ANCHOR_3_BATTLE,
+                    FIFTH_QUEST_PORTAL_BOSS -> true;
+            default -> false;
+        };
+    }
+
     private void startPlayerDeath() {
         if (playerDead) {
             return;
@@ -3633,6 +3862,12 @@ public class GameScreen extends ScreenAdapter {
     private void resetPlayerDeathState() {
         playerDead = false;
         playerDeathStateTime = 0f;
+        resetPlayerAbilityCooldowns();
+    }
+
+    private void resetPlayerAbilityCooldowns() {
+        dashAttackAbilityCooldownTimer = 0f;
+        spatialDashAbilityCooldownTimer = 0f;
     }
 
     private void respawnPlayerAfterDeath() {
@@ -3640,6 +3875,7 @@ public class GameScreen extends ScreenAdapter {
         String respawnMapId = MAP_ID_VILLAGE;
         String respawnSpawnLayer = THIRD_QUEST_INN_ENTRANCE_LAYER_NAME;
         String respawnMessage = "You recover outside the inn.";
+        boolean saveRespawnStateAfterLoad = false;
         if (MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
             respawnMapId = MAP_ID_BOSS_ARENA_PHASE_2;
             respawnSpawnLayer = BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME;
@@ -3648,6 +3884,7 @@ public class GameScreen extends ScreenAdapter {
             respawnMapId = MAP_ID_DEMON_CASTLE;
             respawnSpawnLayer = "Spawn";
             respawnMessage = "You recover at the castle entrance.";
+            saveRespawnStateAfterLoad = true;
         }
 
         loadMap(respawnMapId, respawnSpawnLayer);
@@ -3656,12 +3893,149 @@ public class GameScreen extends ScreenAdapter {
                 PlayerLevelStats.maxHealthForLevel(currentLevel),
                 PlayerLevelStats.maxStaminaForLevel(currentLevel));
         centerCameraOnPlayer();
+        if (saveRespawnStateAfterLoad) {
+            writeAutosave();
+        }
         if (hudRenderer != null) {
             hudRenderer.showNotification(
                     "Respawn",
                     respawnMessage,
                     FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
         }
+    }
+
+    private void showFifthQuestDeathChoice() {
+        fifthQuestDeathChoicePending = false;
+        fifthQuestDeathChoiceVisible = true;
+        fifthQuestDeathChoiceIndex = 1;
+    }
+
+    private void clearFifthQuestDeathChoice() {
+        fifthQuestDeathChoicePending = false;
+        fifthQuestDeathChoiceVisible = false;
+        fifthQuestDeathChoiceIndex = 1;
+        fifthQuestDeathChoiceQuestBounds.set(0f, 0f, 0f, 0f);
+        fifthQuestDeathChoiceFightBounds.set(0f, 0f, 0f, 0f);
+    }
+
+    private void confirmFifthQuestDeathChoice(boolean redoEntireQuest) {
+        if (!fifthQuestDeathChoiceVisible) {
+            return;
+        }
+        clearFifthQuestDeathChoice();
+        if (redoEntireQuest) {
+            restartFifthQuestFromLabAlarm();
+            return;
+        }
+        restartFifthQuestFromFirstBattle();
+    }
+
+    private void restartFifthQuestFromLabAlarm() {
+        int currentLevel = PlayerLevelStats.clampLevel(player.playerLevel);
+        stopActiveDialogueVoiceSfx();
+        stopTypewriterLoopSfxImmediately();
+        firstQuestDialogueActive = false;
+        firstQuestItemCardVisible = false;
+        activeQuestDialogueId = QuestDialogueId.NONE;
+        activeQuestDialogueSpeakers = new String[0];
+        activeQuestDialogueLines = new String[0];
+        activeQuestItemCardId = QuestItemCardId.NONE;
+        activeQuestItemTitle = "";
+        activeQuestItemDescription = "";
+        resetQuestDialogueTypewriter();
+        resetPlayerAbilityCooldowns();
+        fourthQuestStage = FOURTH_QUEST_COMPLETE;
+        fifthQuestStage = FIFTH_QUEST_DISABLED;
+        sixthQuestStage = SIXTH_QUEST_DISABLED;
+        gameCompleted = false;
+        loadMap(MAP_ID_RESEARCH_LAB_FLOOR_1, null);
+        applyPlayerLevelStats(
+                currentLevel,
+                PlayerLevelStats.maxHealthForLevel(currentLevel),
+                PlayerLevelStats.maxStaminaForLevel(currentLevel));
+        centerCameraOnPlayer();
+        startQuestDialogue(
+                QuestDialogueId.FIFTH_QUEST_LAB_ALARM,
+                FIFTH_QUEST_LAB_ALARM_SPEAKERS,
+                FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES);
+    }
+
+    private void restartFifthQuestFromFirstBattle() {
+        int currentLevel = PlayerLevelStats.clampLevel(player.playerLevel);
+        stopActiveDialogueVoiceSfx();
+        stopTypewriterLoopSfxImmediately();
+        firstQuestDialogueActive = false;
+        firstQuestItemCardVisible = false;
+        activeQuestDialogueId = QuestDialogueId.NONE;
+        activeQuestDialogueSpeakers = new String[0];
+        activeQuestDialogueLines = new String[0];
+        activeQuestItemCardId = QuestItemCardId.NONE;
+        activeQuestItemTitle = "";
+        activeQuestItemDescription = "";
+        resetQuestDialogueTypewriter();
+        resetPlayerAbilityCooldowns();
+        fourthQuestStage = FOURTH_QUEST_COMPLETE;
+        fifthQuestStage = FIFTH_QUEST_ANCHOR_1_BATTLE;
+        sixthQuestStage = SIXTH_QUEST_DISABLED;
+        gameCompleted = false;
+        loadMap(MAP_ID_VILLAGE, VILLAGE_PORTAL_ACTUAL_LAYER_NAME);
+        ensureFifthQuestVillageLayout();
+        positionPlayerAtFifthQuestFirstBattle();
+        applyPlayerLevelStats(
+                currentLevel,
+                PlayerLevelStats.maxHealthForLevel(currentLevel),
+                PlayerLevelStats.maxStaminaForLevel(currentLevel));
+        fifthQuestEncounterSpawned = false;
+        fifthQuestFirstEncounterIntroPlayed = false;
+        stopFifthQuestFirstEncounterIntro();
+        refreshFirstQuestGuidance();
+        centerCameraOnPlayer();
+    }
+
+    private void positionPlayerAtFifthQuestFirstBattle() {
+        ensureFifthQuestVillageLayout();
+        Rectangle firstBattleBounds = fifthQuestAnchorBounds[0].width > 0f
+                ? fifthQuestAnchorBounds[0]
+                : fifthQuestOuterRuinsBounds;
+        if (firstBattleBounds == null || firstBattleBounds.width <= 0f || firstBattleBounds.height <= 0f) {
+            return;
+        }
+        movePlayerBottomCenterTo(
+                firstBattleBounds.x + firstBattleBounds.width * 0.5f,
+                firstBattleBounds.y + firstBattleBounds.height * 0.25f);
+    }
+
+    private void positionPlayerAtFifthQuestThirdAnchor() {
+        ensureFifthQuestVillageLayout();
+        Rectangle finalAnchorBounds = fifthQuestAnchorBounds[2].width > 0f
+                ? fifthQuestAnchorBounds[2]
+                : fifthQuestPortalBounds;
+        if (finalAnchorBounds == null || finalAnchorBounds.width <= 0f || finalAnchorBounds.height <= 0f) {
+            return;
+        }
+        movePlayerBottomCenterTo(
+                finalAnchorBounds.x + finalAnchorBounds.width * 0.5f,
+                finalAnchorBounds.y + finalAnchorBounds.height * 0.25f);
+        player.facingLeft = false;
+    }
+
+    private void movePlayerBottomCenterTo(float centerX, float bottomY) {
+        Vector2 free = findNearestFreeSpot(new Vector2(centerX, bottomY));
+        float halfW = HITBOX_WIDTH * 0.5f;
+        player.bounds.set(free.x - halfW, free.y, HITBOX_WIDTH, HITBOX_HEIGHT);
+        player.moving = false;
+    }
+
+    private void movePlayerBesideScientistForLabDialogue() {
+        Rectangle scientistBounds = scientistNpcBounds();
+        if (scientistBounds == null) {
+            return;
+        }
+        float scientistCenterX = scientistBounds.x + scientistBounds.width * 0.5f;
+        float targetCenterX = scientistCenterX - scientistBounds.width * 0.5f - DEFAULT_TILE_SIZE * 1.5f;
+        movePlayerBottomCenterTo(targetCenterX, scientistBounds.y);
+        player.facingLeft = false;
+        centerCameraOnPlayer();
     }
 
     private void clearPlayerHazardHitReaction() {
@@ -4936,6 +5310,9 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         float safeDelta = Math.max(0f, delta);
+        if (fifthQuestZombieSfxCooldownTimer > 0f) {
+            fifthQuestZombieSfxCooldownTimer = Math.max(0f, fifthQuestZombieSfxCooldownTimer - safeDelta);
+        }
         float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
         float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
         for (int i = fifthQuestDemons.size - 1; i >= 0; i--) {
@@ -4960,6 +5337,16 @@ public class GameScreen extends ScreenAdapter {
             float dy = playerCenterY - demon.position.y;
             if (Math.abs(dx) > 0.001f) {
                 demon.facingLeft = dx < 0f;
+            }
+
+            if (isFifthQuestFirstEncounterIntroActive()
+                    && demon.questEncounterId == fifthQuestFirstEncounterIntroEncounterId) {
+                demon.moving = false;
+                demon.attacking = false;
+                demon.attackStateTime = 0f;
+                demon.attackDamageApplied = false;
+                demon.stateTime += safeDelta;
+                continue;
             }
 
             if (demon.hurting) {
@@ -5035,6 +5422,7 @@ public class GameScreen extends ScreenAdapter {
         demon.attackStateTime = 0f;
         demon.attackDamageApplied = false;
         demon.attackCooldownTimer = Math.max(0.2f, demon.attackIntervalSeconds);
+        playFifthQuestZombieSfx(FIFTH_QUEST_ZOMBIE_ATTACK_SFX_VOLUME_MULTIPLIER);
     }
 
     private void tryApplyFifthQuestDemonAttackHitToPlayer(FifthQuestDemonInstance demon, Animation<TextureRegion> attackAnimation) {
@@ -5057,7 +5445,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         demon.attackDamageApplied = true;
-        applyDamageToPlayer(demon.playerDamage);
+        applyFifthQuestDemonDamageToPlayer(demon.playerDamage);
     }
 
     private void updateFifthQuestDemonHurtFromPlayer() {
@@ -5085,7 +5473,7 @@ public class GameScreen extends ScreenAdapter {
         if (demon == null || demon.dying || demon.health <= 0f || demon.playerHitCooldownTimer > 0f) {
             return;
         }
-        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE);
+        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
         demon.moving = false;
         demon.attacking = false;
         demon.attackStateTime = 0f;
@@ -5634,7 +6022,7 @@ public class GameScreen extends ScreenAdapter {
                 || wizard.state == EvilWizardAnimationState.DIE) {
             return;
         }
-        wizard.health = Math.max(0f, wizard.health - EVIL_WIZARD_HIT_DAMAGE);
+        wizard.health = Math.max(0f, wizard.health - EVIL_WIZARD_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
         if (wizard.health <= 0f) {
             setEvilWizardState(wizard, EvilWizardAnimationState.DIE);
             wizard.playerHitCooldownTimer = 0f;
@@ -5671,7 +6059,7 @@ public class GameScreen extends ScreenAdapter {
         if (golem == null || golem.dying || golem.playerHitCooldownTimer > 0f) {
             return;
         }
-        golem.health = Math.max(0f, golem.health - GOLEM_1_HIT_DAMAGE);
+        golem.health = Math.max(0f, golem.health - GOLEM_1_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
         golem.moving = false;
         golem.attacking = false;
         golem.attackStateTime = 0f;
@@ -5711,7 +6099,7 @@ public class GameScreen extends ScreenAdapter {
         if (demon == null || demon.hurting || demon.playerHitCooldownTimer > 0f || demon.health <= 0f) {
             return;
         }
-        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE);
+        demon.health = Math.max(0f, demon.health - BAT_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
         demon.moving = false;
         demon.attacking = false;
         demon.attackStateTime = 0f;
@@ -6209,7 +6597,7 @@ public class GameScreen extends ScreenAdapter {
                 || bat.playerHitCooldownTimer > 0f) {
             return;
         }
-        bat.health = Math.max(0f, bat.health - BAT_HIT_DAMAGE);
+        bat.health = Math.max(0f, bat.health - BAT_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
         if (batHurtSfx != null) {
             playSfx(batHurtSfx, BAT_HURT_SFX_VOLUME);
         }
@@ -6685,6 +7073,179 @@ public class GameScreen extends ScreenAdapter {
                         SIXTH_QUEST_FINAL_PHASE_INTRO_DIALOGUE_LINES);
             }
         }
+    }
+
+    private boolean isFifthQuestIntroCameraActive() {
+        return fifthQuestIntroCameraPhase != FifthQuestIntroCameraPhase.NONE;
+    }
+
+    private void startFifthQuestIntroCameraSequence() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            beginFifthQuestAnchorBattle(0);
+            return;
+        }
+        ensureFifthQuestVillageLayout();
+        if (!hasFifthQuestIntroCameraBounds(0)
+                || !hasFifthQuestIntroCameraBounds(1)
+                || !hasFifthQuestIntroCameraBounds(2)) {
+            beginFifthQuestAnchorBattle(0);
+            return;
+        }
+        beginFifthQuestIntroCameraSegment(FifthQuestIntroCameraPhase.CAMERA_1);
+    }
+
+    private void beginFifthQuestIntroCameraSegment(FifthQuestIntroCameraPhase phase) {
+        fifthQuestIntroCameraPhase = phase == null ? FifthQuestIntroCameraPhase.NONE : phase;
+        if (fifthQuestIntroCameraPhase == FifthQuestIntroCameraPhase.NONE || camera == null) {
+            return;
+        }
+        Rectangle bounds = currentFifthQuestIntroCameraBounds();
+        if (bounds == null) {
+            finishFifthQuestIntroCameraSequence();
+            return;
+        }
+        fifthQuestIntroCameraStart.set(camera.position.x, camera.position.y);
+        fifthQuestIntroCameraTarget.set(
+                bounds.x + bounds.width * 0.5f,
+                bounds.y + bounds.height * 0.5f);
+        fifthQuestIntroCameraStartZoom = camera.zoom;
+        fifthQuestIntroCameraTimer = FIFTH_QUEST_INTRO_CAMERA_SEGMENT_SECONDS;
+        player.moving = false;
+    }
+
+    private void updateFifthQuestIntroCameraSequence(float delta) {
+        if (!isFifthQuestIntroCameraActive() || camera == null || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        float duration = Math.max(0.001f, FIFTH_QUEST_INTRO_CAMERA_SEGMENT_SECONDS);
+        fifthQuestIntroCameraTimer = Math.max(0f, fifthQuestIntroCameraTimer - safeDelta);
+        float progress = clamp01(1f - (fifthQuestIntroCameraTimer / duration));
+        float easedProgress = progress * progress * (3f - 2f * progress);
+        camera.position.x = lerp(fifthQuestIntroCameraStart.x, fifthQuestIntroCameraTarget.x, easedProgress);
+        camera.position.y = lerp(fifthQuestIntroCameraStart.y, fifthQuestIntroCameraTarget.y, easedProgress);
+        camera.position.z = 0f;
+        camera.zoom = lerp(fifthQuestIntroCameraStartZoom, DEFAULT_ZOOM, easedProgress);
+        if (Math.abs(camera.zoom - DEFAULT_ZOOM) < 0.0005f) {
+            camera.zoom = DEFAULT_ZOOM;
+        }
+        player.moving = false;
+
+        if (fifthQuestIntroCameraTimer > 0f) {
+            return;
+        }
+
+        switch (fifthQuestIntroCameraPhase) {
+            case CAMERA_1 -> beginFifthQuestIntroCameraSegment(FifthQuestIntroCameraPhase.CAMERA_2);
+            case CAMERA_2 -> beginFifthQuestIntroCameraSegment(FifthQuestIntroCameraPhase.CAMERA_3);
+            case CAMERA_3 -> finishFifthQuestIntroCameraSequence();
+            default -> {
+            }
+        }
+    }
+
+    private void finishFifthQuestIntroCameraSequence() {
+        fifthQuestIntroCameraPhase = FifthQuestIntroCameraPhase.NONE;
+        fifthQuestIntroCameraTimer = 0f;
+        float playerTargetX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerTargetY = player.bounds.y + player.bounds.height * 0.5f;
+        startCameraTeleportSmoothing(playerTargetX, playerTargetY, 1.1f);
+        beginFifthQuestAnchorBattle(0);
+    }
+
+    private void startFifthQuestFirstEncounterIntro(int encounterId) {
+        if (camera == null
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || encounterId == FIFTH_QUEST_ENCOUNTER_NONE
+                || !resolveFifthQuestEncounterFocusPoint(encounterId, fifthQuestFirstEncounterIntroFocus)) {
+            return;
+        }
+        fifthQuestFirstEncounterIntroPlayed = true;
+        fifthQuestFirstEncounterIntroActive = true;
+        fifthQuestFirstEncounterIntroTimer = FIFTH_QUEST_FIRST_ENCOUNTER_INTRO_SECONDS;
+        fifthQuestFirstEncounterIntroEncounterId = encounterId;
+        player.moving = false;
+        fifthQuestZombieSfxCooldownTimer = 0f;
+        playFifthQuestZombieSfx(FIFTH_QUEST_ZOMBIE_INTRO_SFX_VOLUME_MULTIPLIER);
+    }
+
+    private void updateFifthQuestFirstEncounterIntro(float delta) {
+        if (!isFifthQuestFirstEncounterIntroActive()) {
+            return;
+        }
+        if (camera == null
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)
+                || !resolveFifthQuestEncounterFocusPoint(
+                fifthQuestFirstEncounterIntroEncounterId,
+                fifthQuestFirstEncounterIntroFocus)) {
+            stopFifthQuestFirstEncounterIntro();
+            return;
+        }
+
+        float safeDelta = Math.max(0f, delta);
+        float alpha = 1f - (float) Math.exp(-DIALOGUE_CAMERA_SMOOTH_SPEED * safeDelta);
+        camera.position.x = lerp(camera.position.x, fifthQuestFirstEncounterIntroFocus.x, alpha);
+        camera.position.y = lerp(camera.position.y, fifthQuestFirstEncounterIntroFocus.y, alpha);
+        camera.position.z = 0f;
+        float targetZoom = DEFAULT_ZOOM * FIFTH_QUEST_FIRST_ENCOUNTER_INTRO_ZOOM_MULTIPLIER;
+        camera.zoom = lerp(camera.zoom, targetZoom, alpha);
+        if (Math.abs(camera.zoom - targetZoom) < 0.0005f) {
+            camera.zoom = targetZoom;
+        }
+
+        player.moving = false;
+        fifthQuestFirstEncounterIntroTimer = Math.max(0f, fifthQuestFirstEncounterIntroTimer - safeDelta);
+        if (fifthQuestFirstEncounterIntroTimer <= 0f) {
+            stopFifthQuestFirstEncounterIntro();
+        }
+    }
+
+    private void stopFifthQuestFirstEncounterIntro() {
+        fifthQuestFirstEncounterIntroActive = false;
+        fifthQuestFirstEncounterIntroTimer = 0f;
+        fifthQuestFirstEncounterIntroEncounterId = FIFTH_QUEST_ENCOUNTER_NONE;
+        if (camera != null) {
+            camera.zoom = DEFAULT_ZOOM;
+        }
+    }
+
+    private boolean resolveFifthQuestEncounterFocusPoint(int encounterId, Vector2 focusOut) {
+        if (focusOut == null || encounterId == FIFTH_QUEST_ENCOUNTER_NONE) {
+            return false;
+        }
+        float sumX = 0f;
+        float sumY = 0f;
+        int count = 0;
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.questEncounterId != encounterId || demon.dying || demon.health <= 0f) {
+                continue;
+            }
+            sumX += demon.position.x;
+            sumY += demon.position.y;
+            count++;
+        }
+        if (count <= 0) {
+            return false;
+        }
+        focusOut.set(sumX / count, sumY / count);
+        return true;
+    }
+
+    private Rectangle currentFifthQuestIntroCameraBounds() {
+        return switch (fifthQuestIntroCameraPhase) {
+            case CAMERA_1 -> hasFifthQuestIntroCameraBounds(0) ? fifthQuestIntroCameraBounds[0] : null;
+            case CAMERA_2 -> hasFifthQuestIntroCameraBounds(1) ? fifthQuestIntroCameraBounds[1] : null;
+            case CAMERA_3 -> hasFifthQuestIntroCameraBounds(2) ? fifthQuestIntroCameraBounds[2] : null;
+            default -> null;
+        };
+    }
+
+    private boolean hasFifthQuestIntroCameraBounds(int index) {
+        return index >= 0
+                && index < fifthQuestIntroCameraBounds.length
+                && fifthQuestIntroCameraBounds[index].width > 0f
+                && fifthQuestIntroCameraBounds[index].height > 0f;
     }
 
     private void updateBossArenaHudReveal(float delta) {
@@ -7697,6 +8258,7 @@ public class GameScreen extends ScreenAdapter {
     private void onPlayerSpawned() {
         clearPlayerHazardHitReaction();
         resetPlayerDeathState();
+        clearFifthQuestDeathChoice();
         if (hudRenderer == null) {
             return;
         }
@@ -7773,6 +8335,16 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void updatePlayerAbilityCooldowns(float delta) {
+        float safeDelta = Math.max(0f, delta);
+        if (dashAttackAbilityCooldownTimer > 0f) {
+            dashAttackAbilityCooldownTimer = Math.max(0f, dashAttackAbilityCooldownTimer - safeDelta);
+        }
+        if (spatialDashAbilityCooldownTimer > 0f) {
+            spatialDashAbilityCooldownTimer = Math.max(0f, spatialDashAbilityCooldownTimer - safeDelta);
+        }
+    }
+
     private void updateTorchAnimation(float delta) {
         if (world.torchAnimationFrames.size <= 1) {
             return;
@@ -7823,6 +8395,7 @@ public class GameScreen extends ScreenAdapter {
         firstQuestMarkerTimer += Math.max(0f, delta);
         firstQuestCafeNpcStateTime += Math.max(0f, delta);
         updateSixthQuestEndingNpcFade(delta);
+        updateFifthQuestPortalDialogueNpcs(delta);
         updateSixthQuestEndingVideoSequence(delta);
         questGuidanceSuppressTimer = Math.max(0f, questGuidanceSuppressTimer - Math.max(0f, delta));
         updateThirdQuest(delta);
@@ -7842,6 +8415,23 @@ public class GameScreen extends ScreenAdapter {
         sixthQuestEndingNpcFadeTimer = Math.min(
                 SIXTH_QUEST_ENDING_NPC_FADE_OUT_SECONDS,
                 sixthQuestEndingNpcFadeTimer + Math.max(0f, delta));
+    }
+
+    private void updateFifthQuestPortalDialogueNpcs(float delta) {
+        boolean shouldShowNpcs = isFifthQuestPortalDialogueSceneActive();
+        if (!shouldShowNpcs) {
+            fifthQuestPortalDialogueNpcFadeTimer = 0f;
+            fifthQuestPortalDialogueNpcVisibleLastFrame = false;
+            return;
+        }
+        if (!fifthQuestPortalDialogueNpcVisibleLastFrame) {
+            fifthQuestPortalDialogueNpcFadeTimer = 0f;
+            fifthQuestPortalDialogueNpcVisibleLastFrame = true;
+        } else {
+            fifthQuestPortalDialogueNpcFadeTimer = Math.min(
+                    FIFTH_QUEST_PORTAL_DIALOGUE_NPC_FADE_IN_SECONDS,
+                    fifthQuestPortalDialogueNpcFadeTimer + Math.max(0f, delta));
+        }
     }
 
     private void updateSixthQuestEndingVideoSequence(float delta) {
@@ -7899,11 +8489,11 @@ public class GameScreen extends ScreenAdapter {
         }
         if (firstQuestStage == FIRST_QUEST_DELIVER_TO_CAFE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
             hudRenderer.showPersistentNotification(FIRST_QUEST_NOTIFICATION_TITLE,
-                    "Bring the Herb-and-Spice to the cafe owner outside the cafe.");
+                    "Bring the Herb-and-Spice to the bakery owner outside the bakery.");
             return;
         }
         if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE, "Speak with the cafe owner.");
+            hudRenderer.showPersistentNotification(SECOND_QUEST_NOTIFICATION_TITLE, "Speak with the bakery owner.");
             return;
         }
         if (secondQuestStage == SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST) {
@@ -8016,16 +8606,16 @@ public class GameScreen extends ScreenAdapter {
                 return;
             }
             if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
-                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the corrupted site outside the cafe.");
+                hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Investigate the corrupted site outside the bakery.");
                 return;
             }
         }
         if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CAFE_MARK && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Examine the corrupted mark outside the cafe.");
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Examine the corrupted mark outside the bakery.");
             return;
         }
         if (fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE && MAP_ID_VILLAGE.equals(world.activeMapId)) {
-            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Defeat the corrupted enemies near the cafe.");
+            hudRenderer.showPersistentNotification(FOURTH_QUEST_NOTIFICATION_TITLE, "Defeat the corrupted enemies near the bakery.");
             return;
         }
         if (fourthQuestStage == FOURTH_QUEST_EXAMINE_CENTER_MARK && MAP_ID_VILLAGE.equals(world.activeMapId)) {
@@ -8271,6 +8861,7 @@ public class GameScreen extends ScreenAdapter {
         if (fifthQuestStage <= FIFTH_QUEST_DISABLED) {
             return;
         }
+        normalizeFifthQuestStageForThreeBattleFlow();
         if (MAP_ID_VILLAGE.equals(world.activeMapId)) {
             ensureFifthQuestVillageLayout();
         }
@@ -8281,29 +8872,30 @@ public class GameScreen extends ScreenAdapter {
             case FIFTH_QUEST_GO_TO_ABANDONED_VILLAGE -> {
                 if (MAP_ID_VILLAGE.equals(world.activeMapId)
                         && fifthQuestVillageLayoutReady
+                        && !fifthQuestRuinsIntroTriggered
                         && overlapsPlayerExpanded(fifthQuestRuinsIntroBounds)) {
+                    fifthQuestRuinsIntroTriggered = true;
                     startQuestDialogue(
                             QuestDialogueId.FIFTH_QUEST_RUINS_INTRO,
                             FIFTH_QUEST_RUINS_INTRO_SPEAKERS,
                             FIFTH_QUEST_RUINS_INTRO_DIALOGUE_LINES);
                 }
             }
-            case FIFTH_QUEST_OUTER_RUINS_BATTLE -> updateFifthQuestOuterRuinsBattle();
-            case FIFTH_QUEST_ADVANCE_TO_PORTAL -> {
-                if (MAP_ID_VILLAGE.equals(world.activeMapId)
-                        && fifthQuestVillageLayoutReady
-                        && overlapsPlayerExpanded(fifthQuestMidRuinsBounds)) {
-                    beginFifthQuestMidRuinsBattle();
-                }
-            }
-            case FIFTH_QUEST_MID_RUINS_BATTLE -> updateFifthQuestMidRuinsBattle();
             case FIFTH_QUEST_ANCHOR_1_BATTLE -> updateFifthQuestAnchorBattle(0, FIFTH_QUEST_ENCOUNTER_ANCHOR_1);
             case FIFTH_QUEST_ANCHOR_2_BATTLE -> updateFifthQuestAnchorBattle(1, FIFTH_QUEST_ENCOUNTER_ANCHOR_2);
             case FIFTH_QUEST_ANCHOR_3_BATTLE -> updateFifthQuestAnchorBattle(2, FIFTH_QUEST_ENCOUNTER_ANCHOR_3);
-            case FIFTH_QUEST_PORTAL_BOSS -> updateFifthQuestPortalBoss(delta);
             default -> {
             }
         }
+    }
+
+    private void normalizeFifthQuestStageForThreeBattleFlow() {
+        fifthQuestStage = switch (fifthQuestStage) {
+            case FIFTH_QUEST_OUTER_RUINS_BATTLE -> FIFTH_QUEST_ANCHOR_1_BATTLE;
+            case FIFTH_QUEST_ADVANCE_TO_PORTAL, FIFTH_QUEST_MID_RUINS_BATTLE -> FIFTH_QUEST_ANCHOR_2_BATTLE;
+            case FIFTH_QUEST_PORTAL_BOSS -> FIFTH_QUEST_ANCHOR_3_BATTLE;
+            default -> fifthQuestStage;
+        };
     }
 
     private void ensureFifthQuestVillageLayout() {
@@ -8316,6 +8908,15 @@ public class GameScreen extends ScreenAdapter {
         }
         fifthQuestPortalBounds.set(portalBounds);
         clampRectangleToMap(fifthQuestPortalBounds);
+        fifthQuestIntroTriggerBounds.set(0f, 0f, 0f, 0f);
+        for (Rectangle cameraBounds : fifthQuestIntroCameraBounds) {
+            cameraBounds.set(0f, 0f, 0f, 0f);
+        }
+
+        if (setFifthQuestVillageAreasFromLayer()) {
+            fifthQuestVillageLayoutReady = true;
+            return;
+        }
 
         Rectangle fightingAreaBounds = objectLayerBounds(findLayerByName(FIFTH_QUEST_FIGHTING_AREA_LAYER_NAME));
         if (fightingAreaBounds != null && fightingAreaBounds.width > 0f && fightingAreaBounds.height > 0f) {
@@ -8406,6 +9007,104 @@ public class GameScreen extends ScreenAdapter {
         }
 
         fifthQuestVillageLayoutReady = true;
+    }
+
+    private boolean setFifthQuestVillageAreasFromLayer() {
+        MapLayer areaLayer = findLayerInGroup(FIFTH_QUEST_AREA_GROUP_LAYER_NAME, FIFTH_QUEST_AREA_LAYER_NAME);
+        if (areaLayer == null) {
+            areaLayer = findLayerByName(FIFTH_QUEST_AREA_LAYER_NAME);
+        }
+        if (areaLayer == null) {
+            return false;
+        }
+
+        Rectangle firstAreaBounds = nthObjectBounds(areaLayer, 0);
+        Rectangle secondAreaBounds = nthObjectBounds(areaLayer, 1);
+        Rectangle thirdAreaBounds = nthObjectBounds(areaLayer, 2);
+        if (firstAreaBounds == null || secondAreaBounds == null || thirdAreaBounds == null) {
+            return false;
+        }
+
+        Rectangle triggerBounds = objectLayerBounds(findLayerInGroup(
+                FIFTH_QUEST_CAMERA_GROUP_LAYER_NAME,
+                FIFTH_QUEST_CAMERA_TRIGGER_LAYER_NAME));
+        Rectangle camera1Bounds = objectLayerBounds(findLayerInGroup(
+                FIFTH_QUEST_CAMERA_GROUP_LAYER_NAME,
+                FIFTH_QUEST_CAMERA_1_LAYER_NAME));
+        Rectangle camera2Bounds = objectLayerBounds(findLayerInGroup(
+                FIFTH_QUEST_CAMERA_GROUP_LAYER_NAME,
+                FIFTH_QUEST_CAMERA_2_LAYER_NAME));
+        Rectangle camera3Bounds = objectLayerBounds(findLayerInGroup(
+                FIFTH_QUEST_CAMERA_GROUP_LAYER_NAME,
+                FIFTH_QUEST_CAMERA_3_LAYER_NAME));
+
+        if (triggerBounds != null && triggerBounds.width > 0f && triggerBounds.height > 0f) {
+            fifthQuestRuinsIntroBounds.set(triggerBounds);
+            fifthQuestIntroTriggerBounds.set(triggerBounds);
+        } else {
+            fifthQuestRuinsIntroBounds.set(firstAreaBounds);
+            fifthQuestIntroTriggerBounds.set(firstAreaBounds);
+        }
+        fifthQuestOuterRuinsBounds.set(firstAreaBounds);
+        fifthQuestMidRuinsBounds.set(secondAreaBounds);
+        setFifthQuestRandomAnchorBounds(fifthQuestAnchorBounds[0], firstAreaBounds, 0);
+        setFifthQuestRandomAnchorBounds(fifthQuestAnchorBounds[1], secondAreaBounds, 1);
+        setFifthQuestRandomAnchorBounds(fifthQuestAnchorBounds[2], thirdAreaBounds, 2);
+        if (camera1Bounds != null && camera1Bounds.width > 0f && camera1Bounds.height > 0f) {
+            fifthQuestIntroCameraBounds[0].set(camera1Bounds);
+        }
+        if (camera2Bounds != null && camera2Bounds.width > 0f && camera2Bounds.height > 0f) {
+            fifthQuestIntroCameraBounds[1].set(camera2Bounds);
+        }
+        if (camera3Bounds != null && camera3Bounds.width > 0f && camera3Bounds.height > 0f) {
+            fifthQuestIntroCameraBounds[2].set(camera3Bounds);
+        }
+
+        Rectangle allAreaBounds = objectLayerBounds(areaLayer);
+        if (allAreaBounds != null && allAreaBounds.width > 0f && allAreaBounds.height > 0f) {
+            fifthQuestFightingAreaBounds.set(allAreaBounds);
+            clampRectangleToMap(fifthQuestFightingAreaBounds);
+        } else {
+            fifthQuestFightingAreaBounds.set(0f, 0f, 0f, 0f);
+        }
+
+        clampRectangleToMap(fifthQuestRuinsIntroBounds);
+        clampRectangleToMap(fifthQuestIntroTriggerBounds);
+        clampRectangleToMap(fifthQuestOuterRuinsBounds);
+        clampRectangleToMap(fifthQuestMidRuinsBounds);
+        for (Rectangle anchorBounds : fifthQuestAnchorBounds) {
+            clampRectangleToMap(anchorBounds);
+        }
+        for (Rectangle cameraBounds : fifthQuestIntroCameraBounds) {
+            if (cameraBounds.width > 0f && cameraBounds.height > 0f) {
+                clampRectangleToMap(cameraBounds);
+            }
+        }
+        return true;
+    }
+
+    private void setFifthQuestRandomAnchorBounds(Rectangle targetBounds, Rectangle areaBounds, int salt) {
+        if (targetBounds == null || areaBounds == null || areaBounds.width <= 0f || areaBounds.height <= 0f) {
+            return;
+        }
+        float normalizedX = 0.22f + deterministicUnitFloat(areaBounds, salt * 2) * 0.56f;
+        float normalizedY = 0.24f + deterministicUnitFloat(areaBounds, salt * 2 + 1) * 0.52f;
+        setRectangleInsideBounds(targetBounds, areaBounds, normalizedX, normalizedY, FIFTH_QUEST_ANCHOR_SIZE, FIFTH_QUEST_ANCHOR_SIZE);
+        snapQuestZoneToWalkableArea(targetBounds, 6, 4);
+    }
+
+    private float deterministicUnitFloat(Rectangle bounds, int salt) {
+        int seed = Float.floatToIntBits(bounds.x * 1.217f)
+                ^ Float.floatToIntBits(bounds.y * 1.513f)
+                ^ Float.floatToIntBits(bounds.width * 0.917f)
+                ^ Float.floatToIntBits(bounds.height * 0.733f)
+                ^ (salt + 1) * 0x9E3779B9;
+        seed ^= (seed >>> 16);
+        seed *= 0x7feb352d;
+        seed ^= (seed >>> 15);
+        seed *= 0x846ca68b;
+        seed ^= (seed >>> 16);
+        return (seed & 0x7fffffff) / (float) Integer.MAX_VALUE;
     }
 
     private void setRectangleInsideBounds(Rectangle bounds, Rectangle parentBounds, float normalizedCenterX,
@@ -8513,6 +9212,24 @@ public class GameScreen extends ScreenAdapter {
         return score;
     }
 
+    private Rectangle nthObjectBounds(MapLayer layer, int targetIndex) {
+        if (layer == null || targetIndex < 0) {
+            return null;
+        }
+        int objectIndex = 0;
+        for (MapObject object : layer.getObjects()) {
+            Rectangle bounds = objectBounds(layer, object);
+            if (bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+                continue;
+            }
+            if (objectIndex == targetIndex) {
+                return bounds;
+            }
+            objectIndex++;
+        }
+        return null;
+    }
+
     private boolean isWalkablePlayerCenter(float centerX, float centerY) {
         Rectangle testBounds = new Rectangle(
                 centerX - HITBOX_WIDTH * 0.5f,
@@ -8556,6 +9273,12 @@ public class GameScreen extends ScreenAdapter {
         fifthQuestCommanderCalloutIndex = 0;
         fifthQuestLabVillagersFadeTimer = 0f;
         fifthQuestLabVillagersVisibleLastFrame = false;
+        fifthQuestRuinsIntroTriggered = false;
+        fifthQuestIntroCameraPhase = FifthQuestIntroCameraPhase.NONE;
+        fifthQuestIntroCameraTimer = 0f;
+        fifthQuestFirstEncounterIntroPlayed = false;
+        stopFifthQuestFirstEncounterIntro();
+        fifthQuestZombieSfxCooldownTimer = 0f;
         showQuestNotification(
                 FIFTH_QUEST_NOTIFICATION_TITLE,
                 "Objective Updated: Go to the abandoned village by the portal.",
@@ -8597,6 +9320,12 @@ public class GameScreen extends ScreenAdapter {
             default -> FIFTH_QUEST_ANCHOR_3_BATTLE;
         };
         fifthQuestEncounterSpawned = false;
+        if (anchorIndex == 0) {
+            showQuestNotification(
+                    "Field Reminder",
+                    "Use E Dash Attack to engage fast, and right click Spatial Dash to reposition.",
+                    FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+        }
         showQuestNotification(
                 FIFTH_QUEST_NOTIFICATION_TITLE,
                 "Objective Updated: Destroy the portal anchors.",
@@ -8776,6 +9505,9 @@ public class GameScreen extends ScreenAdapter {
                     zoneBounds, FIFTH_QUEST_DEMON_3_HEALTH + 10f, FIFTH_QUEST_DEMON_3_DAMAGE + 2f, FIFTH_QUEST_DEMON_3_SPEED + 2f);
         }
         fifthQuestEncounterSpawned = true;
+        if (anchorIndex == 0 && !fifthQuestFirstEncounterIntroPlayed) {
+            startFifthQuestFirstEncounterIntro(encounterId);
+        }
     }
 
     private void spawnFifthQuestPortalBossEncounter() {
@@ -8805,7 +9537,8 @@ public class GameScreen extends ScreenAdapter {
     private void addFifthQuestDemonAt(float x, float y, FifthQuestDemonType type, int encounterId,
                                       Rectangle zoneBounds, float health, float damage, float speed) {
         FifthQuestDemonInstance demon = new FifthQuestDemonInstance();
-        demon.position.set(x, y);
+        Vector2 spawnPosition = resolveFifthQuestSpawnPosition(x, y, encounterId, zoneBounds);
+        demon.position.set(spawnPosition);
         demon.type = type == null ? FifthQuestDemonType.DEMON_1 : type;
         demon.questEncounterId = encounterId;
         demon.zoneBounds.set(zoneBounds != null ? zoneBounds : fifthQuestPortalBounds);
@@ -8820,6 +9553,74 @@ public class GameScreen extends ScreenAdapter {
                 ? 1.05f
                 : FIFTH_QUEST_DEMON_ATTACK_COOLDOWN_SECONDS;
         fifthQuestDemons.add(demon);
+    }
+
+    private Vector2 resolveFifthQuestSpawnPosition(float preferredX, float preferredY, int encounterId, Rectangle zoneBounds) {
+        Vector2 preferred = new Vector2(preferredX, preferredY);
+        if (!shouldEnforceFifthQuestSpawnDistanceFromPlayer()) {
+            return preferred;
+        }
+
+        Rectangle activeZoneBounds = zoneBounds != null && zoneBounds.width > 0f && zoneBounds.height > 0f
+                ? zoneBounds
+                : fifthQuestPortalBounds;
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerCenterY = player.bounds.y + player.bounds.height * 0.5f;
+        float minDistanceSq = FIFTH_QUEST_SPAWN_MIN_DISTANCE_FROM_PLAYER * FIFTH_QUEST_SPAWN_MIN_DISTANCE_FROM_PLAYER;
+        float preferredDistanceSq = distanceSquared(preferred.x, preferred.y, playerCenterX, playerCenterY);
+        if (preferredDistanceSq >= minDistanceSq && isFifthQuestSpawnPointClear(preferred.x, preferred.y, encounterId)) {
+            return preferred;
+        }
+
+        Vector2 bestCandidate = new Vector2(preferred);
+        float bestDistanceSq = preferredDistanceSq;
+        float[] samplePoints = {0.12f, 0.26f, 0.40f, 0.54f, 0.68f, 0.82f};
+        for (float sampleX : samplePoints) {
+            for (float sampleY : samplePoints) {
+                Vector2 candidate = questZonePoint(activeZoneBounds, sampleX, sampleY);
+                float candidateDistanceSq = distanceSquared(candidate.x, candidate.y, playerCenterX, playerCenterY);
+                if (!isFifthQuestSpawnPointClear(candidate.x, candidate.y, encounterId)) {
+                    continue;
+                }
+                if (candidateDistanceSq >= minDistanceSq) {
+                    return candidate;
+                }
+                if (candidateDistanceSq > bestDistanceSq) {
+                    bestCandidate.set(candidate);
+                    bestDistanceSq = candidateDistanceSq;
+                }
+            }
+        }
+        return bestCandidate;
+    }
+
+    private boolean shouldEnforceFifthQuestSpawnDistanceFromPlayer() {
+        return MAP_ID_VILLAGE.equals(world.activeMapId)
+                && fifthQuestStage > FIFTH_QUEST_DISABLED
+                && fifthQuestStage < FIFTH_QUEST_COMPLETE;
+    }
+
+    private boolean isFifthQuestSpawnPointClear(float x, float y, int encounterId) {
+        if (!isWalkablePlayerCenter(x, y)) {
+            return false;
+        }
+        float minSeparationSq = FIFTH_QUEST_SPAWN_MIN_DISTANCE_BETWEEN_DEMONS * FIFTH_QUEST_SPAWN_MIN_DISTANCE_BETWEEN_DEMONS;
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance existing = fifthQuestDemons.get(i);
+            if (existing.questEncounterId != encounterId || existing.dying || existing.health <= 0f) {
+                continue;
+            }
+            if (distanceSquared(x, y, existing.position.x, existing.position.y) < minSeparationSq) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private float distanceSquared(float x1, float y1, float x2, float y2) {
+        float dx = x1 - x2;
+        float dy = y1 - y2;
+        return dx * dx + dy * dy;
     }
 
     private int countFifthQuestEncounterDemons(int encounterId) {
@@ -9059,10 +9860,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (!hasLivingEvilWizardInZone(sixthQuestThroneBounds)) {
-            startQuestDialogue(
-                    QuestDialogueId.SIXTH_QUEST_PHASE_1_INTRO,
-                    SIXTH_QUEST_PHASE_1_INTRO_SPEAKERS,
-                    SIXTH_QUEST_PHASE_1_INTRO_DIALOGUE_LINES);
+            beginSixthQuestFinalPhaseIntro();
         }
     }
 
@@ -9253,51 +10051,94 @@ public class GameScreen extends ScreenAdapter {
         if (!MAP_ID_VILLAGE.equals(world.activeMapId) || fourthQuestVillageLayoutReady) {
             return;
         }
+        fourthQuestCafeSiteBounds.set(0f, 0f, 0f, 0f);
+        fourthQuestCenterSiteBounds.set(0f, 0f, 0f, 0f);
+        fourthQuestEdgeSiteBounds.set(0f, 0f, 0f, 0f);
+        fourthQuestBreachSiteBounds.set(0f, 0f, 0f, 0f);
+
+        boolean hasArea1 = setFourthQuestVillageSiteBoundsFromLayer(
+                fourthQuestCafeSiteBounds,
+                FOURTH_QUEST_AREA_1_LAYER_NAME);
+        boolean hasArea2 = setFourthQuestVillageSiteBoundsFromLayer(
+                fourthQuestCenterSiteBounds,
+                FOURTH_QUEST_AREA_2_LAYER_NAME);
+        boolean hasArea3 = setFourthQuestVillageSiteBoundsFromLayer(
+                fourthQuestEdgeSiteBounds,
+                FOURTH_QUEST_AREA_3_LAYER_NAME);
+
         Rectangle cafeDoorBounds = firstQuestCafeDoorBounds();
         Rectangle labEntranceBounds = objectLayerBounds(findLayerByName(FOURTH_QUEST_LAB_ENTRANCE_LAYER_NAME));
         Rectangle innEntranceBounds = objectLayerBounds(findLayerByName(THIRD_QUEST_INN_ENTRANCE_LAYER_NAME));
         Rectangle villageEdgeBounds = objectLayerBounds(findLayerByName(FOURTH_QUEST_VILLAGE_EDGE_LAYER_NAME));
-        if (cafeDoorBounds == null || labEntranceBounds == null || innEntranceBounds == null || villageEdgeBounds == null) {
-            return;
+        if (!hasArea1 && cafeDoorBounds != null) {
+            setCenteredRectangle(
+                    fourthQuestCafeSiteBounds,
+                    cafeDoorBounds.x + cafeDoorBounds.width * 0.5f,
+                    cafeDoorBounds.y + cafeDoorBounds.height * 0.5f - 12f,
+                    FOURTH_QUEST_SITE_WIDTH,
+                    FOURTH_QUEST_SITE_HEIGHT);
+            clampRectangleToMap(fourthQuestCafeSiteBounds);
+            hasArea1 = true;
         }
 
-        setCenteredRectangle(
-                fourthQuestCafeSiteBounds,
-                cafeDoorBounds.x + cafeDoorBounds.width * 0.5f,
-                cafeDoorBounds.y + cafeDoorBounds.height * 0.5f - 12f,
-                FOURTH_QUEST_SITE_WIDTH,
-                FOURTH_QUEST_SITE_HEIGHT);
+        if (!hasArea2 && cafeDoorBounds != null && labEntranceBounds != null && innEntranceBounds != null) {
+            float centerSiteX = (cafeDoorBounds.x + innEntranceBounds.x + labEntranceBounds.x) / 3f + 120f;
+            float centerSiteY = (cafeDoorBounds.y + innEntranceBounds.y + labEntranceBounds.y) / 3f + 20f;
+            setCenteredRectangle(
+                    fourthQuestCenterSiteBounds,
+                    centerSiteX,
+                    centerSiteY,
+                    FOURTH_QUEST_SITE_WIDTH + 8f,
+                    FOURTH_QUEST_SITE_HEIGHT + 6f);
+            clampRectangleToMap(fourthQuestCenterSiteBounds);
+            hasArea2 = true;
+        }
 
-        float centerSiteX = (cafeDoorBounds.x + innEntranceBounds.x + labEntranceBounds.x) / 3f + 120f;
-        float centerSiteY = (cafeDoorBounds.y + innEntranceBounds.y + labEntranceBounds.y) / 3f + 20f;
-        setCenteredRectangle(
-                fourthQuestCenterSiteBounds,
-                centerSiteX,
-                centerSiteY,
-                FOURTH_QUEST_SITE_WIDTH + 8f,
-                FOURTH_QUEST_SITE_HEIGHT + 6f);
+        float edgeCenterX = 0f;
+        float edgeCenterY = 0f;
+        if (hasArea3) {
+            edgeCenterX = fourthQuestEdgeSiteBounds.x + fourthQuestEdgeSiteBounds.width * 0.5f;
+            edgeCenterY = fourthQuestEdgeSiteBounds.y + fourthQuestEdgeSiteBounds.height * 0.5f;
+        } else if (villageEdgeBounds != null) {
+            edgeCenterX = villageEdgeBounds.x + villageEdgeBounds.width * 0.5f + 24f;
+            edgeCenterY = villageEdgeBounds.y + villageEdgeBounds.height * 0.5f + 8f;
+            setCenteredRectangle(
+                    fourthQuestEdgeSiteBounds,
+                    edgeCenterX,
+                    edgeCenterY,
+                    FOURTH_QUEST_SITE_WIDTH + 14f,
+                    FOURTH_QUEST_SITE_HEIGHT + 10f);
+            clampRectangleToMap(fourthQuestEdgeSiteBounds);
+            hasArea3 = true;
+        }
 
-        float edgeCenterX = villageEdgeBounds.x + villageEdgeBounds.width * 0.5f + 24f;
-        float edgeCenterY = villageEdgeBounds.y + villageEdgeBounds.height * 0.5f + 8f;
-        setCenteredRectangle(
-                fourthQuestEdgeSiteBounds,
-                edgeCenterX,
-                edgeCenterY,
-                FOURTH_QUEST_SITE_WIDTH + 14f,
-                FOURTH_QUEST_SITE_HEIGHT + 10f);
-        setCenteredRectangle(
-                fourthQuestBreachSiteBounds,
-                edgeCenterX + 16f,
-                edgeCenterY - 10f,
-                FOURTH_QUEST_BREACH_SITE_SIZE,
-                FOURTH_QUEST_BREACH_SITE_SIZE);
+        if (hasArea3) {
+            setCenteredRectangle(
+                    fourthQuestBreachSiteBounds,
+                    edgeCenterX + 16f,
+                    edgeCenterY - 10f,
+                    FOURTH_QUEST_BREACH_SITE_SIZE,
+                    FOURTH_QUEST_BREACH_SITE_SIZE);
+            clampRectangleToMap(fourthQuestBreachSiteBounds);
+        }
 
-        clampRectangleToMap(fourthQuestCafeSiteBounds);
-        clampRectangleToMap(fourthQuestCenterSiteBounds);
-        clampRectangleToMap(fourthQuestEdgeSiteBounds);
-        clampRectangleToMap(fourthQuestBreachSiteBounds);
+        fourthQuestVillageLayoutReady = hasArea1
+                && hasArea2
+                && hasArea3
+                && fourthQuestBreachSiteBounds.width > 0f
+                && fourthQuestBreachSiteBounds.height > 0f;
+    }
 
-        fourthQuestVillageLayoutReady = true;
+    private boolean setFourthQuestVillageSiteBoundsFromLayer(Rectangle targetBounds, String layerName) {
+        if (targetBounds == null || layerName == null || layerName.isBlank()) {
+            return false;
+        }
+        Rectangle layerBounds = objectLayerBounds(findLayerByName(layerName));
+        if (!setRectangle(targetBounds, layerBounds)) {
+            return false;
+        }
+        clampRectangleToMap(targetBounds);
+        return true;
     }
 
     private void ensureFourthQuestFloor2Layout() {
@@ -9542,10 +10383,10 @@ public class GameScreen extends ScreenAdapter {
             clearFourthQuestEncounterBats(FOURTH_QUEST_ENCOUNTER_BREACH);
             showQuestItemCard(
                     QuestItemCardId.FOURTH_QUEST_CONDENSED_CORE,
-                    "",
+                    "Condensed Core",
                     "You received the Condensed Core left behind by the breach.",
                     fourthQuestCondensedCoreTex,
-                    1f,
+                    0.5f,
                     0.866f,
                     0f,
                     -10f,
@@ -9907,7 +10748,8 @@ public class GameScreen extends ScreenAdapter {
                 thirdQuestFatherHitRegistered = true;
                 thirdQuestFatherSparHitCooldownTimer = THIRD_QUEST_SPAR_FATHER_HIT_COOLDOWN;
                 thirdQuestFatherSparHitsTaken++;
-                thirdQuestFatherSparHealth = Math.max(0f, thirdQuestFatherSparHealth - BAT_HIT_DAMAGE);
+                thirdQuestFatherSparHealth = Math.max(0f,
+                        thirdQuestFatherSparHealth - BAT_HIT_DAMAGE * currentPlayerAttackDamageMultiplier());
             }
         }
 
@@ -9987,12 +10829,18 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private boolean isFirstQuestOverlayActive() {
-        return firstQuestDialogueActive || firstQuestItemCardVisible || sixthQuestPortalChoiceVisible;
+        return firstQuestDialogueActive
+                || firstQuestItemCardVisible
+                || sixthQuestPortalChoiceVisible
+                || fifthQuestDeathChoiceVisible;
     }
 
     private boolean handleFirstQuestOverlayInput() {
         if (!isFirstQuestOverlayActive()) {
             return false;
+        }
+        if (fifthQuestDeathChoiceVisible) {
+            return handleFifthQuestDeathChoiceInput();
         }
         if (sixthQuestPortalChoiceVisible) {
             return handleSixthQuestPortalChoiceInput();
@@ -10006,10 +10854,19 @@ public class GameScreen extends ScreenAdapter {
         }
 
         if (firstQuestDialogueActive) {
+            if (!isCurrentQuestDialogueLineFullyVisible()) {
+                revealCurrentQuestDialogueLineImmediately();
+                return true;
+            }
             firstQuestDialogueLineIndex++;
             if (firstQuestDialogueLineIndex >= activeQuestDialogueLines.length) {
                 firstQuestDialogueActive = false;
+                resetQuestDialogueTypewriter();
+                stopActiveDialogueVoiceSfx();
                 handleCompletedQuestDialogue();
+            } else {
+                resetQuestDialogueTypewriter();
+                playCurrentQuestDialogueVoice();
             }
             return true;
         }
@@ -10020,6 +10877,49 @@ public class GameScreen extends ScreenAdapter {
             return true;
         }
 
+        return true;
+    }
+
+    private boolean handleFifthQuestDeathChoiceInput() {
+        if (!fifthQuestDeathChoiceVisible) {
+            return false;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)
+                || Gdx.input.isKeyJustPressed(Input.Keys.A)
+                || Gdx.input.isKeyJustPressed(Input.Keys.UP)
+                || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+            fifthQuestDeathChoiceIndex = 0;
+            return true;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)
+                || Gdx.input.isKeyJustPressed(Input.Keys.D)
+                || Gdx.input.isKeyJustPressed(Input.Keys.DOWN)
+                || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+            fifthQuestDeathChoiceIndex = 1;
+            return true;
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && uiCamera != null) {
+            fifthQuestDeathChoiceUiPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0f);
+            uiCamera.unproject(fifthQuestDeathChoiceUiPoint);
+            float uiX = fifthQuestDeathChoiceUiPoint.x;
+            float uiY = fifthQuestDeathChoiceUiPoint.y;
+            if (fifthQuestDeathChoiceQuestBounds.contains(uiX, uiY)) {
+                fifthQuestDeathChoiceIndex = 0;
+                confirmFifthQuestDeathChoice(true);
+                return true;
+            }
+            if (fifthQuestDeathChoiceFightBounds.contains(uiX, uiY)) {
+                fifthQuestDeathChoiceIndex = 1;
+                confirmFifthQuestDeathChoice(false);
+                return true;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            confirmFifthQuestDeathChoice(fifthQuestDeathChoiceIndex == 0);
+            return true;
+        }
         return true;
     }
 
@@ -10071,6 +10971,8 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void startQuestDialogue(QuestDialogueId dialogueId, String[] speakers, String[] lines) {
+        stopActiveDialogueVoiceSfx();
+        resetNpcDialogueVoiceSequence();
         activeQuestDialogueId = dialogueId == null ? QuestDialogueId.NONE : dialogueId;
         activeQuestDialogueSpeakers = speakers == null ? new String[0] : speakers;
         activeQuestDialogueLines = lines == null ? new String[0] : lines;
@@ -10078,11 +10980,17 @@ public class GameScreen extends ScreenAdapter {
         firstQuestItemCardVisible = false;
         activeQuestItemCardId = QuestItemCardId.NONE;
         firstQuestDialogueActive = activeQuestDialogueLines.length > 0;
+        resetQuestDialogueTypewriter();
+        if (firstQuestDialogueActive) {
+            playCurrentQuestDialogueVoice();
+        }
     }
 
     private void showQuestItemCard(QuestItemCardId itemCardId, String title, String description, Texture texture,
                                    float titleScale, float imageScaleMultiplier,
                                    float titleOffsetY, float descriptionOffsetY, float hintOffsetY) {
+        stopActiveDialogueVoiceSfx();
+        resetQuestDialogueTypewriter();
         activeQuestItemCardId = itemCardId == null ? QuestItemCardId.NONE : itemCardId;
         activeQuestItemTitle = title == null ? "" : title;
         activeQuestItemDescription = description == null ? "" : description;
@@ -10103,8 +11011,123 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void updateQuestDialogueTypewriter(float delta) {
+        if (!shouldTypeCurrentQuestDialogueLine()) {
+            return;
+        }
+        String line = currentQuestDialogueLine();
+        int targetCharacterCount = line.length();
+        if (activeQuestDialogueVisibleCharacterCount >= targetCharacterCount) {
+            return;
+        }
+        activeQuestDialogueTypewriterProgress += Math.max(0f, delta) * FIRST_QUEST_DIALOGUE_TYPEWRITER_CHARACTERS_PER_SECOND;
+        activeQuestDialogueVisibleCharacterCount = Math.min(
+                targetCharacterCount,
+                Math.max(activeQuestDialogueVisibleCharacterCount, (int) activeQuestDialogueTypewriterProgress));
+    }
+
+    private void updateTypewriterLoopSfx(float delta) {
+        if (typewriterLoopSfx == null) {
+            return;
+        }
+        float safeDelta = Math.max(0f, delta);
+        if (shouldPlayTypewriterLoopSfx()) {
+            typewriterLoopSfxFadeTimer = 0f;
+            float volume = typewriterLoopSfxFullVolume();
+            if (typewriterLoopSfxId < 0L) {
+                typewriterLoopSfxId = typewriterLoopSfx.loop(volume);
+            } else {
+                typewriterLoopSfx.setVolume(typewriterLoopSfxId, volume);
+            }
+            return;
+        }
+        if (typewriterLoopSfxId < 0L) {
+            typewriterLoopSfxFadeTimer = 0f;
+            return;
+        }
+        if (TYPEWRITER_LOOP_SFX_FADE_OUT_SECONDS <= 0f) {
+            stopTypewriterLoopSfxImmediately();
+            return;
+        }
+        if (typewriterLoopSfxFadeTimer <= 0f) {
+            typewriterLoopSfxFadeTimer = TYPEWRITER_LOOP_SFX_FADE_OUT_SECONDS;
+        }
+        typewriterLoopSfxFadeTimer = Math.max(0f, typewriterLoopSfxFadeTimer - safeDelta);
+        float volume = typewriterLoopSfxFullVolume() * (typewriterLoopSfxFadeTimer / TYPEWRITER_LOOP_SFX_FADE_OUT_SECONDS);
+        typewriterLoopSfx.setVolume(typewriterLoopSfxId, volume);
+        if (typewriterLoopSfxFadeTimer <= 0f) {
+            stopTypewriterLoopSfxImmediately();
+        }
+    }
+
+    private boolean shouldPlayTypewriterLoopSfx() {
+        return shouldTypeCurrentQuestDialogueLine() && !isCurrentQuestDialogueLineFullyVisible();
+    }
+
+    private float typewriterLoopSfxFullVolume() {
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            return settingsService.scaleSfxVolume(TYPEWRITER_LOOP_SFX_BASE_VOLUME);
+        }
+        return TYPEWRITER_LOOP_SFX_BASE_VOLUME;
+    }
+
+    private void stopTypewriterLoopSfxImmediately() {
+        if (typewriterLoopSfx != null && typewriterLoopSfxId >= 0L) {
+            typewriterLoopSfx.stop(typewriterLoopSfxId);
+        }
+        typewriterLoopSfxId = -1L;
+        typewriterLoopSfxFadeTimer = 0f;
+    }
+
+    private boolean shouldTypeCurrentQuestDialogueLine() {
+        return firstQuestDialogueActive
+                && activeQuestDialogueId != QuestDialogueId.NONE
+                && firstQuestDialogueLineIndex >= 0
+                && firstQuestDialogueLineIndex < activeQuestDialogueLines.length;
+    }
+
+    private String currentQuestDialogueLine() {
+        return activeQuestDialogueLines.length == 0
+                ? ""
+                : activeQuestDialogueLines[Math.max(0,
+                Math.min(activeQuestDialogueLines.length - 1, firstQuestDialogueLineIndex))];
+    }
+
+    private String visibleQuestDialogueLine() {
+        String line = currentQuestDialogueLine();
+        if (!shouldTypeCurrentQuestDialogueLine()) {
+            return line;
+        }
+        int safeVisibleCharacterCount = Math.max(0, Math.min(activeQuestDialogueVisibleCharacterCount, line.length()));
+        return line.substring(0, safeVisibleCharacterCount);
+    }
+
+    private boolean isCurrentQuestDialogueLineFullyVisible() {
+        return !shouldTypeCurrentQuestDialogueLine()
+                || activeQuestDialogueVisibleCharacterCount >= currentQuestDialogueLine().length();
+    }
+
+    private void revealCurrentQuestDialogueLineImmediately() {
+        String line = currentQuestDialogueLine();
+        activeQuestDialogueTypewriterProgress = line.length();
+        activeQuestDialogueVisibleCharacterCount = line.length();
+    }
+
+    private void resetQuestDialogueTypewriter() {
+        activeQuestDialogueTypewriterProgress = 0f;
+        activeQuestDialogueVisibleCharacterCount = 0;
+        if (!shouldTypeCurrentQuestDialogueLine()) {
+            String line = currentQuestDialogueLine();
+            activeQuestDialogueVisibleCharacterCount = line.length();
+            activeQuestDialogueTypewriterProgress = line.length();
+        }
+    }
+
     private void handleCompletedQuestDialogue() {
         QuestDialogueId completedDialogue = activeQuestDialogueId;
+        stopActiveDialogueVoiceSfx();
+        resetQuestDialogueTypewriter();
         activeQuestDialogueId = QuestDialogueId.NONE;
         activeQuestDialogueSpeakers = new String[0];
         activeQuestDialogueLines = new String[0];
@@ -10113,7 +11136,7 @@ public class GameScreen extends ScreenAdapter {
             case FIRST_QUEST_FATHER -> showQuestItemCard(
                     QuestItemCardId.FIRST_QUEST_HERB_AND_SPICE,
                     "Herb and Spice",
-                    "Father asked you to bring this bundle to the cafe.",
+                    "Father asked you to bring this bundle to the bakery.",
                     firstQuestItemTex,
                     0.5f,
                     6f,
@@ -10122,8 +11145,8 @@ public class GameScreen extends ScreenAdapter {
                     0f);
             case SECOND_QUEST_CAFE_OWNER -> showQuestItemCard(
                     QuestItemCardId.SECOND_QUEST_SCORCHED_FRAGMENT,
-                    "",
-                    "The cafe owner found a warm, soot-black fragment and asked you to bring it to the scientist.",
+                    "Scorched Fragment",
+                    "The bakery owner found a warm, soot-black fragment and asked you to bring it to the scientist.",
                     secondQuestFragmentTex,
                     1f,
                     3.7f,
@@ -10175,14 +11198,14 @@ public class GameScreen extends ScreenAdapter {
                 fourthQuestStage = FOURTH_QUEST_TALK_TO_CAFE_OWNER;
                 showQuestNotification(
                         FOURTH_QUEST_NOTIFICATION_TITLE,
-                        "Objective Updated: Investigate the corrupted site outside the cafe.",
+                        "Objective Updated: Investigate the corrupted site outside the bakery.",
                         FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
             }
             case FOURTH_QUEST_CAFE_OWNER -> {
                 fourthQuestStage = FOURTH_QUEST_EXAMINE_CAFE_MARK;
                 showQuestNotification(
                         FOURTH_QUEST_NOTIFICATION_TITLE,
-                        "Objective Updated: Examine the corrupted mark outside the cafe.",
+                        "Objective Updated: Examine the corrupted mark outside the bakery.",
                         FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
             }
             case FOURTH_QUEST_CAFE_MARK -> beginFourthQuestCafeBattle();
@@ -10226,7 +11249,7 @@ public class GameScreen extends ScreenAdapter {
                         "Spatial Dash Unlocked",
                         "Use Spatial Dash to cross gaps, evade danger, and move through unstable space.",
                         null,
-                        0.9f,
+                        0.5f,
                         1f,
                         0f,
                         52f,
@@ -10240,7 +11263,7 @@ public class GameScreen extends ScreenAdapter {
                         FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES);
             }
             case FIFTH_QUEST_LAB_ALARM -> startFifthQuest();
-            case FIFTH_QUEST_RUINS_INTRO -> beginFifthQuestOuterRuinsBattle();
+            case FIFTH_QUEST_RUINS_INTRO -> startFifthQuestIntroCameraSequence();
             case FIFTH_QUEST_PORTAL_AFTER -> {
                 finishFifthQuest();
                 startQuestDialogue(
@@ -10576,7 +11599,12 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (dashAttackPressed && !player.attacking && !player.dashing && player.attackCooldownTimer <= 0f && player.dashCooldownTimer <= 0f) {
+        if (dashAttackPressed
+                && !player.attacking
+                && !player.dashing
+                && player.attackCooldownTimer <= 0f
+                && player.dashCooldownTimer <= 0f
+                && dashAttackAbilityCooldownTimer <= 0f) {
             player.dashAttackFollowupQueued = false;
             if (dashAttackAnim != null) {
                 activeAttackAnim = dashAttackAnim;
@@ -10608,8 +11636,13 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (combatEnabled && rightPressed && !player.attacking && !player.dashing
-                && player.attackCooldownTimer <= 0f && player.dashCooldownTimer <= 0f) {
+        if (combatEnabled
+                && rightPressed
+                && !player.attacking
+                && !player.dashing
+                && player.attackCooldownTimer <= 0f
+                && player.dashCooldownTimer <= 0f
+                && spatialDashAbilityCooldownTimer <= 0f) {
             activeAttackAnim = spetialDashAnim;
             if (activeAttackAnim != null) {
                 player.attacking = true;
@@ -10851,6 +11884,51 @@ public class GameScreen extends ScreenAdapter {
                 refreshFirstQuestGuidance();
                 return true;
             }
+            case "quest4.0" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_COMPLETE;
+                thirdQuestStage = THIRD_QUEST_COMPLETE;
+                fourthQuestStage = FOURTH_QUEST_COMPLETE;
+                fifthQuestStage = FIFTH_QUEST_DISABLED;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(QUEST_4_LEVEL_CAP);
+                scientistProgressionUnlocked = true;
+                thirdQuestAvailable = true;
+                gameCompleted = false;
+                restorePlayerForQuestDebug(QUEST_4_LEVEL_CAP);
+                teleportToMap(MAP_ID_RESEARCH_LAB_FLOOR_1, null);
+                movePlayerBesideScientistForLabDialogue();
+                startQuestDialogue(
+                        QuestDialogueId.FIFTH_QUEST_LAB_ALARM,
+                        FIFTH_QUEST_LAB_ALARM_SPEAKERS,
+                        FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES);
+                notifyQuestDebugJump("Quest 4.0");
+                refreshFirstQuestGuidance();
+                return true;
+            }
+            case "quest4.0.1" -> {
+                prepareQuestDebugState();
+                firstQuestStage = FIRST_QUEST_COMPLETE;
+                secondQuestStage = SECOND_QUEST_COMPLETE;
+                thirdQuestStage = THIRD_QUEST_COMPLETE;
+                fourthQuestStage = FOURTH_QUEST_COMPLETE;
+                fifthQuestStage = FIFTH_QUEST_ANCHOR_3_DESTROY;
+                sixthQuestStage = SIXTH_QUEST_DISABLED;
+                progressionLevelCap = clampProgressionLevelCap(QUEST_4_LEVEL_CAP);
+                scientistProgressionUnlocked = true;
+                thirdQuestAvailable = true;
+                gameCompleted = false;
+                fifthQuestRuinsIntroTriggered = true;
+                fifthQuestIntroCameraPhase = FifthQuestIntroCameraPhase.NONE;
+                restorePlayerForQuestDebug(QUEST_4_LEVEL_CAP);
+                teleportToMap(MAP_ID_VILLAGE, VILLAGE_PORTAL_ACTUAL_LAYER_NAME);
+                positionPlayerAtFifthQuestThirdAnchor();
+                centerCameraOnPlayer();
+                notifyQuestDebugJump("Quest 4.0.1");
+                refreshFirstQuestGuidance();
+                return true;
+            }
             case "quest4.1" -> {
                 prepareQuestDebugState();
                 firstQuestStage = FIRST_QUEST_COMPLETE;
@@ -10876,6 +11954,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void prepareQuestDebugState() {
+        stopActiveDialogueVoiceSfx();
         firstQuestDialogueActive = false;
         firstQuestItemCardVisible = false;
         firstQuestDialogueLineIndex = 0;
@@ -10891,7 +11970,15 @@ public class GameScreen extends ScreenAdapter {
         activeQuestItemTitleOffsetY = 0f;
         activeQuestItemDescriptionOffsetY = 0f;
         activeQuestItemHintOffsetY = 0f;
+        resetQuestDialogueTypewriter();
         questGuidanceSuppressTimer = 0f;
+        resetPlayerAbilityCooldowns();
+        clearFifthQuestDeathChoice();
+        fifthQuestFirstEncounterIntroPlayed = false;
+        stopFifthQuestFirstEncounterIntro();
+        fifthQuestZombieSfxCooldownTimer = 0f;
+        fifthQuestPortalDialogueNpcFadeTimer = 0f;
+        fifthQuestPortalDialogueNpcVisibleLastFrame = false;
         sixthQuestEncounterSpawned = false;
         sixthQuestBossCalloutTimer = 0f;
         sixthQuestBossCalloutIndex = 0;
@@ -10967,6 +12054,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void clearSpawnedFifthQuestDemons() {
         fifthQuestDemons.clear();
+        stopFifthQuestFirstEncounterIntro();
     }
 
     private void disposeBossArenaPhase2DemonFrameTextures() {
@@ -11132,9 +12220,13 @@ public class GameScreen extends ScreenAdapter {
             }
             showQuestNotification(
                     "Quest Complete",
-                    "You delivered the Herb-and-Spice to the cafe owner.",
+                    "You delivered the Herb-and-Spice to the bakery owner.",
                     FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
             refreshFirstQuestGuidance();
+            startQuestDialogue(
+                    QuestDialogueId.SECOND_QUEST_CAFE_OWNER,
+                    SECOND_QUEST_CAFE_OWNER_SPEAKERS,
+                    SECOND_QUEST_CAFE_OWNER_DIALOGUE_LINES);
             return true;
         }
         if (secondQuestStage == SECOND_QUEST_TALK_TO_CAFE_OWNER
@@ -11327,9 +12419,12 @@ public class GameScreen extends ScreenAdapter {
                 && MAP_ID_VILLAGE.equals(world.activeMapId)
                 && isPlayerNearFifthQuestAnchor(2)) {
             if (hudRenderer != null) {
-                hudRenderer.showNotification(characterName, "One more guardian remains.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
+                hudRenderer.showNotification(characterName, "The anchors are down.", FIRST_QUEST_COMPLETION_NOTIFICATION_SECONDS);
             }
-            beginFifthQuestPortalBoss();
+            startQuestDialogue(
+                    QuestDialogueId.FIFTH_QUEST_PORTAL_AFTER,
+                    FIFTH_QUEST_PORTAL_AFTER_SPEAKERS,
+                    FIFTH_QUEST_PORTAL_AFTER_DIALOGUE_LINES);
             return true;
         }
         if (sixthQuestStage >= SIXTH_QUEST_ENTER_PORTAL
@@ -11505,6 +12600,22 @@ public class GameScreen extends ScreenAdapter {
                 48f);
     }
 
+    private Rectangle fifthQuestPortalDialogueFatherBounds() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)
+                || thirdQuestFatherVillageTiles == null
+                || thirdQuestFatherVillageTiles.length < 4) {
+            return null;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerBottomY = player.bounds.y;
+        fifthQuestPortalDialogueFatherBounds.set(
+                playerCenterX + FIFTH_QUEST_PORTAL_DIALOGUE_FATHER_CENTER_OFFSET_X - 16f,
+                playerBottomY + FIFTH_QUEST_PORTAL_DIALOGUE_FATHER_BOTTOM_OFFSET_Y,
+                32f,
+                48f);
+        return fifthQuestPortalDialogueFatherBounds;
+    }
+
     private Rectangle sixthQuestEndingScientistBounds() {
         Rectangle fatherBounds = sixthQuestEndingFatherBounds();
         if (fatherBounds == null || sixthQuestEndingScientistAnim == null) {
@@ -11523,6 +12634,39 @@ public class GameScreen extends ScreenAdapter {
                 drawW,
                 drawH);
         return dialogueHighlightWorldBounds;
+    }
+
+    private Rectangle fifthQuestPortalDialogueScientistBounds() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || sixthQuestEndingScientistAnim == null) {
+            return null;
+        }
+        float playerCenterX = player.bounds.x + player.bounds.width * 0.5f;
+        float playerBottomY = player.bounds.y;
+        fifthQuestPortalDialogueScientistBounds.set(
+                playerCenterX + FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_CENTER_OFFSET_X
+                        - FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_WIDTH * 0.5f,
+                playerBottomY + FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_BOTTOM_OFFSET_Y,
+                FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_WIDTH,
+                FIFTH_QUEST_PORTAL_DIALOGUE_SCIENTIST_HEIGHT);
+        return fifthQuestPortalDialogueScientistBounds;
+    }
+
+    private boolean isFifthQuestPortalDialogueSceneActive() {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return false;
+        }
+        return activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_PORTAL_AFTER
+                || activeQuestDialogueId == QuestDialogueId.SIXTH_QUEST_PORTAL_BRIEFING;
+    }
+
+    private float fifthQuestPortalDialogueNpcFadeAlpha() {
+        if (!isFifthQuestPortalDialogueSceneActive()) {
+            return 0f;
+        }
+        if (FIFTH_QUEST_PORTAL_DIALOGUE_NPC_FADE_IN_SECONDS <= 0f) {
+            return 1f;
+        }
+        return clamp01(fifthQuestPortalDialogueNpcFadeTimer / FIFTH_QUEST_PORTAL_DIALOGUE_NPC_FADE_IN_SECONDS);
     }
 
     private boolean isPlayerNearScientistNpc() {
@@ -11854,10 +12998,20 @@ public class GameScreen extends ScreenAdapter {
         return objectLayerBounds(findLayerByName(FIFTH_QUEST_PORTAL_LAYER_NAME));
     }
 
+    private void ensureSixthQuestPortalEffectAnimationsLoaded() {
+        if (bossArenaPhase2SkillStartAnim != null
+                || bossArenaPhase2SkillLoopAnim != null
+                || bossArenaPhase2SkillEndAnim != null) {
+            return;
+        }
+        loadBossArenaPhase2DemonAssets();
+    }
+
     private void startSixthQuestPortalActivation() {
         if (world.map == null || !MAP_ID_VILLAGE.equals(world.activeMapId) || isSixthQuestPortalActivationRunning()) {
             return;
         }
+        ensureSixthQuestPortalEffectAnimationsLoaded();
         Rectangle startBounds = sixthQuestPortalGuideBounds();
         Rectangle targetBounds = sixthQuestActualPortalBounds();
         if (startBounds != null && startBounds.width > 0f && startBounds.height > 0f) {
@@ -12024,10 +13178,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
-            startQuestDialogue(
-                    QuestDialogueId.SIXTH_QUEST_CASTLE_ARRIVAL,
-                    SIXTH_QUEST_CASTLE_ARRIVAL_SPEAKERS,
-                    SIXTH_QUEST_CASTLE_ARRIVAL_DIALOGUE_LINES);
+            beginSixthQuestOuterAssault();
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
@@ -12365,6 +13516,11 @@ public class GameScreen extends ScreenAdapter {
         player.dashCooldownTimer = DASH_COOLDOWN;
         player.dashAttackActive = false;
         player.dashAttackMoveDuration = 0f;
+        if (activeAttackAnim == dashAttackAnim) {
+            dashAttackAbilityCooldownTimer = DASH_ATTACK_ABILITY_COOLDOWN_SECONDS;
+        } else if (activeAttackAnim == spetialDashAnim) {
+            spatialDashAbilityCooldownTimer = SPATIAL_DASH_ABILITY_COOLDOWN_SECONDS;
+        }
 
         Vector2 plannedPosition = computeDashTeleportDestination(
                 player.bounds.x,
@@ -12811,7 +13967,7 @@ public class GameScreen extends ScreenAdapter {
         if (camera == null) {
             return;
         }
-        if (isBossArenaFinalIntroActive()) {
+        if (isBossArenaFinalIntroActive() || isFifthQuestFirstEncounterIntroActive()) {
             return;
         }
         float targetZoom = DEFAULT_ZOOM;
@@ -12864,8 +14020,7 @@ public class GameScreen extends ScreenAdapter {
                     FOURTH_QUEST_SAMPLE_ANALYSIS,
                     FOURTH_QUEST_SPATIAL_UNLOCK,
                     FOURTH_QUEST_EPILOGUE,
-                    FIFTH_QUEST_LAB_ALARM,
-                    SIXTH_QUEST_PORTAL_BRIEFING -> setVectorToRectCenter(focusPoint, scientistNpcBounds());
+                    FIFTH_QUEST_LAB_ALARM -> setVectorToRectCenter(focusPoint, scientistNpcBounds());
             case THIRD_QUEST_FATHER_TRAINING_INTRO,
                     THIRD_QUEST_FATHER_AFTER_MOVEMENT,
                     THIRD_QUEST_FATHER_AFTER_ATTACK,
@@ -12878,9 +14033,9 @@ public class GameScreen extends ScreenAdapter {
             case FOURTH_QUEST_EDGE_MARK, FOURTH_QUEST_EDGE_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestEdgeSiteBounds);
             case FOURTH_QUEST_ARRAY_SCAN_COMPLETE -> setVectorToFourthQuestArrayConsole(focusPoint);
             case FOURTH_QUEST_BREACH_INTRO, FOURTH_QUEST_BREACH_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestBreachSiteBounds);
-            case FIFTH_QUEST_RUINS_INTRO, FIFTH_QUEST_PORTAL_AFTER -> setVectorToFifthQuestPortalArea(focusPoint);
-            case SIXTH_QUEST_CASTLE_ARRIVAL, SIXTH_QUEST_PHASE_1_INTRO, SIXTH_QUEST_PHASE_1_TRANSITION ->
-                    setVectorToSixthQuestBossPhase1(focusPoint);
+            case FIFTH_QUEST_PORTAL_AFTER, SIXTH_QUEST_PORTAL_BRIEFING -> setVectorToFifthQuestPortalDialogueScene(focusPoint);
+            case SIXTH_QUEST_CASTLE_ARRIVAL -> setVectorToRectCenter(focusPoint, player.bounds);
+            case SIXTH_QUEST_PHASE_1_INTRO, SIXTH_QUEST_PHASE_1_TRANSITION -> setVectorToSixthQuestBossPhase1(focusPoint);
             case SIXTH_QUEST_FINAL_PHASE_INTRO -> setVectorToFinalPhaseBoss(focusPoint);
             default -> false;
         };
@@ -12889,6 +14044,17 @@ public class GameScreen extends ScreenAdapter {
     private boolean setVectorToThirdQuestFather(Vector2 target) {
         ensureThirdQuestTrainingLayout();
         return setVectorToRectCenter(target, thirdQuestFatherTrainingBounds);
+    }
+
+    private boolean setVectorToFifthQuestPortalDialogueScene(Vector2 target) {
+        if (target == null) {
+            return false;
+        }
+        Rectangle combinedBounds = fifthQuestPortalDialogueCombinedBounds();
+        if (combinedBounds != null) {
+            return setVectorToRectCenter(target, combinedBounds);
+        }
+        return setVectorToFifthQuestPortalArea(target);
     }
 
     private boolean setVectorToFifthQuestPortalArea(Vector2 target) {
@@ -13038,6 +14204,12 @@ public class GameScreen extends ScreenAdapter {
         attack3Sfx = Gdx.audio.newSound(Gdx.files.internal("sounds/attack 3.mp3"));
         attackSpecialSfx = Gdx.audio.newSound(Gdx.files.internal("sounds/attacks.mp3"));
         batHurtSfx = Gdx.audio.newSound(Gdx.files.internal("sounds/Bat-hurt.mp3"));
+        indoorFootstepLoopSfx = Gdx.audio.newSound(Gdx.files.internal(INDOOR_FOOTSTEP_LOOP_SFX_PATH));
+        typewriterLoopSfx = Gdx.audio.newSound(Gdx.files.internal(TYPEWRITER_LOOP_SFX_PATH));
+        fifthQuestVillagerScreamSfx = loadOptionalInternalSound(FIFTH_QUEST_VILLAGER_SCREAM_SFX_PATH);
+        demonFirstInteractionSfx = loadOptionalInternalSound(DEMON_FIRST_INTERACTION_SFX_PATH);
+        demonNeutral2Sfx = loadOptionalInternalSound(DEMON_NEUTRAL_2_SFX_PATH);
+        loadNpcDialogueVoiceSfx();
         evilWizardAttack1Sfx = loadOptionalAbsoluteSound(EVIL_WIZARD_ATTACK1_SFX_ABSOLUTE_PATH);
         evilWizardAttack2Sfx = loadOptionalAbsoluteSound(EVIL_WIZARD_ATTACK2_SFX_ABSOLUTE_PATH);
         golem1ExplosionSfx = loadOptionalAbsoluteSound(GOLEM_1_EXPLOSION_SFX_ABSOLUTE_PATH);
@@ -13117,6 +14289,32 @@ public class GameScreen extends ScreenAdapter {
         loadGolem1Assets();
         loadBossArenaPhase2DemonAssets();
         loadChestAssets();
+    }
+
+    private void loadNpcDialogueVoiceSfx() {
+        fatherHappyDialogueSfx = loadOptionalAbsoluteSound(npcDialogueSoundPath("Father", "Father_Happy1.mp3"));
+        fatherNeutralDialogueSfx[0] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Father", "Father_Neutral1.mp3"));
+        fatherNeutralDialogueSfx[1] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Father", "Father_Neutral2.mp3"));
+        fatherNeutralDialogueSfx[2] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Father", "Father_Neutral3.mp3"));
+        fatherSadDialogueSfx = loadOptionalAbsoluteSound(npcDialogueSoundPath("Father", "Father_Sad1.mp3"));
+
+        bakeryNeutralDialogueSfx[0] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Bakery", "Bakery_Neutral1.mp3"));
+        bakeryNeutralDialogueSfx[1] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Bakery", "Bakery_Neutral2.mp3"));
+        bakeryNeutralDialogueSfx[2] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Bakery", "Bakery_Neutral3.mp3"));
+        bakeryWorryDialogueSfx = loadOptionalAbsoluteSound(npcDialogueSoundPath("Bakery", "Bakery_Worry1.mp3"));
+
+        scientistConfuseDialogueSfx = loadOptionalAbsoluteSound(npcDialogueSoundPath("Scientist", "Scientist_Confuse1.mp3"));
+        scientistNeutralDialogueSfx[0] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Scientist", "Scientist_Neutral1.mp3"));
+        scientistNeutralDialogueSfx[1] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Scientist", "Scientist_Neutral2.mp3"));
+        scientistNeutralDialogueSfx[2] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Scientist", "Scientist_Neutral3.mp3"));
+        scientistSadDialogueSfx = loadOptionalAbsoluteSound(npcDialogueSoundPath("Scientist", "Scientist_Sad1.mp3"));
+
+        zombieDialogueSfx[0] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Zombie", "Zombie_1.mp3"));
+        zombieDialogueSfx[1] = loadOptionalAbsoluteSound(npcDialogueSoundPath("Zombie", "Zombie_2.mp3"));
+    }
+
+    private String npcDialogueSoundPath(String folderName, String fileName) {
+        return NPC_SOUNDS_DIRECTORY_ABSOLUTE_PATH + File.separator + folderName + File.separator + fileName;
     }
 
     private Texture loadOptionalAbsoluteTexture(String absolutePath) {
@@ -13313,6 +14511,355 @@ public class GameScreen extends ScreenAdapter {
         return sound != null ? sound.play(baseVolume) : -1L;
     }
 
+    private void playCurrentQuestDialogueVoice() {
+        stopActiveDialogueVoiceSfx();
+        if (!firstQuestDialogueActive || firstQuestDialogueLineIndex < 0
+                || firstQuestDialogueLineIndex >= activeQuestDialogueLines.length) {
+            return;
+        }
+        String speaker = activeQuestDialogueSpeakers.length == 0
+                ? ""
+                : activeQuestDialogueSpeakers[Math.max(0,
+                Math.min(activeQuestDialogueSpeakers.length - 1, firstQuestDialogueLineIndex))];
+        String line = activeQuestDialogueLines[firstQuestDialogueLineIndex];
+        NpcDialogueVoiceSet voiceSet = resolveNpcDialogueVoiceSet(speaker);
+        Sound voiceSfx = resolveNpcDialogueVoiceSfx(voiceSet, speaker, line);
+        if (voiceSfx == null) {
+            return;
+        }
+        activeDialogueVoiceSfx = voiceSfx;
+        activeDialogueVoiceSfxId = playNpcDialogueVoiceSfx(voiceSfx, voiceSet);
+    }
+
+    private void stopActiveDialogueVoiceSfx() {
+        if (activeDialogueVoiceSfx != null && activeDialogueVoiceSfxId >= 0L) {
+            activeDialogueVoiceSfx.stop(activeDialogueVoiceSfxId);
+        }
+        activeDialogueVoiceSfx = null;
+        activeDialogueVoiceSfxId = -1L;
+    }
+
+    private Sound resolveNpcDialogueVoiceSfx(NpcDialogueVoiceSet voiceSet, String speaker, String line) {
+        if (voiceSet == NpcDialogueVoiceSet.NONE) {
+            return null;
+        }
+        String normalizedLine = line == null ? "" : line.trim().toLowerCase(Locale.ROOT);
+        if (isFifthQuestVillagerAlarmDialogue(speaker)) {
+            return firstNonNull(fifthQuestVillagerScreamSfx, resolveBakeryDialogueVoiceSfx(normalizedLine));
+        }
+        return switch (voiceSet) {
+            case FATHER -> resolveFatherDialogueVoiceSfx(normalizedLine, speaker);
+            case BAKERY -> resolveBakeryDialogueVoiceSfx(normalizedLine);
+            case SCIENTIST -> resolveScientistDialogueVoiceSfx(normalizedLine);
+            case DEMON -> nextDemonDialogueVoiceSfx();
+            case ZOMBIE -> nextZombieDialogueVoiceSfx();
+            default -> null;
+        };
+    }
+
+    private boolean isFifthQuestVillagerAlarmDialogue(String speaker) {
+        return activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_LAB_ALARM
+                && speaker != null
+                && "Villager".equals(speaker.trim());
+    }
+
+    private boolean isSixthQuestFirstDemonInteractionDialogue(String speaker) {
+        return activeQuestDialogueId == QuestDialogueId.SIXTH_QUEST_CASTLE_ARRIVAL
+                && speaker != null
+                && "Demon".equals(speaker.trim());
+    }
+
+    private NpcDialogueVoiceSet resolveNpcDialogueVoiceSet(String speaker) {
+        if (speaker == null || speaker.isBlank()) {
+            return NpcDialogueVoiceSet.NONE;
+        }
+        return switch (speaker.trim()) {
+            case "Father", "Old Man" -> NpcDialogueVoiceSet.FATHER;
+            case "Bakery Owner", "Villager" -> NpcDialogueVoiceSet.BAKERY;
+            case "Scientist" -> NpcDialogueVoiceSet.SCIENTIST;
+            case "Demon" -> NpcDialogueVoiceSet.DEMON;
+            default -> NpcDialogueVoiceSet.NONE;
+        };
+    }
+
+    private long playNpcDialogueVoiceSfx(Sound sound, NpcDialogueVoiceSet voiceSet) {
+        if (sound == null) {
+            return -1L;
+        }
+        return sound.play(npcDialogueVoiceVolume(voiceSet, sound));
+    }
+
+    private float npcDialogueVoiceVolume(NpcDialogueVoiceSet voiceSet, Sound sound) {
+        float multiplier = npcDialogueVoiceVolumeMultiplier(voiceSet, sound);
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            return Math.max(0f, settingsService.scaleSfxVolume(NPC_DIALOGUE_SFX_BASE_VOLUME) * multiplier);
+        }
+        return Math.max(0f, NPC_DIALOGUE_SFX_BASE_VOLUME * multiplier);
+    }
+
+    private float npcDialogueVoiceVolumeMultiplier(NpcDialogueVoiceSet voiceSet, Sound sound) {
+        if (sound != null && sound == fifthQuestVillagerScreamSfx) {
+            return 1f;
+        }
+        return switch (voiceSet) {
+            case BAKERY -> BAKERY_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER;
+            case SCIENTIST -> scientistDialogueVoiceVolumeMultiplier(sound);
+            default -> 1f;
+        };
+    }
+
+    private float scientistDialogueVoiceVolumeMultiplier(Sound sound) {
+        if (sound != null && sound == scientistNeutralDialogueSfx[1]) {
+            return SCIENTIST_NEUTRAL_2_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER;
+        }
+        return SCIENTIST_NPC_DIALOGUE_SFX_VOLUME_MULTIPLIER;
+    }
+
+    private Sound resolveFatherDialogueVoiceSfx(String normalizedLine, String speaker) {
+        if ("Old Man".equals(speaker)) {
+            return firstNonNull(fatherSadDialogueSfx, nextFatherNeutralDialogueVoiceSfx());
+        }
+        if (containsAny(normalizedLine,
+                "good",
+                "come at me",
+                "then go",
+                "you came back",
+                "that is enough",
+                "i will not stop you",
+                "i understand")) {
+            return firstNonNull(fatherHappyDialogueSfx, nextFatherNeutralDialogueVoiceSfx());
+        }
+        if (containsAny(normalizedLine,
+                "afraid",
+                "fear",
+                "dead",
+                "graveyard",
+                "ashes",
+                "destroyed",
+                "danger",
+                "rest",
+                "over",
+                "alone")) {
+            return firstNonNull(fatherSadDialogueSfx, nextFatherNeutralDialogueVoiceSfx());
+        }
+        return nextFatherNeutralDialogueVoiceSfx();
+    }
+
+    private Sound resolveBakeryDialogueVoiceSfx(String normalizedLine) {
+        if (containsAny(normalizedLine,
+                "!",
+                "wrong",
+                "burn",
+                "burns",
+                "burned",
+                "strange",
+                "stay back",
+                "too close",
+                "creatures",
+                "portal",
+                "alive",
+                "destroy us")) {
+            return firstNonNull(bakeryWorryDialogueSfx, nextBakeryNeutralDialogueVoiceSfx());
+        }
+        return nextBakeryNeutralDialogueVoiceSfx();
+    }
+
+    private Sound resolveScientistDialogueVoiceSfx(String normalizedLine) {
+        if (containsAny(normalizedLine,
+                "?",
+                "...",
+                "cannot prove",
+                "what do they mean",
+                "may",
+                "perhaps",
+                "confirm",
+                "pattern")) {
+            return firstNonNull(scientistConfuseDialogueSfx, nextScientistNeutralDialogueVoiceSfx());
+        }
+        if (containsAny(normalizedLine,
+                "worse",
+                "destroyed",
+                "demon",
+                "battlefield",
+                "graveyard",
+                "collapse",
+                "dangerous",
+                "corruption")) {
+            return firstNonNull(scientistSadDialogueSfx, nextScientistNeutralDialogueVoiceSfx());
+        }
+        return nextScientistNeutralDialogueVoiceSfx();
+    }
+
+    private Sound nextFatherNeutralDialogueVoiceSfx() {
+        Sound sound = nextVoiceFromArray(fatherNeutralDialogueSfx, fatherNeutralDialogueSfxIndex);
+        fatherNeutralDialogueSfxIndex = nextVoiceIndex(fatherNeutralDialogueSfx, fatherNeutralDialogueSfxIndex);
+        return firstNonNull(sound, fatherHappyDialogueSfx, fatherSadDialogueSfx);
+    }
+
+    private Sound nextBakeryNeutralDialogueVoiceSfx() {
+        Sound sound = nextVoiceFromArray(bakeryNeutralDialogueSfx, bakeryNeutralDialogueSfxIndex);
+        bakeryNeutralDialogueSfxIndex = nextVoiceIndex(bakeryNeutralDialogueSfx, bakeryNeutralDialogueSfxIndex);
+        return firstNonNull(sound, bakeryWorryDialogueSfx);
+    }
+
+    private Sound nextScientistNeutralDialogueVoiceSfx() {
+        Sound sound = nextVoiceFromArray(scientistNeutralDialogueSfx, scientistNeutralDialogueSfxIndex);
+        scientistNeutralDialogueSfxIndex = nextVoiceIndex(scientistNeutralDialogueSfx, scientistNeutralDialogueSfxIndex);
+        return firstNonNull(sound, scientistConfuseDialogueSfx, scientistSadDialogueSfx);
+    }
+
+    private Sound nextDemonDialogueVoiceSfx() {
+        Sound primary = demonDialogueSfxIndex % 2 == 0 ? demonFirstInteractionSfx : demonNeutral2Sfx;
+        Sound secondary = demonDialogueSfxIndex % 2 == 0 ? demonNeutral2Sfx : demonFirstInteractionSfx;
+        demonDialogueSfxIndex = (demonDialogueSfxIndex + 1) % 2;
+        return firstNonNull(primary, secondary, nextZombieDialogueVoiceSfx());
+    }
+
+    private Sound nextZombieDialogueVoiceSfx() {
+        Sound sound = nextVoiceFromArray(zombieDialogueSfx, zombieDialogueSfxIndex);
+        zombieDialogueSfxIndex = nextVoiceIndex(zombieDialogueSfx, zombieDialogueSfxIndex);
+        return sound;
+    }
+
+    private void playFifthQuestZombieSfx(float volumeMultiplier) {
+        if (!MAP_ID_VILLAGE.equals(world.activeMapId)
+                || fifthQuestStage <= FIFTH_QUEST_DISABLED
+                || fifthQuestStage >= FIFTH_QUEST_COMPLETE
+                || fifthQuestZombieSfxCooldownTimer > 0f) {
+            return;
+        }
+        Sound sound = nextZombieDialogueVoiceSfx();
+        if (sound == null) {
+            return;
+        }
+        float volume = npcDialogueVoiceVolume(NpcDialogueVoiceSet.ZOMBIE, sound) * Math.max(0f, volumeMultiplier);
+        sound.play(volume);
+        fifthQuestZombieSfxCooldownTimer = FIFTH_QUEST_ZOMBIE_SFX_COOLDOWN_SECONDS;
+    }
+
+    private Sound nextVoiceFromArray(Sound[] sounds, int startIndex) {
+        if (sounds == null || sounds.length == 0) {
+            return null;
+        }
+        int safeIndex = Math.max(0, startIndex);
+        for (int offset = 0; offset < sounds.length; offset++) {
+            Sound sound = sounds[(safeIndex + offset) % sounds.length];
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return null;
+    }
+
+    private int nextVoiceIndex(Sound[] sounds, int currentIndex) {
+        if (sounds == null || sounds.length == 0) {
+            return 0;
+        }
+        return (Math.max(0, currentIndex) + 1) % sounds.length;
+    }
+
+    private Sound firstNonNull(Sound... sounds) {
+        if (sounds == null) {
+            return null;
+        }
+        for (Sound sound : sounds) {
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return null;
+    }
+
+    private boolean containsAny(String text, String... snippets) {
+        if (text == null || snippets == null) {
+            return false;
+        }
+        for (String snippet : snippets) {
+            if (snippet != null && !snippet.isEmpty() && text.contains(snippet)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void resetNpcDialogueVoiceSequence() {
+        fatherNeutralDialogueSfxIndex = 0;
+        bakeryNeutralDialogueSfxIndex = 0;
+        scientistNeutralDialogueSfxIndex = 0;
+        demonDialogueSfxIndex = 0;
+        zombieDialogueSfxIndex = 0;
+    }
+
+    private void disposeNpcDialogueVoiceSfx() {
+        disposeSoundArray(fatherNeutralDialogueSfx);
+        disposeSoundArray(bakeryNeutralDialogueSfx);
+        disposeSoundArray(scientistNeutralDialogueSfx);
+        disposeSoundArray(zombieDialogueSfx);
+        if (fatherHappyDialogueSfx != null) fatherHappyDialogueSfx.dispose();
+        if (fatherSadDialogueSfx != null) fatherSadDialogueSfx.dispose();
+        if (bakeryWorryDialogueSfx != null) bakeryWorryDialogueSfx.dispose();
+        if (scientistConfuseDialogueSfx != null) scientistConfuseDialogueSfx.dispose();
+        if (scientistSadDialogueSfx != null) scientistSadDialogueSfx.dispose();
+        if (fifthQuestVillagerScreamSfx != null) fifthQuestVillagerScreamSfx.dispose();
+        if (demonFirstInteractionSfx != null) demonFirstInteractionSfx.dispose();
+        if (demonNeutral2Sfx != null) demonNeutral2Sfx.dispose();
+    }
+
+    private void disposeSoundArray(Sound[] sounds) {
+        if (sounds == null) {
+            return;
+        }
+        for (Sound sound : sounds) {
+            if (sound != null) {
+                sound.dispose();
+            }
+        }
+    }
+
+    private void updateIndoorFootstepLoop() {
+        if (!shouldPlayIndoorFootstepLoop()) {
+            stopIndoorFootstepLoop();
+            return;
+        }
+        float volume = indoorFootstepLoopVolume();
+        if (indoorFootstepLoopId < 0L) {
+            indoorFootstepLoopId = indoorFootstepLoopSfx.loop(volume);
+        } else {
+            indoorFootstepLoopSfx.setVolume(indoorFootstepLoopId, volume);
+        }
+    }
+
+    private void stopIndoorFootstepLoop() {
+        if (indoorFootstepLoopSfx != null && indoorFootstepLoopId >= 0L) {
+            indoorFootstepLoopSfx.stop(indoorFootstepLoopId);
+            indoorFootstepLoopId = -1L;
+        }
+    }
+
+    private boolean shouldPlayIndoorFootstepLoop() {
+        return indoorFootstepLoopSfx != null
+                && player != null
+                && player.moving
+                && world != null
+                && isIndoorFootstepMap(world.activeMapId);
+    }
+
+    private boolean isIndoorFootstepMap(String mapId) {
+        return MAP_ID_INN.equals(mapId)
+                || MAP_ID_INN_ROOM.equals(mapId)
+                || MAP_ID_RESEARCH_LAB_FLOOR_1.equals(mapId)
+                || MAP_ID_RESEARCH_LAB_FLOOR_2.equals(mapId);
+    }
+
+    private float indoorFootstepLoopVolume() {
+        GameSettingsService settingsService = settingsService();
+        if (settingsService != null) {
+            return settingsService.scaleSfxVolume(INDOOR_FOOTSTEP_LOOP_BASE_VOLUME);
+        }
+        return INDOOR_FOOTSTEP_LOOP_BASE_VOLUME;
+    }
+
     private void playMusicFromStart(Music music, float baseVolume, boolean looping) {
         GameSettingsService settingsService = settingsService();
         if (settingsService != null) {
@@ -13334,9 +14881,18 @@ public class GameScreen extends ScreenAdapter {
             if (villageMusic != null && villageMusicPlaying) {
                 villageMusic.setVolume(VILLAGE_MUSIC_BASE_VOLUME * clamp01(villageMusicFadeProgress));
             }
-            if (demonBattleMusic != null && demonBattleMusicPlaying) {
-                demonBattleMusic.setVolume(DEMON_BATTLE_MUSIC_BASE_VOLUME * clamp01(demonBattleMusicFadeProgress));
-            }
+        if (sadVillageMusic != null && sadVillageMusicPlaying) {
+            sadVillageMusic.setVolume(VILLAGE_MUSIC_BASE_VOLUME * clamp01(villageMusicFadeProgress));
+        }
+        if (villageCombatMusic != null && villageCombatMusicPlaying) {
+            villageCombatMusic.setVolume(VILLAGE_COMBAT_MUSIC_BASE_VOLUME);
+        }
+        if (castleMusic != null && castleMusicPlaying) {
+            castleMusic.setVolume(CASTLE_MUSIC_BASE_VOLUME);
+        }
+        if (demonBattleMusic != null && demonBattleMusicPlaying) {
+            demonBattleMusic.setVolume(DEMON_BATTLE_MUSIC_BASE_VOLUME * clamp01(demonBattleMusicFadeProgress));
+        }
             if (sixthQuestEndingMusic != null && sixthQuestEndingMusicPlaying) {
                 sixthQuestEndingMusic.setVolume(SIXTH_QUEST_ENDING_MUSIC_BASE_VOLUME * clamp01(sixthQuestEndingMusicFadeProgress));
             }
@@ -13345,6 +14901,17 @@ public class GameScreen extends ScreenAdapter {
         if (villageMusic != null && villageMusicPlaying) {
             villageMusic.setVolume(settingsService.scaleMusicVolume(VILLAGE_MUSIC_BASE_VOLUME)
                     * clamp01(villageMusicFadeProgress));
+        }
+        if (sadVillageMusic != null && sadVillageMusicPlaying) {
+            settingsService.applyMusicVolume(
+                    sadVillageMusic,
+                    VILLAGE_MUSIC_BASE_VOLUME * clamp01(villageMusicFadeProgress));
+        }
+        if (villageCombatMusic != null && villageCombatMusicPlaying) {
+            settingsService.applyMusicVolume(villageCombatMusic, VILLAGE_COMBAT_MUSIC_BASE_VOLUME);
+        }
+        if (castleMusic != null && castleMusicPlaying) {
+            settingsService.applyMusicVolume(castleMusic, CASTLE_MUSIC_BASE_VOLUME);
         }
         if (demonBattleMusic != null && demonBattleMusicPlaying) {
             settingsService.applyMusicVolume(
@@ -13367,19 +14934,68 @@ public class GameScreen extends ScreenAdapter {
         boolean shouldPlayVillageMusic = MAP_ID_VILLAGE.equals(world.activeMapId) && !endingSequenceMusicActive;
         if (!shouldPlayVillageMusic) {
             stopVillageMusic();
+            stopSadVillageMusic();
             return;
         }
-        if (villageMusic == null) {
+        boolean useSadVillageMusic = shouldUseSadVillageMusic() && sadVillageMusic != null;
+        Music activeVillageAmbientMusic = useSadVillageMusic ? sadVillageMusic : villageMusic;
+        if (activeVillageAmbientMusic == null) {
             return;
         }
-        if (!villageMusicPlaying || !villageMusic.isPlaying()) {
-            startVillageMusic();
-        }
-        if (VILLAGE_MUSIC_FADE_IN_SECONDS <= 0f) {
-            villageMusicFadeProgress = 1f;
+        if (useSadVillageMusic) {
+            if (villageMusicPlaying) {
+                stopVillageMusic();
+            }
+            if (!sadVillageMusicPlaying || !sadVillageMusic.isPlaying()) {
+                startSadVillageMusic();
+            }
         } else {
-            villageMusicFadeProgress = Math.min(1f,
-                    villageMusicFadeProgress + Math.max(0f, delta) / VILLAGE_MUSIC_FADE_IN_SECONDS);
+            if (sadVillageMusicPlaying) {
+                stopSadVillageMusic();
+            }
+            if (!villageMusicPlaying || !villageMusic.isPlaying()) {
+                startVillageMusic();
+            }
+        }
+        boolean combatMusicActive = shouldPlayVillageCombatMusic();
+        if (combatMusicActive) {
+            villageMusicSuppressedForCombat = true;
+        }
+        float targetFadeProgress = combatMusicActive ? 0f : 1f;
+        float fadeSeconds = targetFadeProgress < villageMusicFadeProgress
+                ? VILLAGE_MUSIC_FADE_OUT_TO_COMBAT_SECONDS
+                : (villageMusicSuppressedForCombat
+                ? VILLAGE_MUSIC_RETURN_FROM_COMBAT_FADE_IN_SECONDS
+                : VILLAGE_MUSIC_FADE_IN_SECONDS);
+        if (fadeSeconds <= 0f) {
+            villageMusicFadeProgress = targetFadeProgress;
+        } else if (targetFadeProgress > villageMusicFadeProgress) {
+            villageMusicFadeProgress = Math.min(
+                    targetFadeProgress,
+                    villageMusicFadeProgress + Math.max(0f, delta) / fadeSeconds);
+        } else {
+            villageMusicFadeProgress = Math.max(
+                    targetFadeProgress,
+                    villageMusicFadeProgress - Math.max(0f, delta) / fadeSeconds);
+        }
+        if (!combatMusicActive && villageMusicSuppressedForCombat && villageMusicFadeProgress >= 1f) {
+            villageMusicSuppressedForCombat = false;
+        }
+    }
+
+    private void updateCastleMusic() {
+        boolean shouldPlayCastleMusic = MAP_ID_DEMON_CASTLE.equals(world.activeMapId)
+                && sixthQuestStage < SIXTH_QUEST_ENDING
+                && !gameCompleted;
+        if (!shouldPlayCastleMusic) {
+            stopCastleMusic();
+            return;
+        }
+        if (castleMusic == null) {
+            return;
+        }
+        if (!castleMusicPlaying || !castleMusic.isPlaying()) {
+            startCastleMusic();
         }
     }
 
@@ -13398,10 +15014,111 @@ public class GameScreen extends ScreenAdapter {
 
     private void stopVillageMusic() {
         villageMusicFadeProgress = 0f;
+        villageMusicSuppressedForCombat = false;
         if (villageMusic != null) {
             villageMusic.stop();
         }
         villageMusicPlaying = false;
+    }
+
+    private boolean shouldUseSadVillageMusic() {
+        return fifthQuestStage > FIFTH_QUEST_DISABLED && fifthQuestStage < FIFTH_QUEST_COMPLETE;
+    }
+
+    private void startSadVillageMusic() {
+        if (sadVillageMusic == null) {
+            return;
+        }
+        sadVillageMusic.stop();
+        sadVillageMusic.setLooping(true);
+        sadVillageMusic.setPosition(0f);
+        sadVillageMusic.setVolume(0f);
+        sadVillageMusic.play();
+        villageMusicFadeProgress = 0f;
+        sadVillageMusicPlaying = true;
+    }
+
+    private void stopSadVillageMusic() {
+        if (sadVillageMusic != null) {
+            sadVillageMusic.stop();
+        }
+        sadVillageMusicPlaying = false;
+    }
+
+    private void startCastleMusic() {
+        if (castleMusic == null) {
+            return;
+        }
+        playMusicFromStart(castleMusic, CASTLE_MUSIC_BASE_VOLUME, true);
+        castleMusicPlaying = true;
+    }
+
+    private void stopCastleMusic() {
+        if (castleMusic != null) {
+            castleMusic.stop();
+        }
+        castleMusicPlaying = false;
+    }
+
+    private void updateVillageCombatMusic() {
+        if (!shouldPlayVillageCombatMusic()) {
+            stopVillageCombatMusic();
+            return;
+        }
+        if (villageCombatMusic == null) {
+            return;
+        }
+        if (!villageCombatMusicPlaying || !villageCombatMusic.isPlaying()) {
+            startVillageCombatMusic();
+        }
+    }
+
+    private boolean shouldPlayVillageCombatMusic() {
+        if (villageCombatMusic == null || gameCompleted || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return false;
+        }
+        return isThirdQuestVillageCombatMusicActive()
+                || isFourthQuestVillageCombatMusicActive()
+                || isFifthQuestVillageCombatMusicActive();
+    }
+
+    private boolean isThirdQuestVillageCombatMusicActive() {
+        return thirdQuestStage == THIRD_QUEST_COMBAT_TUTORIAL
+                || (thirdQuestStage == THIRD_QUEST_SPAR_WITH_FATHER && thirdQuestSparActive);
+    }
+
+    private boolean isFourthQuestVillageCombatMusicActive() {
+        return fourthQuestStage == FOURTH_QUEST_CAFE_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_CENTER_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_EDGE_BATTLE
+                || fourthQuestStage == FOURTH_QUEST_BREACH_BATTLE;
+    }
+
+    private boolean isFifthQuestVillageCombatMusicActive() {
+        return switch (fifthQuestStage) {
+            case FIFTH_QUEST_OUTER_RUINS_BATTLE,
+                    FIFTH_QUEST_MID_RUINS_BATTLE,
+                    FIFTH_QUEST_ANCHOR_1_BATTLE,
+                    FIFTH_QUEST_ANCHOR_2_BATTLE,
+                    FIFTH_QUEST_ANCHOR_3_BATTLE,
+                    FIFTH_QUEST_PORTAL_BOSS -> true;
+            default -> false;
+        };
+    }
+
+    private void startVillageCombatMusic() {
+        if (villageCombatMusic == null) {
+            return;
+        }
+        playMusicFromStart(villageCombatMusic, VILLAGE_COMBAT_MUSIC_BASE_VOLUME, true);
+        villageCombatMusicPlaying = true;
+    }
+
+    private void stopVillageCombatMusic() {
+        if (villageCombatMusic != null) {
+            villageCombatMusic.stop();
+        }
+        villageCombatMusicPlaying = false;
     }
 
     private void updateDemonBattleMusic() {
@@ -13552,11 +15269,36 @@ public class GameScreen extends ScreenAdapter {
         if (absolutePath == null || absolutePath.isBlank()) {
             return null;
         }
+        FileHandle file = Gdx.files.absolute(absolutePath);
+        if (file == null || !file.exists()) {
+            if (Gdx.app != null) {
+                Gdx.app.log("PixelRpgGame", "Optional sound not found: " + absolutePath);
+            }
+            return null;
+        }
         try {
-            return Gdx.audio.newSound(Gdx.files.absolute(absolutePath));
+            return Gdx.audio.newSound(file);
         } catch (RuntimeException error) {
             if (Gdx.app != null) {
                 Gdx.app.error("PixelRpgGame", "Failed to load sound: " + absolutePath, error);
+            }
+            return null;
+        }
+    }
+
+    private Sound loadOptionalInternalSound(String internalPath) {
+        if (internalPath == null || internalPath.isBlank()) {
+            return null;
+        }
+        try {
+            FileHandle file = Gdx.files.internal(internalPath);
+            if (file == null || !file.exists()) {
+                return null;
+            }
+            return Gdx.audio.newSound(file);
+        } catch (RuntimeException error) {
+            if (Gdx.app != null) {
+                Gdx.app.error("PixelRpgGame", "Failed to load sound: " + internalPath, error);
             }
             return null;
         }
@@ -13584,8 +15326,15 @@ public class GameScreen extends ScreenAdapter {
         if (absolutePath == null || absolutePath.isBlank()) {
             return null;
         }
+        FileHandle file = Gdx.files.absolute(absolutePath);
+        if (file == null || !file.exists()) {
+            if (Gdx.app != null) {
+                Gdx.app.log("PixelRpgGame", "Optional music not found: " + absolutePath);
+            }
+            return null;
+        }
         try {
-            return Gdx.audio.newMusic(Gdx.files.absolute(absolutePath));
+            return Gdx.audio.newMusic(file);
         } catch (RuntimeException error) {
             if (Gdx.app != null) {
                 Gdx.app.error("PixelRpgGame", "Failed to load music: " + absolutePath, error);
@@ -14123,6 +15872,34 @@ public class GameScreen extends ScreenAdapter {
         return texture;
     }
 
+    private Texture createCooldownCircleTexture(int size) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pm.setBlending(Pixmap.Blending.None);
+        float center = size * 0.5f;
+        float maxDist = center - 1f;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = x + 0.5f - center;
+                float dy = y + 0.5f - center;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy) / Math.max(1f, maxDist);
+                float alpha;
+                if (dist >= 1f) {
+                    alpha = 0f;
+                } else if (dist <= 0.78f) {
+                    alpha = 1f;
+                } else {
+                    alpha = 1f - smoothStep((dist - 0.78f) / 0.22f);
+                }
+                pm.setColor(1f, 1f, 1f, alpha);
+                pm.drawPixel(x, y);
+            }
+        }
+        Texture texture = new Texture(pm);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        pm.dispose();
+        return texture;
+    }
+
     private void drawVignette() {
         if (vignetteTex == null || uiCamera == null) {
             return;
@@ -14269,7 +16046,8 @@ public class GameScreen extends ScreenAdapter {
         boolean blurVisible = (hudRenderer != null && hudRenderer.isMainMenuVisible())
                 || isFirstQuestOverlayActive()
                 || isSixthQuestPortalActivationRunning()
-                || isBossArenaFinalIntroFocusActive();
+                || isBossArenaFinalIntroFocusActive()
+                || isFifthQuestFirstEncounterIntroActive();
         if (QUEST_BLUR_TRANSITION_SECONDS <= 0f) {
             questBlurProgress = blurVisible ? 1f : 0f;
             return;
@@ -14537,6 +16315,81 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void drawFifthQuestPortalDialogueFather(SpriteBatch batch) {
+        Rectangle fatherBounds = fifthQuestPortalDialogueFatherBounds();
+        if (batch == null
+                || fatherBounds == null
+                || thirdQuestFatherVillageTiles == null
+                || thirdQuestFatherVillageTiles.length < 4) {
+            return;
+        }
+        float fadeAlpha = fifthQuestPortalDialogueNpcFadeAlpha();
+        if (fadeAlpha <= 0f) {
+            return;
+        }
+
+        int talkFrame = Math.max(0, SIXTH_QUEST_ENDING_FATHER_TALKING_FRAME_INDEX);
+        int baseColumn = 2 + talkFrame * 5;
+        int[] sourceRows = {3, 2, 1};
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        for (int row = 0; row < sourceRows.length; row++) {
+            int sourceRow = sourceRows[row];
+            if (sourceRow < 0 || sourceRow >= thirdQuestFatherVillageTiles.length) {
+                continue;
+            }
+            TextureRegion[] rowRegions = thirdQuestFatherVillageTiles[sourceRow];
+            if (rowRegions == null || baseColumn + 1 >= rowRegions.length) {
+                continue;
+            }
+            for (int col = 0; col < 2; col++) {
+                TextureRegion region = rowRegions[baseColumn + col];
+                if (region == null) {
+                    continue;
+                }
+                batch.draw(
+                        region,
+                        fatherBounds.x + col * DEFAULT_TILE_SIZE,
+                        fatherBounds.y + row * DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE);
+            }
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawFifthQuestPortalDialogueScientist(float saturation) {
+        if (batch == null || sixthQuestEndingScientistAnim == null) {
+            return;
+        }
+        Rectangle scientistBounds = fifthQuestPortalDialogueScientistBounds();
+        if (scientistBounds == null) {
+            return;
+        }
+        float fadeAlpha = fifthQuestPortalDialogueNpcFadeAlpha();
+        if (fadeAlpha <= 0f) {
+            return;
+        }
+        TextureRegion frame = sixthQuestEndingScientistAnim.getKeyFrame(firstQuestCafeNpcStateTime, true);
+        if (frame == null) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        batch.draw(
+                frame,
+                scientistBounds.x + scientistBounds.width,
+                scientistBounds.y,
+                -scientistBounds.width,
+                scientistBounds.height);
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+    }
+
     private float sixthQuestEndingNpcFadeAlpha() {
         if (!sixthQuestEndingNpcFadeActive) {
             return 1f;
@@ -14561,27 +16414,88 @@ public class GameScreen extends ScreenAdapter {
             case END -> bossArenaPhase2SkillEndAnim;
             case NONE -> null;
         };
-        if (portalAnim == null) {
-            return;
-        }
         if (saturationShader != null) {
             batch.setShader(saturationShader);
             saturationShader.setUniformf("u_saturation", saturation);
         }
-        boolean looping = sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP;
-        TextureRegion portalFrame = portalAnim.getKeyFrame(sixthQuestPortalActivationStateTime, looping);
-        if (portalFrame != null) {
-            float drawWidth = portalFrame.getRegionWidth() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
-            float drawHeight = portalFrame.getRegionHeight() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
-            float drawX = sixthQuestPortalEffectPosition.x - drawWidth * 0.5f;
-            float drawY = sixthQuestPortalEffectPosition.y - drawHeight * 0.5f;
-            batch.setColor(1f, 1f, 1f, clamp01(alphaMultiplier));
-            batch.draw(portalFrame, drawX, drawY, drawWidth, drawHeight);
-            batch.setColor(1f, 1f, 1f, 1f);
+        if (portalAnim != null) {
+            boolean looping = sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP;
+            TextureRegion portalFrame = portalAnim.getKeyFrame(sixthQuestPortalActivationStateTime, looping);
+            if (portalFrame != null) {
+                float drawWidth = portalFrame.getRegionWidth() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
+                float drawHeight = portalFrame.getRegionHeight() * SIXTH_QUEST_PORTAL_EFFECT_DRAW_SCALE;
+                float drawX = sixthQuestPortalEffectPosition.x - drawWidth * 0.5f;
+                float drawY = sixthQuestPortalEffectPosition.y - drawHeight * 0.5f;
+                batch.setColor(1f, 1f, 1f, clamp01(alphaMultiplier));
+                batch.draw(portalFrame, drawX, drawY, drawWidth, drawHeight);
+                batch.setColor(1f, 1f, 1f, 1f);
+            }
+        } else {
+            drawSixthQuestPortalActivationFallback(alphaMultiplier);
         }
         if (saturationShader != null) {
             batch.setShader(null);
         }
+    }
+
+    private void drawSixthQuestPortalActivationFallback(float alphaMultiplier) {
+        if (batch == null || dayNightOverlayTex == null) {
+            return;
+        }
+
+        Rectangle portalBounds = sixthQuestActualPortalBounds();
+        if ((portalBounds == null || portalBounds.width <= 0f || portalBounds.height <= 0f)
+                && sixthQuestPortalGuideBounds() != null) {
+            portalBounds = sixthQuestPortalGuideBounds();
+        }
+
+        float centerX = sixthQuestPortalEffectPosition.x;
+        float centerY = sixthQuestPortalEffectPosition.y;
+        float baseWidth = portalBounds != null && portalBounds.width > 0f ? portalBounds.width : DEFAULT_TILE_SIZE * 2.25f;
+        float baseHeight = portalBounds != null && portalBounds.height > 0f ? portalBounds.height : DEFAULT_TILE_SIZE * 3.25f;
+        float time = sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP
+                ? sixthQuestPortalActivationLoopTimer
+                : sixthQuestPortalActivationStateTime;
+        float pulse = 0.82f + 0.18f * (float) Math.sin(time * 5.4f);
+
+        float phaseScale = switch (sixthQuestPortalActivationPhase) {
+            case START -> lerp(0.55f, 1.08f, clamp01(sixthQuestPortalActivationStateTime / 0.45f));
+            case END -> lerp(1.02f, 0.45f, clamp01(sixthQuestPortalActivationStateTime / 0.35f));
+            case LOOP -> 1f + 0.04f * (float) Math.sin(time * 2.6f);
+            case NONE -> 1f;
+        };
+
+        float auraWidth = baseWidth * 2.8f * phaseScale;
+        float auraHeight = baseHeight * 2.5f * phaseScale;
+        float ringWidth = baseWidth * (1.95f + 0.18f * pulse) * phaseScale;
+        float ringHeight = baseHeight * (2.1f + 0.18f * pulse) * phaseScale;
+        float coreWidth = baseWidth * (1.2f + 0.1f * pulse) * phaseScale;
+        float coreHeight = baseHeight * (1.55f + 0.12f * pulse) * phaseScale;
+        float beamWidth = Math.max(10f, baseWidth * 0.16f);
+        float beamHeight = baseHeight * (2.25f + 0.2f * pulse) * phaseScale;
+        float outlineThickness = Math.max(2f, baseWidth * 0.045f);
+        float alpha = clamp01(alphaMultiplier);
+
+        batch.setColor(0.20f, 0.02f, 0.02f, 0.22f * alpha * pulse);
+        batch.draw(dayNightOverlayTex, centerX - auraWidth * 0.5f, centerY - auraHeight * 0.5f, auraWidth, auraHeight);
+
+        batch.setColor(0.85f, 0.18f, 0.10f, 0.34f * alpha * pulse);
+        batch.draw(dayNightOverlayTex, centerX - ringWidth * 0.5f, centerY - ringHeight * 0.5f, ringWidth, ringHeight);
+
+        float ringX = centerX - ringWidth * 0.5f;
+        float ringY = centerY - ringHeight * 0.5f;
+        batch.setColor(1f, 0.70f, 0.32f, 0.78f * alpha * pulse);
+        batch.draw(dayNightOverlayTex, ringX, ringY, ringWidth, outlineThickness);
+        batch.draw(dayNightOverlayTex, ringX, ringY + ringHeight - outlineThickness, ringWidth, outlineThickness);
+        batch.draw(dayNightOverlayTex, ringX, ringY, outlineThickness, ringHeight);
+        batch.draw(dayNightOverlayTex, ringX + ringWidth - outlineThickness, ringY, outlineThickness, ringHeight);
+
+        batch.setColor(1f, 0.82f, 0.42f, 0.42f * alpha * pulse);
+        batch.draw(dayNightOverlayTex, centerX - beamWidth * 0.5f, centerY - beamHeight * 0.5f, beamWidth, beamHeight);
+
+        batch.setColor(1f, 0.96f, 0.84f, 0.72f * alpha * pulse);
+        batch.draw(dayNightOverlayTex, centerX - coreWidth * 0.5f, centerY - coreHeight * 0.5f, coreWidth, coreHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private void drawFourthQuestWorldHints(SpriteBatch batch) {
@@ -14655,26 +16569,40 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (fifthQuestStage <= FIFTH_QUEST_OUTER_RUINS_BATTLE) {
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_1_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_1_DESTROY) {
             batch.setColor(0.16f, 0.08f, 0.08f, 0.42f);
             batch.draw(dayNightOverlayTex,
-                    fifthQuestOuterRuinsBounds.x,
-                    fifthQuestOuterRuinsBounds.y,
-                    fifthQuestOuterRuinsBounds.width,
-                    fifthQuestOuterRuinsBounds.height);
+                    fifthQuestAnchorBounds[0].x,
+                    fifthQuestAnchorBounds[0].y,
+                    fifthQuestAnchorBounds[0].width,
+                    fifthQuestAnchorBounds[0].height);
             batch.setColor(0.54f, 0.24f, 0.18f, 0.84f);
-            drawQuestRectOutline(batch, fifthQuestOuterRuinsBounds, 2.5f);
+            drawQuestRectOutline(batch, fifthQuestAnchorBounds[0], 2.5f);
         }
 
-        if (fifthQuestStage >= FIFTH_QUEST_ADVANCE_TO_PORTAL && fifthQuestStage < FIFTH_QUEST_COMPLETE) {
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_2_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_2_DESTROY) {
             batch.setColor(0.18f, 0.06f, 0.06f, 0.48f);
             batch.draw(dayNightOverlayTex,
-                    fifthQuestMidRuinsBounds.x,
-                    fifthQuestMidRuinsBounds.y,
-                    fifthQuestMidRuinsBounds.width,
-                    fifthQuestMidRuinsBounds.height);
+                    fifthQuestAnchorBounds[1].x,
+                    fifthQuestAnchorBounds[1].y,
+                    fifthQuestAnchorBounds[1].width,
+                    fifthQuestAnchorBounds[1].height);
             batch.setColor(0.58f, 0.20f, 0.18f, 0.88f);
-            drawQuestRectOutline(batch, fifthQuestMidRuinsBounds, 2.5f);
+            drawQuestRectOutline(batch, fifthQuestAnchorBounds[1], 2.5f);
+        }
+
+        if (fifthQuestStage == FIFTH_QUEST_ANCHOR_3_BATTLE
+                || fifthQuestStage == FIFTH_QUEST_ANCHOR_3_DESTROY) {
+            batch.setColor(0.18f, 0.06f, 0.06f, 0.48f);
+            batch.draw(dayNightOverlayTex,
+                    fifthQuestAnchorBounds[2].x,
+                    fifthQuestAnchorBounds[2].y,
+                    fifthQuestAnchorBounds[2].width,
+                    fifthQuestAnchorBounds[2].height);
+            batch.setColor(0.58f, 0.20f, 0.18f, 0.88f);
+            drawQuestRectOutline(batch, fifthQuestAnchorBounds[2], 2.5f);
         }
 
         if (fifthQuestStage < FIFTH_QUEST_COMPLETE) {
@@ -14695,11 +16623,10 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        if (sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL || sixthQuestStage == SIXTH_QUEST_DISABLED) {
+        if (fifthQuestStage >= FIFTH_QUEST_COMPLETE
+                && (sixthQuestStage <= SIXTH_QUEST_ENTER_PORTAL || sixthQuestStage == SIXTH_QUEST_DISABLED)) {
             float portalPulse = 0.74f + 0.22f * (float) Math.sin(firstQuestMarkerTimer * 3.3f);
-            Rectangle highlightBounds = fifthQuestStage >= FIFTH_QUEST_COMPLETE
-                    ? fifthQuestPortalBounds
-                    : (fifthQuestFightingAreaBounds.width > 0f ? fifthQuestFightingAreaBounds : fifthQuestPortalBounds);
+            Rectangle highlightBounds = fifthQuestPortalBounds;
             batch.setColor(0.34f, 0.02f, 0.02f, fifthQuestStage >= FIFTH_QUEST_COMPLETE ? 0.50f : 0.68f);
             batch.draw(dayNightOverlayTex,
                     highlightBounds.x - 16f,
@@ -14737,6 +16664,14 @@ public class GameScreen extends ScreenAdapter {
                 : clamp01(fifthQuestLabVillagersFadeTimer / FIFTH_QUEST_LAB_VILLAGER_FADE_IN_SECONDS);
         float scientistCenterX = scientistBounds.x + scientistBounds.width * 0.5f;
         float scientistCenterY = scientistBounds.y + scientistBounds.height * 0.5f;
+        if (activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_LAB_ALARM) {
+            drawFifthQuestLabFather(
+                    scientistCenterX + FIFTH_QUEST_LAB_FATHER_OFFSET_X,
+                    scientistCenterY + FIFTH_QUEST_LAB_FATHER_OFFSET_Y,
+                    saturation,
+                    drawBehindPlayer,
+                    fadeAlpha);
+        }
         drawFifthQuestVillager(
                 fifthQuestAdultManIdleAnim,
                 scientistCenterX - 72f,
@@ -14751,6 +16686,55 @@ public class GameScreen extends ScreenAdapter {
                 saturation,
                 drawBehindPlayer,
                 fadeAlpha);
+    }
+
+    private void drawFifthQuestLabFather(float centerX, float centerY,
+                                         float saturation, boolean drawBehindPlayer, float alpha) {
+        if (thirdQuestFatherVillageTiles == null || thirdQuestFatherVillageTiles.length < 4) {
+            return;
+        }
+        int frame = ((int) (firstQuestCafeNpcStateTime / FIRST_QUEST_CAFE_NPC_FRAME_DURATION)) % 5;
+        int baseColumn = 2 + frame * 5;
+        int[] sourceRows = {3, 2, 1};
+        float drawW = DEFAULT_TILE_SIZE * 2f;
+        float drawH = DEFAULT_TILE_SIZE * 3f;
+        float depthBasisY = centerY - drawH * 0.35f;
+        boolean fatherBehindPlayer = depthBasisY > player.bounds.y;
+        if (fatherBehindPlayer != drawBehindPlayer) {
+            return;
+        }
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", saturation);
+        }
+        batch.setColor(1f, 1f, 1f, clamp01(alpha));
+        for (int row = 0; row < sourceRows.length; row++) {
+            int sourceRow = sourceRows[row];
+            if (sourceRow < 0 || sourceRow >= thirdQuestFatherVillageTiles.length) {
+                continue;
+            }
+            TextureRegion[] rowRegions = thirdQuestFatherVillageTiles[sourceRow];
+            if (rowRegions == null || baseColumn + 1 >= rowRegions.length) {
+                continue;
+            }
+            for (int col = 0; col < 2; col++) {
+                TextureRegion region = rowRegions[baseColumn + col];
+                if (region == null) {
+                    continue;
+                }
+                float drawX = centerX - drawW * 0.5f + (2 - col) * DEFAULT_TILE_SIZE;
+                batch.draw(
+                        region,
+                        drawX,
+                        centerY - drawH * 0.5f + row * DEFAULT_TILE_SIZE,
+                        -DEFAULT_TILE_SIZE,
+                        DEFAULT_TILE_SIZE);
+            }
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
     }
 
     private void drawFifthQuestVillager(Animation<TextureRegion> animation, float centerX, float centerY,
@@ -14931,13 +16915,14 @@ public class GameScreen extends ScreenAdapter {
         boolean portalActivationOverlayActive = isSixthQuestPortalActivationRunning();
         boolean questOverlayActive = isFirstQuestOverlayActive();
         boolean bossArenaIntroOverlayActive = isBossArenaFinalIntroFocusActive();
+        boolean fifthQuestEncounterOverlayActive = isFifthQuestFirstEncounterIntroActive();
 
         uiCamera.update();
         batch.setProjectionMatrix(uiCamera.combined);
         batch.begin();
         batch.setShader(null);
         batch.setColor(1f, 1f, 1f, 1f);
-        if (questOverlayActive || portalActivationOverlayActive || bossArenaIntroOverlayActive) {
+        if (questOverlayActive || portalActivationOverlayActive || bossArenaIntroOverlayActive || fifthQuestEncounterOverlayActive) {
             batch.setColor(0f, 0f, 0f, FIRST_QUEST_OVERLAY_DIM_ALPHA * clamp01(questBlurProgress));
             batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
             batch.setColor(1f, 1f, 1f, 1f);
@@ -14965,9 +16950,19 @@ public class GameScreen extends ScreenAdapter {
                 batch.begin();
                 batch.setShader(null);
                 batch.setColor(1f, 1f, 1f, 1f);
+            } else if (fifthQuestEncounterOverlayActive) {
+                batch.end();
+                drawFifthQuestFirstEncounterForegroundActors();
+                uiCamera.update();
+                batch.setProjectionMatrix(uiCamera.combined);
+                batch.begin();
+                batch.setShader(null);
+                batch.setColor(1f, 1f, 1f, 1f);
             }
             if (firstQuestDialogueActive) {
                 drawFirstQuestDialogueOverlay(batch);
+            } else if (fifthQuestDeathChoiceVisible) {
+                drawFifthQuestDeathChoiceOverlay(batch);
             } else if (sixthQuestPortalChoiceVisible) {
                 drawSixthQuestPortalChoiceOverlay(batch);
             } else if (firstQuestItemCardVisible) {
@@ -15000,6 +16995,9 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
         batch.setShader(null);
         drawSixthQuestPortalActivationEffect(characterSaturation);
+        if (sixthQuestPortalChoiceVisible && sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP) {
+            drawSixthQuestPortalActivationEffect(characterSaturation, 0.55f);
+        }
         batch.end();
 
         int portalLayerIndex = findTopLevelLayerIndexContaining(VILLAGE_PORTAL_GROUP_NAME);
@@ -15009,9 +17007,6 @@ public class GameScreen extends ScreenAdapter {
 
         batch.begin();
         batch.setShader(null);
-        if (sixthQuestPortalChoiceVisible && sixthQuestPortalActivationPhase == PortalActivationPhase.LOOP) {
-            drawSixthQuestPortalActivationEffect(characterSaturation, 0.55f);
-        }
         drawPlayer(characterSaturation);
         batch.end();
     }
@@ -15110,6 +17105,95 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void drawFifthQuestFirstEncounterForegroundActors() {
+        if (batch == null
+                || camera == null
+                || world.mapRenderer == null
+                || !isFifthQuestFirstEncounterIntroActive()
+                || !MAP_ID_VILLAGE.equals(world.activeMapId)) {
+            return;
+        }
+
+        float nightBlend = currentNightBlend();
+        float characterSaturation = lerp(CHARACTER_SATURATION, NIGHT_CHARACTER_SATURATION, nightBlend);
+
+        camera.update();
+        world.mapRenderer.setView(camera);
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        batch.setShader(null);
+
+        if (shadowRegion != null) {
+            float shadowW = FIFTH_QUEST_DEMON_SHADOW_WIDTH_TILES * DEFAULT_TILE_SIZE;
+            float shadowH = FIFTH_QUEST_DEMON_SHADOW_HEIGHT_TILES * DEFAULT_TILE_SIZE;
+            float shadowDownOffset = FIFTH_QUEST_DEMON_SHADOW_DOWN_OFFSET_TILES * DEFAULT_TILE_SIZE;
+            batch.setColor(1f, 1f, 1f, FIFTH_QUEST_DEMON_SHADOW_ALPHA);
+            for (int i = 0; i < fifthQuestDemons.size; i++) {
+                FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+                if (demon.questEncounterId != fifthQuestFirstEncounterIntroEncounterId || demon.dying || demon.health <= 0f) {
+                    continue;
+                }
+                batch.draw(
+                        shadowRegion,
+                        demon.position.x - shadowW * 0.5f,
+                        demon.position.y - shadowH * 0.25f - shadowDownOffset,
+                        shadowW,
+                        shadowH);
+            }
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+
+        if (saturationShader != null) {
+            batch.setShader(saturationShader);
+            saturationShader.setUniformf("u_saturation", characterSaturation);
+        }
+        for (int i = 0; i < fifthQuestDemons.size; i++) {
+            FifthQuestDemonInstance demon = fifthQuestDemons.get(i);
+            if (demon.questEncounterId != fifthQuestFirstEncounterIntroEncounterId || demon.dying || demon.health <= 0f) {
+                continue;
+            }
+
+            Animation<TextureRegion> activeAnimation;
+            boolean loop = true;
+            float animationTime;
+            if (demon.hurting && fifthQuestDemonHurtAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonHurtAnimation(demon.type);
+                animationTime = demon.hurtStateTime;
+                loop = false;
+            } else if (demon.attacking && fifthQuestDemonAttackAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonAttackAnimation(demon.type);
+                animationTime = demon.attackStateTime;
+                loop = false;
+            } else if (demon.moving && fifthQuestDemonWalkAnimation(demon.type) != null) {
+                activeAnimation = fifthQuestDemonWalkAnimation(demon.type);
+                animationTime = demon.stateTime;
+            } else {
+                activeAnimation = fifthQuestDemonIdleAnimation(demon.type);
+                animationTime = demon.stateTime;
+            }
+            if (activeAnimation == null) {
+                continue;
+            }
+            TextureRegion frame = activeAnimation.getKeyFrame(animationTime, loop);
+            if (frame == null) {
+                continue;
+            }
+            float drawW = frame.getRegionWidth() * FIFTH_QUEST_DEMON_DRAW_SCALE;
+            float drawH = frame.getRegionHeight() * FIFTH_QUEST_DEMON_DRAW_SCALE;
+            float drawX = demon.position.x - drawW * 0.5f;
+            float drawY = demon.position.y - drawH * 0.5f;
+            float originX = drawW * 0.5f;
+            float originY = drawH * 0.5f;
+            float scaleX = demon.facingLeft ? -1f : 1f;
+            batch.draw(frame, drawX, drawY, originX, originY, drawW, drawH, scaleX, 1f, 0f);
+        }
+        if (saturationShader != null) {
+            batch.setShader(null);
+        }
+        batch.end();
+    }
+
     private void drawDialogueForegroundActors() {
         if (batch == null || camera == null || world.mapRenderer == null || !firstQuestDialogueActive) {
             return;
@@ -15130,8 +17214,14 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         batch.setShader(null);
+        if (activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_LAB_ALARM) {
+            drawFifthQuestLabVillagers(characterSaturation, true);
+        }
         drawRuntimeDialogueSpeaker(characterSaturation);
         drawPlayer(characterSaturation);
+        if (activeQuestDialogueId == QuestDialogueId.FIFTH_QUEST_LAB_ALARM) {
+            drawFifthQuestLabVillagers(characterSaturation, false);
+        }
         batch.end();
     }
 
@@ -15178,6 +17268,10 @@ public class GameScreen extends ScreenAdapter {
                     THIRD_QUEST_FATHER_PRE_SPAR,
                     THIRD_QUEST_FATHER_COMPLETE,
                     FOURTH_QUEST_INTERRUPTION -> drawThirdQuestVillageFather(batch);
+            case FIFTH_QUEST_PORTAL_AFTER, SIXTH_QUEST_PORTAL_BRIEFING -> {
+                drawFifthQuestPortalDialogueScientist(characterSaturation);
+                drawFifthQuestPortalDialogueFather(batch);
+            }
             case SIXTH_QUEST_ENDING -> {
                 drawSixthQuestEndingScientist(characterSaturation);
                 drawSixthQuestEndingFather(batch);
@@ -15308,14 +17402,14 @@ public class GameScreen extends ScreenAdapter {
                     FOURTH_QUEST_SAMPLE_ANALYSIS,
                     FOURTH_QUEST_SPATIAL_UNLOCK,
                     FOURTH_QUEST_EPILOGUE,
-                    FIFTH_QUEST_LAB_ALARM,
-                    SIXTH_QUEST_PORTAL_BRIEFING -> setRectangle(out, scientistNpcBounds());
+                    FIFTH_QUEST_LAB_ALARM -> setRectangle(out, scientistNpcBounds());
             case THIRD_QUEST_FATHER_TRAINING_INTRO,
                     THIRD_QUEST_FATHER_AFTER_MOVEMENT,
                     THIRD_QUEST_FATHER_AFTER_ATTACK,
                     THIRD_QUEST_FATHER_PRE_SPAR,
                     THIRD_QUEST_FATHER_COMPLETE,
                     FOURTH_QUEST_INTERRUPTION -> setRectangleToThirdQuestFather(out);
+            case FIFTH_QUEST_PORTAL_AFTER, SIXTH_QUEST_PORTAL_BRIEFING -> setRectangleToFifthQuestPortalDialogueActors(out);
             case SIXTH_QUEST_ENDING -> setRectangle(out, sixthQuestEndingFatherBounds());
             default -> setRectangleToDialogueFocusFallback(out);
         };
@@ -15366,6 +17460,35 @@ public class GameScreen extends ScreenAdapter {
         }
         out.set(source);
         return true;
+    }
+
+    private Rectangle fifthQuestPortalDialogueCombinedBounds() {
+        Rectangle fatherBounds = fifthQuestPortalDialogueFatherBounds();
+        Rectangle scientistBounds = fifthQuestPortalDialogueScientistBounds();
+        if (fatherBounds == null && scientistBounds == null) {
+            return null;
+        }
+        if (fatherBounds == null) {
+            fifthQuestPortalDialogueCombinedBounds.set(scientistBounds);
+            return fifthQuestPortalDialogueCombinedBounds;
+        }
+        if (scientistBounds == null) {
+            fifthQuestPortalDialogueCombinedBounds.set(fatherBounds);
+            return fifthQuestPortalDialogueCombinedBounds;
+        }
+        float minX = Math.min(fatherBounds.x, scientistBounds.x);
+        float minY = Math.min(fatherBounds.y, scientistBounds.y);
+        float maxX = Math.max(fatherBounds.x + fatherBounds.width, scientistBounds.x + scientistBounds.width);
+        float maxY = Math.max(fatherBounds.y + fatherBounds.height, scientistBounds.y + scientistBounds.height);
+        fifthQuestPortalDialogueCombinedBounds.set(minX, minY, maxX - minX, maxY - minY);
+        return fifthQuestPortalDialogueCombinedBounds;
+    }
+
+    private boolean setRectangleToFifthQuestPortalDialogueActors(Rectangle out) {
+        if (out == null) {
+            return false;
+        }
+        return setRectangle(out, fifthQuestPortalDialogueCombinedBounds());
     }
 
     private boolean projectDialogueHighlightWorldBounds(Rectangle worldBounds, Rectangle screenBounds) {
@@ -15890,7 +18013,7 @@ public class GameScreen extends ScreenAdapter {
                 drawQuestMarker(batch,
                         sixthQuestSealAInteractBounds.x + sixthQuestSealAInteractBounds.width * 0.5f,
                         sixthQuestSealAInteractBounds.y + sixthQuestSealAInteractBounds.height + 18f + bobOffset,
-                        sixthQuestStage == SIXTH_QUEST_SEAL_A_DESTROY ? "!" : "v",
+                        QUEST_SEAL_MARKER_TEXT,
                         sixthQuestStage == SIXTH_QUEST_SEAL_A_BATTLE,
                         0.96f, 0.36f, 0.24f);
                 return;
@@ -15899,7 +18022,7 @@ public class GameScreen extends ScreenAdapter {
                 drawQuestMarker(batch,
                         sixthQuestSealBInteractBounds.x + sixthQuestSealBInteractBounds.width * 0.5f,
                         sixthQuestSealBInteractBounds.y + sixthQuestSealBInteractBounds.height + 18f + bobOffset,
-                        sixthQuestStage == SIXTH_QUEST_SEAL_B_DESTROY ? "!" : "v",
+                        QUEST_SEAL_MARKER_TEXT,
                         sixthQuestStage == SIXTH_QUEST_SEAL_B_BATTLE,
                         0.96f, 0.36f, 0.24f);
                 return;
@@ -15984,6 +18107,7 @@ public class GameScreen extends ScreenAdapter {
             screenY = clampedY;
         }
         boolean arrowMarker = isQuestArrowMarker(markerText);
+        boolean sealMarker = isQuestSealMarker(markerText);
         float baseScaleX = firstQuestTitleFont.getData().scaleX;
         float baseScaleY = firstQuestTitleFont.getData().scaleY;
         if (arrowMarker) {
@@ -16003,10 +18127,99 @@ public class GameScreen extends ScreenAdapter {
                     screenX, screenY + QUEST_ARROW_MARKER_OUTLINE_OFFSET,
                     0f, 0f, 0f, 0.95f);
         }
-        drawCenteredQuestText(batch, firstQuestTitleFont, markerText, screenX, screenY, r, g, b, 1f);
+        if (sealMarker) {
+            drawSealQuestMarker(batch, screenX, screenY, r, g, b);
+        } else {
+            drawCenteredQuestText(batch, firstQuestTitleFont, markerText, screenX, screenY, r, g, b, 1f);
+        }
         if (arrowMarker) {
             firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
         }
+    }
+
+    private void drawSealQuestMarker(SpriteBatch batch, float centerX, float centerY, float r, float g, float b) {
+        if (batch == null || dayNightOverlayTex == null || abilityCooldownCircleTex == null) {
+            drawCenteredQuestText(batch, firstQuestTitleFont, "!", centerX, centerY, r, g, b, 1f);
+            return;
+        }
+
+        float outerSize = QUEST_SEAL_MARKER_SIZE;
+        float outerX = centerX - outerSize * 0.5f;
+        float outerY = centerY - outerSize * 0.5f;
+        float ringSize = outerSize * 0.74f;
+        float ringX = centerX - ringSize * 0.5f;
+        float ringY = centerY - ringSize * 0.5f;
+        float coreSize = QUEST_SEAL_MARKER_CORE_SIZE;
+        float coreX = centerX - coreSize * 0.5f;
+        float coreY = centerY - coreSize * 0.5f;
+        float glowR = Math.min(1f, r + 0.18f);
+        float glowG = Math.min(1f, g + 0.28f);
+        float glowB = Math.min(1f, b + 0.20f);
+
+        batch.setColor(0f, 0f, 0f, 0.28f);
+        batch.draw(abilityCooldownCircleTex, outerX + 2f, outerY - 2f, outerSize + 2f, outerSize + 2f);
+
+        batch.setColor(r * 0.36f, g * 0.22f, b * 0.24f, 0.96f);
+        batch.draw(abilityCooldownCircleTex, outerX, outerY, outerSize, outerSize);
+
+        batch.setColor(glowR, glowG, glowB, 0.96f);
+        batch.draw(abilityCooldownCircleTex, ringX, ringY, ringSize, ringSize);
+
+        batch.setColor(0.10f, 0.03f, 0.04f, 0.94f);
+        batch.draw(abilityCooldownCircleTex, coreX, coreY, coreSize, coreSize);
+
+        drawSealQuestMarkerRect(batch, centerX, centerY, QUEST_SEAL_MARKER_RUNE_LENGTH,
+                QUEST_SEAL_MARKER_RUNE_THICKNESS, 0f, glowR, glowG, glowB, 0.96f);
+        drawSealQuestMarkerRect(batch, centerX, centerY, QUEST_SEAL_MARKER_RUNE_LENGTH,
+                QUEST_SEAL_MARKER_RUNE_THICKNESS, 90f, glowR, glowG, glowB, 0.96f);
+        drawSealQuestMarkerRect(batch, centerX, centerY, QUEST_SEAL_MARKER_RUNE_LENGTH * 0.82f,
+                QUEST_SEAL_MARKER_RUNE_THICKNESS, 45f, glowR, glowG, glowB, 0.9f);
+        drawSealQuestMarkerRect(batch, centerX, centerY, QUEST_SEAL_MARKER_RUNE_LENGTH * 0.82f,
+                QUEST_SEAL_MARKER_RUNE_THICKNESS, -45f, glowR, glowG, glowB, 0.9f);
+
+        drawSealQuestMarkerRect(batch, centerX, centerY + QUEST_SEAL_MARKER_ORBIT_OFFSET,
+                QUEST_SEAL_MARKER_ORBIT_SIZE, QUEST_SEAL_MARKER_ORBIT_SIZE, 45f, glowR, glowG, glowB, 0.92f);
+        drawSealQuestMarkerRect(batch, centerX + QUEST_SEAL_MARKER_ORBIT_OFFSET, centerY,
+                QUEST_SEAL_MARKER_ORBIT_SIZE, QUEST_SEAL_MARKER_ORBIT_SIZE, 45f, glowR, glowG, glowB, 0.92f);
+        drawSealQuestMarkerRect(batch, centerX, centerY - QUEST_SEAL_MARKER_ORBIT_OFFSET,
+                QUEST_SEAL_MARKER_ORBIT_SIZE, QUEST_SEAL_MARKER_ORBIT_SIZE, 45f, glowR, glowG, glowB, 0.92f);
+        drawSealQuestMarkerRect(batch, centerX - QUEST_SEAL_MARKER_ORBIT_OFFSET, centerY,
+                QUEST_SEAL_MARKER_ORBIT_SIZE, QUEST_SEAL_MARKER_ORBIT_SIZE, 45f, glowR, glowG, glowB, 0.92f);
+
+        batch.setColor(glowR, glowG, glowB, 1f);
+        batch.draw(abilityCooldownCircleTex, centerX - 2f, centerY - 2f, 4f, 4f);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawSealQuestMarkerRect(
+            SpriteBatch batch,
+            float centerX,
+            float centerY,
+            float width,
+            float height,
+            float rotationDegrees,
+            float r,
+            float g,
+            float b,
+            float alpha) {
+        batch.setColor(r, g, b, alpha);
+        batch.draw(
+                dayNightOverlayTex,
+                centerX - width * 0.5f,
+                centerY - height * 0.5f,
+                width * 0.5f,
+                height * 0.5f,
+                width,
+                height,
+                1f,
+                1f,
+                rotationDegrees,
+                0,
+                0,
+                1,
+                1,
+                false,
+                false);
     }
 
     private boolean isQuestArrowMarker(String markerText) {
@@ -16014,6 +18227,10 @@ public class GameScreen extends ScreenAdapter {
                 || "<".equals(markerText)
                 || "^".equals(markerText)
                 || "v".equals(markerText);
+    }
+
+    private boolean isQuestSealMarker(String markerText) {
+        return QUEST_SEAL_MARKER_TEXT.equals(markerText);
     }
 
     private void drawFirstQuestPrompt(SpriteBatch batch) {
@@ -16104,7 +18321,7 @@ public class GameScreen extends ScreenAdapter {
             return switch (fourthQuestStage) {
                 case FOURTH_QUEST_REPORT_TO_SCIENTIST -> "Report the fresh burn marks to the scientist.";
                 case FOURTH_QUEST_TALK_TO_CAFE_OWNER, FOURTH_QUEST_EXAMINE_CAFE_MARK, FOURTH_QUEST_CAFE_BATTLE ->
-                        "Investigate the corruption outside the cafe.";
+                        "Investigate the corruption outside the bakery.";
                 case FOURTH_QUEST_EXAMINE_CENTER_MARK, FOURTH_QUEST_CENTER_BATTLE ->
                         "Investigate the corruption in the village center.";
                 case FOURTH_QUEST_EXAMINE_EDGE_MARK, FOURTH_QUEST_EDGE_BATTLE ->
@@ -16137,7 +18354,7 @@ public class GameScreen extends ScreenAdapter {
         }
         if (secondQuestStage > SECOND_QUEST_DISABLED) {
             return switch (secondQuestStage) {
-                case SECOND_QUEST_TALK_TO_CAFE_OWNER -> "Speak with the cafe owner outside the cafe.";
+                case SECOND_QUEST_TALK_TO_CAFE_OWNER -> "Speak with the bakery owner outside the bakery.";
                 case SECOND_QUEST_TAKE_FRAGMENT_TO_SCIENTIST -> "Bring the Scorched Fragment to the scientist.";
                 case SECOND_QUEST_RETRIEVE_ARCHIVE_NOTES -> "Retrieve the Archive Notes from Floor 2.";
                 case SECOND_QUEST_RETURN_TO_SCIENTIST -> "Return the Archive Notes to the scientist.";
@@ -16147,7 +18364,7 @@ public class GameScreen extends ScreenAdapter {
         if (firstQuestStage > FIRST_QUEST_DISABLED) {
             return switch (firstQuestStage) {
                 case FIRST_QUEST_TALK_TO_FATHER -> "Speak with Father in the inn room.";
-                case FIRST_QUEST_DELIVER_TO_CAFE -> "Deliver the Herb-and-Spice to the cafe owner.";
+                case FIRST_QUEST_DELIVER_TO_CAFE -> "Deliver the Herb-and-Spice to the bakery owner.";
                 default -> "Help Father with his request.";
             };
         }
@@ -16546,16 +18763,13 @@ public class GameScreen extends ScreenAdapter {
             firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
         }
 
-        String line = activeQuestDialogueLines.length == 0
-                ? ""
-                : activeQuestDialogueLines[Math.max(0,
-                Math.min(activeQuestDialogueLines.length - 1, firstQuestDialogueLineIndex))];
+        String line = visibleQuestDialogueLine();
         drawWrappedQuestText(batch, firstQuestBodyFont, line,
                 panelX + 60f, panelY + panelHeight - 90f, panelWidth - 120f,
                 0.92f, 0.90f, 0.86f, 1f);
         drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
                 uiCamera.viewportWidth * 0.5f,
-                panelY + 34f,
+                panelY + 26f,
                 0.76f, 0.72f, 0.66f, 1f);
     }
 
@@ -16592,10 +18806,7 @@ public class GameScreen extends ScreenAdapter {
             firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
         }
 
-        String line = activeQuestDialogueLines.length == 0
-                ? ""
-                : activeQuestDialogueLines[Math.max(0,
-                Math.min(activeQuestDialogueLines.length - 1, firstQuestDialogueLineIndex))];
+        String line = visibleQuestDialogueLine();
         float baseBodyScaleX = firstQuestBodyFont == null ? 1f : firstQuestBodyFont.getData().scaleX;
         float baseBodyScaleY = firstQuestBodyFont == null ? 1f : firstQuestBodyFont.getData().scaleY;
         if (firstQuestBodyFont != null) {
@@ -16619,7 +18830,7 @@ public class GameScreen extends ScreenAdapter {
                 drawX + drawWidth - FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_RIGHT_PADDING * scale
                         + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_X,
                 drawY + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_BOTTOM_PADDING * scale
-                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y,
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y - 8f,
                 0.44f, 0.33f, 0.20f, 1f);
     }
 
@@ -16654,7 +18865,8 @@ public class GameScreen extends ScreenAdapter {
             drawCenteredQuestText(batch, firstQuestTitleFont, "Portal",
                     drawX + drawWidth * SIXTH_QUEST_PORTAL_CHOICE_TITLE_CENTER_X_RATIO,
                     drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TITLE_BASELINE_FROM_TOP * scale
-                            + SIXTH_QUEST_PORTAL_CHOICE_TITLE_OFFSET_Y,
+                            + SIXTH_QUEST_PORTAL_CHOICE_TITLE_OFFSET_Y
+                            + SIXTH_QUEST_PORTAL_CHOICE_TITLE_EXTRA_OFFSET_Y,
                     0.94f, 0.90f, 0.78f, 1f);
             firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
         }
@@ -16663,7 +18875,8 @@ public class GameScreen extends ScreenAdapter {
         drawWrappedQuestTextAligned(batch, firstQuestBodyFont, portalPrompt,
                 drawX + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT * scale + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_X,
                 drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TEXT_TOP_FROM_TOP * scale
-                        + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_Y,
+                        + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_Y
+                        + SIXTH_QUEST_PORTAL_CHOICE_TEXT_EXTRA_OFFSET_Y,
                 drawWidth - (SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT
                 + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_RIGHT) * scale,
                 Align.left,
@@ -16671,7 +18884,8 @@ public class GameScreen extends ScreenAdapter {
 
         float buttonWidth = SIXTH_QUEST_PORTAL_CHOICE_BUTTON_WIDTH * scale;
         float buttonHeight = SIXTH_QUEST_PORTAL_CHOICE_BUTTON_HEIGHT * scale;
-        float buttonY = drawY + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING * scale;
+        float buttonY = drawY + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING * scale
+                + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_EXTRA_OFFSET_Y;
         float centerX = drawX + drawWidth * 0.5f;
         sixthQuestPortalChoiceYesBounds.set(
                 centerX - SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP * 0.5f * scale - buttonWidth,
@@ -16683,8 +18897,97 @@ public class GameScreen extends ScreenAdapter {
                 buttonY,
                 buttonWidth,
                 buttonHeight);
-        drawSixthQuestPortalChoiceButton(batch, sixthQuestPortalChoiceYesBounds, "Yes", sixthQuestPortalChoiceIndex == 0);
-        drawSixthQuestPortalChoiceButton(batch, sixthQuestPortalChoiceNoBounds, "No", sixthQuestPortalChoiceIndex == 1);
+        drawSixthQuestPortalChoiceButton(batch,
+                sixthQuestPortalChoiceYesBounds,
+                "Yes",
+                sixthQuestPortalChoiceIndex == 0,
+                SIXTH_QUEST_PORTAL_CHOICE_BUTTON_TEXT_SCALE);
+        drawSixthQuestPortalChoiceButton(batch,
+                sixthQuestPortalChoiceNoBounds,
+                "No",
+                sixthQuestPortalChoiceIndex == 1,
+                SIXTH_QUEST_PORTAL_CHOICE_BUTTON_TEXT_SCALE);
+
+        drawCenteredQuestText(batch, firstQuestHintFont, "Choose with Left/Right, Enter, or click",
+                drawX + drawWidth - SIXTH_QUEST_PORTAL_CHOICE_HINT_RIGHT_PADDING * scale
+                        + SIXTH_QUEST_PORTAL_CHOICE_HINT_EXTRA_OFFSET_X,
+                drawY + SIXTH_QUEST_PORTAL_CHOICE_HINT_BOTTOM_PADDING * scale
+                        + SIXTH_QUEST_PORTAL_CHOICE_HINT_EXTRA_OFFSET_Y,
+                0.44f, 0.33f, 0.20f, 1f);
+    }
+
+    private void drawFifthQuestDeathChoiceOverlay(SpriteBatch batch) {
+        if (uiCamera == null) {
+            return;
+        }
+        float drawWidth = Math.min(uiCamera.viewportWidth * SIXTH_QUEST_PORTAL_CHOICE_BOX_WIDTH_RATIO,
+                SIXTH_QUEST_PORTAL_CHOICE_BOX_MAX_WIDTH);
+        float drawHeight;
+        float drawX = (uiCamera.viewportWidth - drawWidth) * 0.5f;
+        float drawY = SIXTH_QUEST_PORTAL_CHOICE_BOX_BOTTOM_MARGIN;
+        if (firstQuestFatherDialogueBoxTex != null) {
+            float aspectRatio = firstQuestFatherDialogueBoxTex.getHeight() / (float) firstQuestFatherDialogueBoxTex.getWidth();
+            drawHeight = drawWidth * aspectRatio;
+            batch.setColor(1f, 1f, 1f, 1f);
+            batch.draw(firstQuestFatherDialogueBoxTex, drawX, drawY, drawWidth, drawHeight);
+        } else {
+            drawHeight = Math.min(uiCamera.viewportHeight * 0.42f, 320f);
+            drawQuestPanel(batch, drawX, drawY, drawWidth, drawHeight);
+        }
+        float scale = firstQuestFatherDialogueBoxTex != null
+                ? drawWidth / firstQuestFatherDialogueBoxTex.getWidth()
+                : 1f;
+
+        if (firstQuestTitleFont != null) {
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * FIRST_QUEST_OVERLAY_HEADER_SCALE * 1.55f,
+                    baseScaleY * FIRST_QUEST_OVERLAY_HEADER_SCALE * 1.55f);
+            drawCenteredQuestText(batch, firstQuestTitleFont, FIFTH_QUEST_NOTIFICATION_TITLE,
+                    drawX + drawWidth * SIXTH_QUEST_PORTAL_CHOICE_TITLE_CENTER_X_RATIO,
+                    drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TITLE_BASELINE_FROM_TOP * scale
+                            + SIXTH_QUEST_PORTAL_CHOICE_TITLE_OFFSET_Y,
+                    0.94f, 0.90f, 0.78f, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+        }
+
+        String prompt = "You fell in the abandoned village. Redo the entire quest, or restart from the first fight?";
+        drawWrappedQuestTextAligned(batch, firstQuestBodyFont, prompt,
+                drawX + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT * scale + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_X,
+                drawY + drawHeight - SIXTH_QUEST_PORTAL_CHOICE_TEXT_TOP_FROM_TOP * scale
+                        + SIXTH_QUEST_PORTAL_CHOICE_TEXT_OFFSET_Y,
+                drawWidth - (SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_LEFT
+                + SIXTH_QUEST_PORTAL_CHOICE_TEXT_PADDING_RIGHT) * scale,
+                Align.left,
+                0.27f, 0.19f, 0.09f, 1f);
+
+        float buttonWidth = 184f * scale;
+        float buttonHeight = SIXTH_QUEST_PORTAL_CHOICE_BUTTON_HEIGHT * scale;
+        float buttonY = drawY + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_BOTTOM_PADDING * scale;
+        float centerX = drawX + drawWidth * 0.5f;
+        fifthQuestDeathChoiceQuestBounds.set(
+                centerX - SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP * 0.5f * scale - buttonWidth,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+        fifthQuestDeathChoiceFightBounds.set(
+                centerX + SIXTH_QUEST_PORTAL_CHOICE_BUTTON_GAP * 0.5f * scale,
+                buttonY,
+                buttonWidth,
+                buttonHeight);
+        drawSixthQuestPortalChoiceButton(
+                batch,
+                fifthQuestDeathChoiceQuestBounds,
+                "Entire Quest",
+                fifthQuestDeathChoiceIndex == 0,
+                1f);
+        drawSixthQuestPortalChoiceButton(
+                batch,
+                fifthQuestDeathChoiceFightBounds,
+                "Fight Only",
+                fifthQuestDeathChoiceIndex == 1,
+                1f);
 
         drawCenteredQuestText(batch, firstQuestHintFont, "Choose with Left/Right, Enter, or click",
                 drawX + drawWidth - SIXTH_QUEST_PORTAL_CHOICE_HINT_RIGHT_PADDING * scale,
@@ -16692,7 +18995,11 @@ public class GameScreen extends ScreenAdapter {
                 0.44f, 0.33f, 0.20f, 1f);
     }
 
-    private void drawSixthQuestPortalChoiceButton(SpriteBatch batch, Rectangle bounds, String text, boolean selected) {
+    private void drawSixthQuestPortalChoiceButton(SpriteBatch batch,
+                                                  Rectangle bounds,
+                                                  String text,
+                                                  boolean selected,
+                                                  float textScaleMultiplier) {
         if (batch == null || bounds == null || dayNightOverlayTex == null) {
             return;
         }
@@ -16704,13 +19011,21 @@ public class GameScreen extends ScreenAdapter {
         batch.draw(dayNightOverlayTex, bounds.x, bounds.y, bounds.width, bounds.height);
         batch.setColor(selected ? 0.88f : 0.44f, selected ? 0.70f : 0.31f, selected ? 0.30f : 0.16f, 0.95f);
         drawQuestRectOutline(batch, bounds, 2f);
-        drawCenteredQuestText(batch, firstQuestBodyFont, text,
-                bounds.x + bounds.width * 0.5f,
-                bounds.y + bounds.height * 0.65f,
-                selected ? 0.24f : 0.92f,
-                selected ? 0.16f : 0.88f,
-                selected ? 0.07f : 0.80f,
-                1f);
+        if (firstQuestBodyFont != null) {
+            float baseScaleX = firstQuestBodyFont.getData().scaleX;
+            float baseScaleY = firstQuestBodyFont.getData().scaleY;
+            firstQuestBodyFont.getData().setScale(
+                    baseScaleX * textScaleMultiplier,
+                    baseScaleY * textScaleMultiplier);
+            drawCenteredQuestText(batch, firstQuestBodyFont, text,
+                    bounds.x + bounds.width * 0.5f,
+                    bounds.y + bounds.height * 0.65f,
+                    selected ? 0.24f : 0.92f,
+                    selected ? 0.16f : 0.88f,
+                    selected ? 0.07f : 0.80f,
+                    1f);
+            firstQuestBodyFont.getData().setScale(baseScaleX, baseScaleY);
+        }
         batch.setColor(1f, 1f, 1f, 1f);
     }
 
@@ -16731,11 +19046,12 @@ public class GameScreen extends ScreenAdapter {
         float panelY = (uiCamera.viewportHeight - panelHeight) * 0.5f - 12f;
         drawQuestPanel(batch, panelX, panelY, panelWidth, panelHeight);
         boolean hasItemTitle = activeQuestItemTitle != null && !activeQuestItemTitle.isBlank();
+        boolean useReferenceItemCardLayout = usesReferenceItemCardLayout();
         if (firstQuestTitleFont != null && hasItemTitle) {
             float baseScaleX = firstQuestTitleFont.getData().scaleX;
             float baseScaleY = firstQuestTitleFont.getData().scaleY;
-            float titleScaleMultiplier = itemCardTitleScaleMultiplier();
-            float titleOffsetY = itemCardTitleOffsetY();
+            float titleScaleMultiplier = useReferenceItemCardLayout ? 1f : itemCardTitleScaleMultiplier();
+            float titleOffsetY = useReferenceItemCardLayout ? 0f : itemCardTitleOffsetY();
             firstQuestTitleFont.getData().setScale(
                     baseScaleX * activeQuestItemTitleScale * titleScaleMultiplier,
                     baseScaleY * activeQuestItemTitleScale * titleScaleMultiplier);
@@ -16747,29 +19063,159 @@ public class GameScreen extends ScreenAdapter {
         }
 
         if (activeQuestItemTexture != null) {
-            float maxImageWidth = hasItemTitle ? panelWidth * 0.42f : panelWidth * 0.68f;
-            float maxImageHeight = hasItemTitle ? panelHeight * 0.44f : panelHeight * 0.54f;
+            float maxImageWidth = panelWidth * 0.42f;
+            float maxImageHeight = panelHeight * 0.44f;
             float scale = Math.min(maxImageWidth / activeQuestItemTexture.getWidth(),
                     maxImageHeight / activeQuestItemTexture.getHeight());
             float drawWidth = activeQuestItemTexture.getWidth() * scale;
             float drawHeight = activeQuestItemTexture.getHeight() * scale;
             float drawCenterX = panelX + panelWidth * 0.5f;
-            float drawCenterY = panelY + panelHeight * (hasItemTitle ? 0.42f : 0.48f) + drawHeight * 0.5f;
+            float drawCenterY = panelY + panelHeight * 0.42f + drawHeight * 0.5f;
             drawWidth *= activeQuestItemImageScaleMultiplier;
             drawHeight *= activeQuestItemImageScaleMultiplier;
             float drawX = drawCenterX - drawWidth * 0.5f;
-            float drawY = drawCenterY - drawHeight * 0.5f + itemCardImageOffsetY();
+            float drawY = drawCenterY - drawHeight * 0.5f;
             batch.setColor(1f, 1f, 1f, 1f);
             batch.draw(activeQuestItemTexture, drawX, drawY, drawWidth, drawHeight);
         }
 
+        float descriptionOffsetY = useReferenceItemCardLayout ? -20f : activeQuestItemDescriptionOffsetY;
+        float hintOffsetY = useReferenceItemCardLayout ? 0f : activeQuestItemHintOffsetY;
         drawWrappedQuestText(batch, firstQuestBodyFont, activeQuestItemDescription,
-                panelX + 52f, panelY + panelHeight * 0.36f + activeQuestItemDescriptionOffsetY, panelWidth - 104f,
+                panelX + 52f, panelY + panelHeight * 0.36f + descriptionOffsetY, panelWidth - 104f,
                 0.92f, 0.90f, 0.86f, 1f);
         drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
                 uiCamera.viewportWidth * 0.5f,
-                panelY + 54f + activeQuestItemHintOffsetY,
+                panelY + 44f + hintOffsetY,
                 0.76f, 0.72f, 0.66f, 1f);
+    }
+
+    private boolean usesReferenceItemCardLayout() {
+        return activeQuestItemTexture != null
+                || activeQuestItemCardId == QuestItemCardId.FOURTH_QUEST_SPATIAL_DASH_UNLOCKED;
+    }
+
+    private void drawAbilityCooldownUi() {
+        if (batch == null
+                || uiCamera == null
+                || abilityCooldownCircleTex == null
+                || firstQuestHintFont == null
+                || firstQuestLayout == null
+                || (hudRenderer != null && hudRenderer.isMainMenuVisible())
+                || isFirstQuestOverlayActive()) {
+            return;
+        }
+
+        boolean showDashAttack = isDashAttackUnlocked();
+        boolean showSpatialDash = isSpatialDashUnlocked();
+        int visibleCount = (showDashAttack ? 1 : 0) + (showSpatialDash ? 1 : 0);
+        if (visibleCount <= 0) {
+            return;
+        }
+
+        uiCamera.update();
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        batch.setShader(null);
+
+        float totalWidth = visibleCount * ABILITY_COOLDOWN_ICON_SIZE
+                + Math.max(0, visibleCount - 1) * ABILITY_COOLDOWN_ICON_GAP;
+        float centerX = uiCamera.viewportWidth - ABILITY_COOLDOWN_MARGIN_RIGHT - totalWidth + ABILITY_COOLDOWN_ICON_SIZE * 0.5f;
+        float centerY = ABILITY_COOLDOWN_MARGIN_BOTTOM + ABILITY_COOLDOWN_ICON_SIZE * 0.5f;
+
+        if (showDashAttack) {
+            drawAbilityCooldownIndicator(
+                    centerX,
+                    centerY,
+                    "E",
+                    "E",
+                    dashAttackAbilityCooldownTimer,
+                    DASH_ATTACK_ABILITY_COOLDOWN_SECONDS,
+                    0.86f, 0.62f, 0.28f);
+            centerX += ABILITY_COOLDOWN_ICON_SIZE + ABILITY_COOLDOWN_ICON_GAP;
+        }
+        if (showSpatialDash) {
+            drawAbilityCooldownIndicator(
+                    centerX,
+                    centerY,
+                    "R",
+                    "RMB",
+                    spatialDashAbilityCooldownTimer,
+                    SPATIAL_DASH_ABILITY_COOLDOWN_SECONDS,
+                    0.42f, 0.72f, 0.92f);
+        }
+
+        batch.end();
+    }
+
+    private void drawAbilityCooldownIndicator(
+            float centerX,
+            float centerY,
+            String readyText,
+            String caption,
+            float cooldownRemaining,
+            float cooldownDuration,
+            float readyR,
+            float readyG,
+            float readyB) {
+        float size = ABILITY_COOLDOWN_ICON_SIZE;
+        float drawX = centerX - size * 0.5f;
+        float drawY = centerY - size * 0.5f;
+
+        batch.setColor(0f, 0f, 0f, 0.32f);
+        batch.draw(abilityCooldownCircleTex, drawX + 2f, drawY - 2f, size, size);
+        batch.setColor(0.10f, 0.10f, 0.10f, 0.86f);
+        batch.draw(abilityCooldownCircleTex, drawX, drawY, size, size);
+        batch.setColor(readyR, readyG, readyB, cooldownRemaining > 0f ? 0.24f : 0.92f);
+        batch.draw(abilityCooldownCircleTex, drawX + 2f, drawY + 2f, size - 4f, size - 4f);
+
+        if (cooldownRemaining > 0f) {
+            float ratio = clamp01(cooldownRemaining / Math.max(0.001f, cooldownDuration));
+            int srcHeight = Math.max(1, Math.round(abilityCooldownCircleTex.getHeight() * ratio));
+            float overlayHeight = size * ratio;
+            batch.setColor(0f, 0f, 0f, 0.72f);
+            batch.draw(
+                    abilityCooldownCircleTex,
+                    drawX,
+                    drawY + size - overlayHeight,
+                    size,
+                    overlayHeight,
+                    0,
+                    abilityCooldownCircleTex.getHeight() - srcHeight,
+                    abilityCooldownCircleTex.getWidth(),
+                    srcHeight,
+                    false,
+                    false);
+        }
+
+        float baseScaleX = firstQuestHintFont.getData().scaleX;
+        float baseScaleY = firstQuestHintFont.getData().scaleY;
+        String innerText = cooldownRemaining > 0f
+                ? Integer.toString(Math.max(1, (int) Math.ceil(cooldownRemaining)))
+                : readyText;
+
+        firstQuestHintFont.getData().setScale(baseScaleX * (cooldownRemaining > 0f ? 0.92f : 1f),
+                baseScaleY * (cooldownRemaining > 0f ? 0.92f : 1f));
+        firstQuestHintFont.setColor(0.98f, 0.96f, 0.92f, 1f);
+        firstQuestLayout.setText(firstQuestHintFont, innerText);
+        firstQuestHintFont.draw(
+                batch,
+                firstQuestLayout,
+                centerX - firstQuestLayout.width * 0.5f,
+                centerY + firstQuestLayout.height * 0.32f);
+
+        firstQuestHintFont.getData().setScale(baseScaleX * 0.56f, baseScaleY * 0.56f);
+        firstQuestHintFont.setColor(0.84f, 0.80f, 0.74f, 0.98f);
+        firstQuestLayout.setText(firstQuestHintFont, caption);
+        firstQuestHintFont.draw(
+                batch,
+                firstQuestLayout,
+                centerX - firstQuestLayout.width * 0.5f,
+                drawY - 4f + firstQuestLayout.height);
+
+        firstQuestHintFont.setColor(1f, 1f, 1f, 1f);
+        firstQuestHintFont.getData().setScale(baseScaleX, baseScaleY);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private float itemCardTitleScaleMultiplier() {
@@ -17431,6 +19877,16 @@ public class GameScreen extends ScreenAdapter {
 
     private boolean isDashAttackAnimationActive() {
         return player.attacking && isTeleportDashAnimation(activeAttackAnim);
+    }
+
+    private float currentPlayerAttackDamageMultiplier() {
+        if (activeAttackAnim == dashAttackAnim) {
+            return DASH_ATTACK_DAMAGE_MULTIPLIER;
+        }
+        if (activeAttackAnim == spetialDashAnim) {
+            return SPATIAL_DASH_DAMAGE_MULTIPLIER;
+        }
+        return 1f;
     }
 
     private boolean isTeleportDashAnimation(Animation<TextureRegion> animation) {

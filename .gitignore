@@ -28,3 +28,7 @@ out/
 
 # Local Gradle distribution archive
 gradle-*-bin.zip
+
+# Local runtime artifacts
+/desktop/saves/
+/Subtitles-RPG.mp4

@@ -368,7 +368,7 @@ public class MainMenuScreen extends ScreenAdapter {
         queuedAction = null;
         queuedActionDelay = 0f;
         if (action == MenuAction.START_GAME) {
-            game.startGame();
+            game.startNewGame();
             return;
         }
         if (action == MenuAction.LOAD_GAME) {

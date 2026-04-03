@@ -61,8 +61,7 @@ public class PixelRpgGame extends Game {
     }
 
     public void startGame() {
-        stopPersistentMusic(true);
-        replaceScreen(new CharacterNameScreen(this));
+        startNewGame();
     }
 
     public void confirmNewGameCharacterName(String characterName) {
@@ -90,7 +89,9 @@ public class PixelRpgGame extends Game {
     }
 
     public void startNewGame() {
-        startGame();
+        pendingNewGameCharacterName = DEFAULT_CHARACTER_NAME;
+        stopPersistentMusic(true);
+        replaceScreen(new CharacterNameScreen(this));
     }
 
     public void startGameAfterIntro() {

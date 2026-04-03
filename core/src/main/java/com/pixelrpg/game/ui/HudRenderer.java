@@ -91,24 +91,42 @@ public class HudRenderer {
     private static final String QUEST_PANEL_CLOSED_PATH = "ui/objectives/Panel Closed.png";
     private static final String QUEST_PANEL_ICON_OPEN_PATH = "ui/objectives/Icons/IconOpen.png";
     private static final String QUEST_PANEL_ICON_CLOSE_PATH = "ui/objectives/Icons/IconClose.png";
+    private static final String QUEST_PANEL_SEPARATOR_PATH = "ui/objectives/Separator.png";
+    private static final String QUEST_PANEL_TITLE_SEPARATOR_PATH = "ui/objectives/Separator2.png";
     private static final float QUEST_PANEL_MAX_HEIGHT_RATIO = 1f;
     private static final float QUEST_PANEL_SIDE_MARGIN = 0f;
     private static final float QUEST_PANEL_VERTICAL_OFFSET = 0f;
     private static final float QUEST_PANEL_TEXT_LEFT_PADDING = 92f;
     private static final float QUEST_PANEL_TEXT_RIGHT_PADDING = 20f;
     private static final int QUEST_PANEL_HEADER_FONT_SIZE = 15;
-    private static final int QUEST_PANEL_QUEST_TITLE_FONT_SIZE = 13;
-    private static final int QUEST_PANEL_PROMPT_FONT_SIZE = 13;
     private static final float QUEST_PANEL_HEADER_TOP_OFFSET = 15f;
     private static final float QUEST_PANEL_HEADER_SCALE = 1.05f;
-    private static final float QUEST_PANEL_QUEST_TITLE_BASELINE_TOP_OFFSET = 96f;
-    private static final float QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT = 46f;
-    private static final float QUEST_PANEL_QUEST_TITLE_SCALE = 1.0f;
-    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BASELINE_TOP_OFFSET = 146f;
-    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BOTTOM_OFFSET = 52f;
-    private static final float QUEST_PANEL_OBJECTIVE_TEXT_SCALE = 0.92f;
-    private static final float QUEST_PANEL_AREA_BASELINE_OFFSET_Y = 108f;
-    private static final float QUEST_PANEL_AREA_TEXT_SCALE = 1.0f;
+    private static final float QUEST_PANEL_SUBHEADER_BASELINE_TOP_OFFSET = 60f;
+    private static final float QUEST_PANEL_SUBHEADER_SCALE = 0.90f;
+    private static final float QUEST_PANEL_SUBHEADER_RULE_OFFSET_Y = 18f;
+    private static final float QUEST_PANEL_SUBHEADER_RULE_EXTRA_OFFSET_Y = -2f;
+    private static final float QUEST_PANEL_SEPARATOR_SCALE = 1.3f;
+    private static final float QUEST_PANEL_TITLE_SEPARATOR_SCALE = 0.55f;
+    private static final float QUEST_PANEL_QUEST_TITLE_BASELINE_TOP_OFFSET = 101f;
+    private static final float QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT = 52f;
+    private static final float QUEST_PANEL_QUEST_TITLE_SCALE = 1.18f;
+    private static final float QUEST_PANEL_QUEST_TITLE_RULE_OFFSET_Y = 18f;
+    private static final float QUEST_PANEL_TITLE_SEPARATOR_OFFSET_Y = -14f;
+    private static final float QUEST_PANEL_OBJECTIVE_MARKER_LEFT_OFFSET = -43f;
+    private static final float QUEST_PANEL_OBJECTIVE_MARKER_BASELINE_TOP_OFFSET = 165f;
+    private static final float QUEST_PANEL_OBJECTIVE_MARKER_SCALE = 1.06f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_LEFT_INSET = -25f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BASELINE_TOP_OFFSET = 171f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_BOTTOM_OFFSET = 188f;
+    private static final float QUEST_PANEL_OBJECTIVE_TEXT_SCALE = 0.7496f;
+    private static final float QUEST_PANEL_AREA_RULE_OFFSET_Y = -22f;
+    private static final float QUEST_PANEL_AREA_OFFSET_X = 20f;
+    private static final float QUEST_PANEL_AREA_OFFSET_Y = 60f;
+    private static final float QUEST_PANEL_AREA_BASELINE_OFFSET_Y = 104f;
+    private static final float QUEST_PANEL_AREA_TEXT_SCALE = 1.08f;
+    private static final float QUEST_PANEL_TEXT_SHADOW_OFFSET_X = 0.75f;
+    private static final float QUEST_PANEL_TEXT_SHADOW_OFFSET_Y = -0.75f;
+    private static final float QUEST_PANEL_TEXT_SHADOW_ALPHA = 0.48f;
     private static final float QUEST_PANEL_ICON_OFFSET_X = 22f;
     private static final float QUEST_PANEL_ICON_OFFSET_Y = 16f;
     private static final float QUEST_PANEL_HEADER_CENTER_X_RATIO = 0.51f;
@@ -116,6 +134,7 @@ public class HudRenderer {
     private static final float QUEST_PANEL_TOGGLE_HITBOX_WIDTH = 60f;
     private static final float QUEST_PANEL_TOGGLE_HITBOX_HEIGHT = 44f;
     private static final float QUEST_PANEL_CLOSED_X_OFFSET = -6f;
+    private static final float QUEST_PANEL_CENTER_GUIDE_OFFSET_X = 15f;
     private static final float BOSS_HUD_BAR_WIDTH = 320f;
     private static final float BOSS_HUD_BAR_TOP_MARGIN = 18f;
     private static final float BOSS_HUD_BAR_HEIGHT_SCALE = 1.0f;
@@ -142,8 +161,6 @@ public class HudRenderer {
     private BitmapFont uiMainMenuTabFont;
     private BitmapFont uiMainMenuBodyFont;
     private BitmapFont uiQuestPanelHeaderFont;
-    private BitmapFont uiQuestPanelQuestTitleFont;
-    private BitmapFont uiQuestPanelPromptFont;
     private GlyphLayout uiLayout;
 
     private Texture uiOverlayBackTex;
@@ -168,6 +185,8 @@ public class HudRenderer {
     private Texture uiQuestPanelClosedTex;
     private Texture uiQuestPanelIconOpenTex;
     private Texture uiQuestPanelIconCloseTex;
+    private Texture uiQuestPanelSeparatorTex;
+    private Texture uiQuestPanelTitleSeparatorTex;
 
     private final GameSettingsService settingsService;
     private String topNotificationTitle;
@@ -234,8 +253,7 @@ public class HudRenderer {
         uiMainMenuTabFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, MAIN_MENU_TAB_FONT_SIZE);
         uiMainMenuBodyFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, MAIN_MENU_BODY_FONT_SIZE);
         uiQuestPanelHeaderFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_HEADER_FONT_SIZE);
-        uiQuestPanelQuestTitleFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_QUEST_TITLE_FONT_SIZE);
-        uiQuestPanelPromptFont = loadUiFont(BERRY_ROTUNDA_FONT_PATH, QUEST_PANEL_PROMPT_FONT_SIZE);
+        uiQuestPanelHeaderFont.setUseIntegerPositions(false);
         uiLayout = new GlyphLayout();
 
         uiOverlayBackTex = loadRequiredTexture("ui/character_player/Overlay Border + Overlay Level.png");
@@ -260,6 +278,8 @@ public class HudRenderer {
         uiQuestPanelClosedTex = loadOptionalTexture(QUEST_PANEL_CLOSED_PATH);
         uiQuestPanelIconOpenTex = loadOptionalTexture(QUEST_PANEL_ICON_OPEN_PATH);
         uiQuestPanelIconCloseTex = loadOptionalTexture(QUEST_PANEL_ICON_CLOSE_PATH);
+        uiQuestPanelSeparatorTex = loadOptionalTexture(QUEST_PANEL_SEPARATOR_PATH);
+        uiQuestPanelTitleSeparatorTex = loadOptionalTexture(QUEST_PANEL_TITLE_SEPARATOR_PATH);
 
         uiOverlayBackTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         uiAvatarTex.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
@@ -281,6 +301,12 @@ public class HudRenderer {
         setNearestFilter(uiQuestPanelClosedTex);
         setNearestFilter(uiQuestPanelIconOpenTex);
         setNearestFilter(uiQuestPanelIconCloseTex);
+        if (uiQuestPanelSeparatorTex != null) {
+            uiQuestPanelSeparatorTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        }
+        if (uiQuestPanelTitleSeparatorTex != null) {
+            uiQuestPanelTitleSeparatorTex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        }
     }
 
     public void resize(int width, int height) {
@@ -815,8 +841,6 @@ public class HudRenderer {
         if (uiMainMenuTabFont != null) uiMainMenuTabFont.dispose();
         if (uiMainMenuBodyFont != null) uiMainMenuBodyFont.dispose();
         if (uiQuestPanelHeaderFont != null) uiQuestPanelHeaderFont.dispose();
-        if (uiQuestPanelQuestTitleFont != null) uiQuestPanelQuestTitleFont.dispose();
-        if (uiQuestPanelPromptFont != null) uiQuestPanelPromptFont.dispose();
         if (uiOverlayBackTex != null) uiOverlayBackTex.dispose();
         if (uiOverlayBorderTex != null) uiOverlayBorderTex.dispose();
         if (uiLevelBadgeTex != null) uiLevelBadgeTex.dispose();
@@ -839,6 +863,8 @@ public class HudRenderer {
         if (uiQuestPanelClosedTex != null) uiQuestPanelClosedTex.dispose();
         if (uiQuestPanelIconOpenTex != null) uiQuestPanelIconOpenTex.dispose();
         if (uiQuestPanelIconCloseTex != null) uiQuestPanelIconCloseTex.dispose();
+        if (uiQuestPanelSeparatorTex != null) uiQuestPanelSeparatorTex.dispose();
+        if (uiQuestPanelTitleSeparatorTex != null) uiQuestPanelTitleSeparatorTex.dispose();
     }
 
     private void drawBarBackground(SpriteBatch batch, float x, float y, float width, float height) {
@@ -938,8 +964,6 @@ public class HudRenderer {
                 || uiCamera == null
                 || uiQuestPanelTex == null
                 || uiQuestPanelHeaderFont == null
-                || uiQuestPanelQuestTitleFont == null
-                || uiQuestPanelPromptFont == null
                 || uiLayout == null
                 || questTitle == null
                 || questTitle.isBlank()
@@ -962,6 +986,7 @@ public class HudRenderer {
         float panelTopY = openPanelY + openDrawHeight;
         float panelY = panelTopY - drawHeight;
         float panelCenterX = panelX + drawWidth * 0.5f;
+        float objectivesCenterX = panelCenterX + QUEST_PANEL_CENTER_GUIDE_OFFSET_X * scale;
         questPanelBounds.set(panelX, panelY, drawWidth, drawHeight);
         questPanelToggleBounds.set(
                 panelX,
@@ -988,34 +1013,94 @@ public class HudRenderer {
         float contentX = panelX + QUEST_PANEL_TEXT_LEFT_PADDING * scale;
         float contentWidth = drawWidth - (QUEST_PANEL_TEXT_LEFT_PADDING + QUEST_PANEL_TEXT_RIGHT_PADDING) * scale;
         float questHeaderBaselineY = panelY + drawHeight - QUEST_PANEL_HEADER_TOP_OFFSET * scale;
+        float subheaderBaselineY = panelY + drawHeight - QUEST_PANEL_SUBHEADER_BASELINE_TOP_OFFSET * scale;
         float questTitleBaselineY = panelY + drawHeight - QUEST_PANEL_QUEST_TITLE_BASELINE_TOP_OFFSET * scale;
+        float objectiveMarkerBaselineY = panelY + drawHeight - QUEST_PANEL_OBJECTIVE_MARKER_BASELINE_TOP_OFFSET * scale;
         float objectiveTextBaselineY = panelY + drawHeight - QUEST_PANEL_OBJECTIVE_TEXT_BASELINE_TOP_OFFSET * scale;
         float objectiveTextBottomY = panelY + QUEST_PANEL_OBJECTIVE_TEXT_BOTTOM_OFFSET * scale;
-        float regionBaselineY = panelY + QUEST_PANEL_AREA_BASELINE_OFFSET_Y * scale;
-
-        drawMenuCenteredTextScaled(batch, uiQuestPanelHeaderFont, "Objectives",
-                panelCenterX, questHeaderBaselineY,
-                0.84f, 0.84f, 0.84f, 1f,
-                QUEST_PANEL_HEADER_SCALE);
-        drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont, questTitle,
-                new Rectangle(contentX, questTitleBaselineY - 30f * scale, contentWidth, QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT * scale),
-                questTitleBaselineY,
+        float regionBaselineY = panelY + (QUEST_PANEL_AREA_BASELINE_OFFSET_Y + QUEST_PANEL_AREA_OFFSET_Y) * scale;
+        float titleRuleY = questTitleBaselineY - QUEST_PANEL_QUEST_TITLE_RULE_OFFSET_Y * scale
+                + QUEST_PANEL_TITLE_SEPARATOR_OFFSET_Y * scale;
+        float areaRuleY = regionBaselineY + QUEST_PANEL_AREA_RULE_OFFSET_Y * scale;
+        float centeredContentX = objectivesCenterX - contentWidth * 0.5f;
+        Rectangle questTitleBounds = new Rectangle(
+                centeredContentX,
+                questTitleBaselineY - 34f * scale,
+                contentWidth,
+                QUEST_PANEL_QUEST_TITLE_BOX_HEIGHT * scale);
+        float objectiveGroupGap = Math.max(0f,
+                (QUEST_PANEL_OBJECTIVE_TEXT_LEFT_INSET - QUEST_PANEL_OBJECTIVE_MARKER_LEFT_OFFSET) * scale);
+        float objectiveMarkerWidth = measureWrappedTextWidthScaled(
+                uiQuestPanelHeaderFont,
+                ">",
+                contentWidth,
                 Align.left,
-                0.82f, 0.82f, 0.82f, 0.96f,
-                QUEST_PANEL_QUEST_TITLE_SCALE);
-        drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont,
+                QUEST_PANEL_OBJECTIVE_MARKER_SCALE);
+        float objectiveTextWidth = Math.max(1f, contentWidth - objectiveMarkerWidth - objectiveGroupGap);
+        float objectiveTextBlockWidth = measureWrappedTextWidthScaled(
+                uiQuestPanelHeaderFont,
                 questObjective == null || questObjective.isBlank() ? "Explore the world." : questObjective,
-                new Rectangle(contentX, objectiveTextBottomY, contentWidth, objectiveTextBaselineY - objectiveTextBottomY),
+                objectiveTextWidth,
+                Align.left,
+                QUEST_PANEL_OBJECTIVE_TEXT_SCALE);
+        float objectiveGroupWidth = Math.min(contentWidth,
+                objectiveMarkerWidth + objectiveGroupGap + Math.max(0f, objectiveTextBlockWidth));
+        float objectiveMarkerX = objectivesCenterX - objectiveGroupWidth * 0.5f;
+        float objectiveTextX = objectiveMarkerX + objectiveMarkerWidth + objectiveGroupGap;
+        String objectiveText = questObjective == null || questObjective.isBlank() ? "Explore the world." : questObjective;
+
+        drawQuestPanelCenteredTextScaled(batch, uiQuestPanelHeaderFont, "Objectives",
+                objectivesCenterX, questHeaderBaselineY,
+                0.93f, 0.88f, 0.78f, 1f,
+                QUEST_PANEL_HEADER_SCALE);
+        drawQuestPanelCenteredTextScaled(batch, uiQuestPanelHeaderFont, "Main Quest",
+                objectivesCenterX, subheaderBaselineY,
+                0.82f, 0.71f, 0.58f, 0.98f,
+                QUEST_PANEL_SUBHEADER_SCALE);
+        drawQuestSeparator(batch,
+                uiQuestPanelSeparatorTex,
+                objectivesCenterX,
+                subheaderBaselineY - QUEST_PANEL_SUBHEADER_RULE_OFFSET_Y * scale + QUEST_PANEL_SUBHEADER_RULE_EXTRA_OFFSET_Y * scale,
+                contentWidth,
+                scale,
+                0.95f);
+        drawQuestSeparator(batch,
+                uiQuestPanelTitleSeparatorTex,
+                objectivesCenterX,
+                titleRuleY,
+                contentWidth,
+                scale * QUEST_PANEL_TITLE_SEPARATOR_SCALE,
+                0.90f);
+        drawWrappedQuestPanelTextScaled(batch, uiQuestPanelHeaderFont, questTitle,
+                questTitleBounds,
+                questTitleBaselineY,
+                Align.center,
+                0.96f, 0.78f, 0.35f, 1f,
+                QUEST_PANEL_QUEST_TITLE_SCALE);
+        drawQuestPanelTextScaled(batch, uiQuestPanelHeaderFont, ">",
+                objectiveMarkerX, objectiveMarkerBaselineY,
+                0.97f, 0.81f, 0.32f, 1f,
+                QUEST_PANEL_OBJECTIVE_MARKER_SCALE);
+        drawWrappedQuestPanelTextScaled(batch, uiQuestPanelHeaderFont,
+                objectiveText,
+                new Rectangle(objectiveTextX, objectiveTextBottomY, objectiveTextWidth, objectiveTextBaselineY - objectiveTextBottomY),
                 objectiveTextBaselineY,
                 Align.left,
-                0.54f, 0.77f, 0.26f, 1f,
+                0.80f, 0.87f, 0.58f, 1f,
                 QUEST_PANEL_OBJECTIVE_TEXT_SCALE);
         if (currentRegionName != null && !currentRegionName.isBlank()) {
-            drawWrappedMenuTextScaled(batch, uiQuestPanelHeaderFont, "Area: " + currentRegionName,
-                    new Rectangle(contentX, panelY + 16f * scale, contentWidth, 28f * scale),
+            drawQuestSeparator(batch,
+                    uiQuestPanelSeparatorTex,
+                    objectivesCenterX,
+                    areaRuleY,
+                    contentWidth,
+                    scale,
+                    0.88f);
+            drawWrappedQuestPanelTextScaled(batch, uiQuestPanelHeaderFont, "Area: " + currentRegionName,
+                    new Rectangle(centeredContentX, panelY + 16f * scale, contentWidth, 28f * scale),
                     regionBaselineY,
-                    Align.left,
-                    0.68f, 0.68f, 0.68f, 1f,
+                    Align.center,
+                    0.82f, 0.76f, 0.67f, 1f,
                     QUEST_PANEL_AREA_TEXT_SCALE);
         }
     }
@@ -1462,16 +1547,8 @@ public class HudRenderer {
 
     private void drawWrappedMenuText(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
                                      float baselineY, int align, float r, float g, float b, float a) {
-        if (font == null || text == null || text.isBlank() || uiLayout == null) {
-            return;
-        }
-        Color color = new Color(r, g, b, a);
-        uiLayout.setText(font, text, color, bounds.width, align, true);
-        font.setColor(0f, 0f, 0f, 0.85f * a);
-        font.draw(batch, uiLayout, bounds.x + 1f, baselineY - 1f);
-        font.setColor(r, g, b, a);
-        font.draw(batch, uiLayout, bounds.x, baselineY);
-        font.setColor(1f, 1f, 1f, 1f);
+        drawWrappedMenuTextStyled(batch, font, text, bounds, baselineY, align, r, g, b, a,
+                1f, -1f, 0.85f);
     }
 
     private void drawWrappedMenuTextScaled(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
@@ -1485,6 +1562,105 @@ public class HudRenderer {
         font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
         drawWrappedMenuText(batch, font, text, bounds, baselineY, align, r, g, b, a);
         font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
+    private void drawWrappedQuestPanelTextScaled(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
+                                                 float baselineY, int align, float r, float g, float b, float a,
+                                                 float scaleMultiplier) {
+        if (font == null || text == null || text.isBlank() || uiLayout == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        drawWrappedMenuTextStyled(batch, font, text, bounds, baselineY, align, r, g, b, a,
+                QUEST_PANEL_TEXT_SHADOW_OFFSET_X, QUEST_PANEL_TEXT_SHADOW_OFFSET_Y, QUEST_PANEL_TEXT_SHADOW_ALPHA);
+        font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
+    private float measureWrappedTextWidthScaled(BitmapFont font, String text, float width, int align,
+                                                float scaleMultiplier) {
+        if (font == null || text == null || text.isBlank() || uiLayout == null || width <= 0f) {
+            return 0f;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        uiLayout.setText(font, text, Color.WHITE, width, align, true);
+        float measuredWidth = uiLayout.width;
+        font.getData().setScale(baseScaleX, baseScaleY);
+        return measuredWidth;
+    }
+
+    private void drawWrappedMenuTextStyled(SpriteBatch batch, BitmapFont font, String text, Rectangle bounds,
+                                           float baselineY, int align, float r, float g, float b, float a,
+                                           float shadowOffsetX, float shadowOffsetY, float shadowAlpha) {
+        if (font == null || text == null || text.isBlank() || uiLayout == null) {
+            return;
+        }
+        font.setColor(0f, 0f, 0f, shadowAlpha * a);
+        font.draw(batch, text, bounds.x + shadowOffsetX, baselineY + shadowOffsetY, bounds.width, align, true);
+        font.setColor(r, g, b, a);
+        font.draw(batch, text, bounds.x, baselineY, bounds.width, align, true);
+        font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawQuestSeparator(SpriteBatch batch, Texture separatorTexture,
+                                    float centerX, float centerY, float maxWidth,
+                                    float scale, float alpha) {
+        if (batch == null || maxWidth <= 0f) {
+            return;
+        }
+        if (separatorTexture == null) {
+            drawQuestDivider(batch,
+                    centerX - maxWidth * 0.5f,
+                    centerY,
+                    maxWidth,
+                    18f * scale,
+                    1.35f * scale,
+                    0.42f, 0.30f, 0.20f, alpha);
+            return;
+        }
+
+        float drawScale = scale * QUEST_PANEL_SEPARATOR_SCALE;
+        float drawWidth = separatorTexture.getWidth() * drawScale;
+        float drawHeight = separatorTexture.getHeight() * drawScale;
+        if (drawWidth > maxWidth) {
+            float fitScale = maxWidth / Math.max(1f, separatorTexture.getWidth());
+            drawWidth = maxWidth;
+            drawHeight = separatorTexture.getHeight() * fitScale;
+        }
+
+        batch.setColor(1f, 1f, 1f, alpha);
+        batch.draw(separatorTexture,
+                centerX - drawWidth * 0.5f,
+                centerY - drawHeight * 0.5f,
+                drawWidth,
+                drawHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawQuestDivider(SpriteBatch batch, float x, float y, float width, float centerGap,
+                                  float thickness, float r, float g, float b, float a) {
+        if (batch == null || uiBlackBarTex == null || width <= 0f || thickness <= 0f) {
+            return;
+        }
+        float clampedGap = Math.max(0f, Math.min(centerGap, width));
+        float lineWidth = Math.max(0f, (width - clampedGap) * 0.5f);
+        batch.setColor(r, g, b, a);
+        if (lineWidth > 0f) {
+            batch.draw(uiBlackBarTex, x, y, lineWidth, thickness);
+            batch.draw(uiBlackBarTex, x + width - lineWidth, y, lineWidth, thickness);
+        }
+        if (clampedGap > 0f) {
+            float accentWidth = Math.min(clampedGap, 18f * (thickness / 1.35f));
+            batch.draw(uiBlackBarTex,
+                    x + width * 0.5f - accentWidth * 0.5f,
+                    y - thickness * 0.15f,
+                    accentWidth,
+                    thickness * 1.3f);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private void drawChat(SpriteBatch batch) {
@@ -1576,7 +1752,8 @@ public class HudRenderer {
         }
         uiLayout.setText(font, text);
         float textX = centerX - uiLayout.width * 0.5f;
-        drawMenuText(batch, font, text, textX, baselineY, r, g, b, a);
+        drawMenuTextStyled(batch, font, text, textX, baselineY, r, g, b, a,
+                1f, -1f, 0.85f);
     }
 
     private void drawMenuCenteredTextScaled(SpriteBatch batch, BitmapFont font, String text, float centerX, float baselineY,
@@ -1589,20 +1766,32 @@ public class HudRenderer {
         font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
         uiLayout.setText(font, text);
         float textX = centerX - uiLayout.width * 0.5f;
-        drawMenuText(batch, font, text, textX, baselineY, r, g, b, a);
+        drawMenuTextStyled(batch, font, text, textX, baselineY, r, g, b, a,
+                1f, -1f, 0.85f);
+        font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
+    private void drawQuestPanelCenteredTextScaled(SpriteBatch batch, BitmapFont font, String text,
+                                                  float centerX, float baselineY,
+                                                  float r, float g, float b, float a,
+                                                  float scaleMultiplier) {
+        if (font == null || uiLayout == null || text == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        uiLayout.setText(font, text);
+        float textX = centerX - uiLayout.width * 0.5f;
+        drawMenuTextStyled(batch, font, text, textX, baselineY, r, g, b, a,
+                QUEST_PANEL_TEXT_SHADOW_OFFSET_X, QUEST_PANEL_TEXT_SHADOW_OFFSET_Y, QUEST_PANEL_TEXT_SHADOW_ALPHA);
         font.getData().setScale(baseScaleX, baseScaleY);
     }
 
     private void drawMenuText(SpriteBatch batch, BitmapFont font, String text, float x, float y,
                               float r, float g, float b, float a) {
-        if (font == null || text == null) {
-            return;
-        }
-        font.setColor(0f, 0f, 0f, 0.85f * a);
-        font.draw(batch, text, x + 1f, y - 1f);
-        font.setColor(r, g, b, a);
-        font.draw(batch, text, x, y);
-        font.setColor(1f, 1f, 1f, 1f);
+        drawMenuTextStyled(batch, font, text, x, y, r, g, b, a,
+                1f, -1f, 0.85f);
     }
 
     private void drawMenuTextScaled(SpriteBatch batch, BitmapFont font, String text, float x, float y,
@@ -1615,6 +1804,32 @@ public class HudRenderer {
         font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
         drawMenuText(batch, font, text, x, y, r, g, b, a);
         font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
+    private void drawQuestPanelTextScaled(SpriteBatch batch, BitmapFont font, String text, float x, float y,
+                                          float r, float g, float b, float a, float scaleMultiplier) {
+        if (font == null || text == null) {
+            return;
+        }
+        float baseScaleX = font.getData().scaleX;
+        float baseScaleY = font.getData().scaleY;
+        font.getData().setScale(baseScaleX * scaleMultiplier, baseScaleY * scaleMultiplier);
+        drawMenuTextStyled(batch, font, text, x, y, r, g, b, a,
+                QUEST_PANEL_TEXT_SHADOW_OFFSET_X, QUEST_PANEL_TEXT_SHADOW_OFFSET_Y, QUEST_PANEL_TEXT_SHADOW_ALPHA);
+        font.getData().setScale(baseScaleX, baseScaleY);
+    }
+
+    private void drawMenuTextStyled(SpriteBatch batch, BitmapFont font, String text, float x, float y,
+                                    float r, float g, float b, float a,
+                                    float shadowOffsetX, float shadowOffsetY, float shadowAlpha) {
+        if (font == null || text == null) {
+            return;
+        }
+        font.setColor(0f, 0f, 0f, shadowAlpha * a);
+        font.draw(batch, text, x + shadowOffsetX, y + shadowOffsetY);
+        font.setColor(r, g, b, a);
+        font.draw(batch, text, x, y);
+        font.setColor(1f, 1f, 1f, 1f);
     }
 
     private String fitText(BitmapFont font, String text, float maxWidth) {
@@ -1667,8 +1882,8 @@ public class HudRenderer {
                 .replace("Defeat the ", "Defeat ")
                 .replace("Investigate the ", "Investigate ")
                 .replace("Activate the ", "Activate ")
-                .replace("outside the cafe", "outside cafe")
-                .replace("the cafe owner", "cafe owner")
+                .replace("outside the bakery", "outside bakery")
+                .replace("the bakery owner", "bakery owner")
                 .replace("Research Lab Floor ", "Lab Floor ")
                 .replace("Research Lab", "Lab")
                 .replace("Herb-and-Spice", "Herb & Spice");

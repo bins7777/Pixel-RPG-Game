@@ -58,19 +58,30 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
 
     @Override
     public boolean isAvailable() {
-        return !videoAbsolutePath.isBlank() && new File(videoAbsolutePath).isFile();
+        boolean available = !videoAbsolutePath.isBlank() && new File(videoAbsolutePath).isFile();
+        if (!available) {
+            System.out.println("[Intro] Video file not found: " + videoAbsolutePath);
+        }
+        return available;
     }
 
     @Override
     public boolean start(Runnable onComplete) {
-        if (!isAvailable() || onComplete == null) {
+        if (onComplete == null) {
+            System.out.println("[Intro] Missing completion callback. Skipping intro.");
+            return false;
+        }
+        if (!isAvailable()) {
+            System.out.println("[Intro] Intro unavailable. Skipping intro.");
             return false;
         }
         if (!ensureToolkitStarted()) {
+            System.out.println("[Intro] JavaFX toolkit failed to start. Skipping intro.");
             return false;
         }
         stopPlaybackSynchronously(false, true);
         if (!playbackActive.compareAndSet(false, true)) {
+            System.out.println("[Intro] Intro playback was already active. Skipping duplicate start.");
             return false;
         }
 
@@ -188,6 +199,7 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
                 startupLatch.countDown();
             } catch (Exception error) {
                 TOOLKIT_STARTED.set(false);
+                logError("JavaFX toolkit startup failed", error);
                 return false;
             }
         } else {
@@ -199,6 +211,7 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             return true;
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
+            logError("Interrupted while starting JavaFX toolkit", error);
             return false;
         }
     }
@@ -226,6 +239,7 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             mediaPlayer.setOnReady(new Runnable() {
                 @Override
                 public void run() {
+                    System.out.println("[Intro] Intro video ready. Starting playback.");
                     ready = true;
                     frameWidth = windowWidth;
                     frameHeight = windowHeight;
@@ -239,24 +253,29 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             mediaPlayer.setOnEndOfMedia(new Runnable() {
                 @Override
                 public void run() {
+                    System.out.println("[Intro] Intro video finished.");
                     finishPlayback(true);
                 }
             });
             mediaPlayer.setOnError(new Runnable() {
                 @Override
                 public void run() {
+                    logError("MediaPlayer error during intro playback", mediaPlayer == null ? null : mediaPlayer.getError());
                     finishPlayback(true);
                 }
             });
             media.setOnError(new Runnable() {
                 @Override
                 public void run() {
+                    logError("Media error while loading intro", media.getError());
                     finishPlayback(true);
                 }
             });
         } catch (MediaException error) {
+            logError("MediaException during intro initialization", error);
             finishPlayback(true);
         } catch (RuntimeException error) {
+            logError("RuntimeException during intro initialization", error);
             finishPlayback(true);
         }
     }
@@ -420,5 +439,13 @@ public final class JavaFxIntroPlaybackService implements IntroPlaybackService {
             frameRevision = 0L;
             consumedRevision = -1L;
         }
+    }
+
+    private void logError(String message, Throwable error) {
+        if (error == null) {
+            System.out.println("[Intro] " + message);
+            return;
+        }
+        System.out.println("[Intro] " + message + ": " + error.getMessage());
     }
 }
