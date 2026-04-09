@@ -91,7 +91,15 @@ public class CharacterNameScreen extends ScreenAdapter {
     private String errorMessage = "";
 
     public CharacterNameScreen(PixelRpgGame game) {
+        this(game, "");
+    }
+
+    public CharacterNameScreen(PixelRpgGame game, String initialName) {
         this.game = game;
+        String normalizedName = normalizeName(initialName);
+        if (!normalizedName.isBlank()) {
+            nameBuilder.append(normalizedName);
+        }
         rebuildLayout();
     }
 

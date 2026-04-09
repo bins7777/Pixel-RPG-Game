@@ -75,10 +75,14 @@ public class HudRenderer {
     private static final int MAIN_MENU_BODY_FONT_SIZE = 15;
     private static final String[] MAIN_MENU_TABS = {"Game", "Settings"};
     private static final String[] GAME_MENU_ACTIONS = {"Resume", "Main Menu", "Reload Save", "Exit Game"};
-    private static final String[] SETTINGS_MENU_ITEMS = {"Music Volume", "SFX Volume", "Fullscreen", "VSync"};
+    private static final String[] SETTINGS_MENU_ITEMS = {"Music Volume", "SFX Volume", "Fullscreen", "VSync", "Controls"};
+    private static final int SETTINGS_CONTROLS_INDEX = 4;
     private static final int MAIN_MENU_SETTINGS_STEP_PERCENT = 10;
     private static final float GAME_MENU_GROUP_X_OFFSET = -15f;
     private static final float MAIN_MENU_CHOICE_TEXT_SCALE = 0.7f;
+    private static final float SETTINGS_ROW_COMPACT_GAP = 8f;
+    private static final float SETTINGS_CONTROLS_TEXT_SCALE = 0.79f;
+    private static final float SETTINGS_CONTROLS_CENTER_TEXT_SCALE = 0.71f;
     private static final float SETTINGS_SLIDER_TRACK_HEIGHT_RATIO = 0.22f;
     private static final float SETTINGS_SLIDER_TRACK_MIN_WIDTH = 74f;
     private static final float SETTINGS_SLIDER_TRACK_WIDTH_RATIO = 0.30f;
@@ -1144,7 +1148,7 @@ public class HudRenderer {
             if (uiMainMenuTabFont != null) {
                 drawMenuCenteredText(batch, uiMainMenuTabFont, MAIN_MENU_TABS[i],
                         tabBounds.x + tabBounds.width * 0.5f,
-                        tabBounds.y + tabBounds.height * 0.70f,
+                        tabBounds.y + tabBounds.height * 0.70f + 10f,
                         active ? 0.83f : 0.69f,
                         active ? 0.26f : 0.69f,
                         active ? 0.20f : 0.69f,
@@ -1176,6 +1180,8 @@ public class HudRenderer {
                     mainMenuRightCardBounds.width,
                     mainMenuRightCardBounds.height);
         }
+        boolean controlsSettingSelected = activePauseMenuTab == PauseMenuTab.SETTINGS
+                && selectedSettingsIndex == SETTINGS_CONTROLS_INDEX;
         if (uiMainMenuPanel2Tex != null) {
             batch.setColor(1f, 1f, 1f, 0.82f);
             batch.draw(uiMainMenuPanel2Tex,
@@ -1194,14 +1200,24 @@ public class HudRenderer {
                     : menuQuestObjective;
             String safeRegion = currentRegionName == null || currentRegionName.isBlank() ? "Unknown" : currentRegionName;
 
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Region: " + safeRegion,
-                    mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
-                    mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.60f,
-                    0.72f, 0.72f, 0.72f, 1f);
-            drawMenuCenteredText(batch, uiMainMenuBodyFont, "Esc or M closes this menu",
-                    mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
-                    mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.35f,
-                    0.66f, 0.66f, 0.66f, 1f);
+            if (controlsSettingSelected) {
+                drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont, controlsCenterPanelText(),
+                        new Rectangle(mainMenuCenterCardBounds.x + 14f, mainMenuCenterCardBounds.y + 10f,
+                                mainMenuCenterCardBounds.width - 28f, mainMenuCenterCardBounds.height - 20f),
+                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height - 14f,
+                        Align.left,
+                        0.70f, 0.70f, 0.70f, 1f,
+                        SETTINGS_CONTROLS_CENTER_TEXT_SCALE);
+            } else {
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Region: " + safeRegion,
+                        mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
+                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.60f,
+                        0.72f, 0.72f, 0.72f, 1f);
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Esc or M closes this menu",
+                        mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
+                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.35f,
+                        0.66f, 0.66f, 0.66f, 1f);
+            }
 
             if (activePauseMenuTab == PauseMenuTab.GAME) {
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Game",
@@ -1219,24 +1235,25 @@ public class HudRenderer {
                             MAIN_MENU_CHOICE_TEXT_SCALE);
                 }
                 float heroBaseY = mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f;
-                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                float heroTextX = mainMenuRightCardBounds.x + 18f;
+                drawMenuText(batch, uiMainMenuBodyFont,
                         "Level " + playerLevel + " / " + PlayerLevelStats.MAX_LEVEL,
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroTextX,
                         heroBaseY,
                         0.78f, 0.66f, 0.66f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                drawMenuText(batch, uiMainMenuBodyFont,
                         "Health: " + formatValue((int) currentHealth) + " / " + formatValue((int) maxHealth),
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroTextX,
                         heroBaseY - bodyLineStep,
                         0.78f, 0.66f, 0.66f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                drawMenuText(batch, uiMainMenuBodyFont,
                         "Stamina: " + formatValue((int) currentStamina) + " / " + formatValue((int) maxStamina),
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroTextX,
                         heroBaseY - bodyLineStep * 2f,
                         0.78f, 0.66f, 0.66f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont,
+                drawMenuText(batch, uiMainMenuBodyFont,
                         "Current Region: " + safeRegion,
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                        heroTextX,
                         heroBaseY - bodyLineStep * 3f,
                         0.78f, 0.66f, 0.66f, 1f);
             } else {
@@ -1244,7 +1261,7 @@ public class HudRenderer {
                         mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f + GAME_MENU_GROUP_X_OFFSET,
                         mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
                         0.78f, 0.78f, 0.78f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, "Selected",
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, controlsSettingSelected ? "Controls" : "Selected",
                         mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
                         mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
                         0.83f, 0.73f, 0.73f, 1f);
@@ -1254,16 +1271,24 @@ public class HudRenderer {
                             selectedSettingsIndex == i && confirmationAction == PauseMenuAction.NONE,
                             MAIN_MENU_CHOICE_TEXT_SCALE);
                 }
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, SETTINGS_MENU_ITEMS[selectedSettingsIndex],
-                        mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
-                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
-                        0.79f, 0.73f, 0.58f, 1f);
-                drawWrappedMenuText(batch, uiMainMenuBodyFont, settingsDescriptionText(selectedSettingsIndex),
-                        new Rectangle(mainMenuRightCardBounds.x + 16f, mainMenuRightCardBounds.y + 30f,
+                if (!controlsSettingSelected) {
+                    drawMenuCenteredText(batch, uiMainMenuBodyFont, SETTINGS_MENU_ITEMS[selectedSettingsIndex],
+                            mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
+                            mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
+                            0.79f, 0.73f, 0.58f, 1f);
+                }
+                drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont, settingsDescriptionText(selectedSettingsIndex),
+                        controlsSettingSelected
+                                ? new Rectangle(mainMenuRightCardBounds.x + 14f, mainMenuRightCardBounds.y + 16f,
+                                mainMenuRightCardBounds.width - 28f, mainMenuRightCardBounds.height - 56f)
+                                : new Rectangle(mainMenuRightCardBounds.x + 16f, mainMenuRightCardBounds.y + 30f,
                                 mainMenuRightCardBounds.width - 32f, mainMenuRightCardBounds.height - 96f),
-                        mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 94f,
-                        Align.center,
-                        0.72f, 0.72f, 0.72f, 1f);
+                        controlsSettingSelected
+                                ? mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 48f
+                                : mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 94f,
+                        Align.left,
+                        0.72f, 0.72f, 0.72f, 1f,
+                        selectedSettingsIndex == SETTINGS_CONTROLS_INDEX ? SETTINGS_CONTROLS_TEXT_SCALE : 1f);
             }
         }
 
@@ -1337,9 +1362,10 @@ public class HudRenderer {
         float settingsRowX = gameRowX;
         float settingsRowWidth = gameRowWidth;
         float settingsStartY = cardY + cardH - 92f * scale;
+        float settingsRowGap = settingsRowBounds.length > 4 ? Math.min(rowGap, SETTINGS_ROW_COMPACT_GAP * scale) : rowGap;
         float valueAreaWidth = Math.max(72f * scale, settingsRowWidth * 0.34f);
         for (int i = 0; i < settingsRowBounds.length; i++) {
-            float rowY = settingsStartY - i * (rowHeight + rowGap);
+            float rowY = settingsStartY - i * (rowHeight + settingsRowGap);
             settingsRowBounds[i].set(settingsRowX, rowY, settingsRowWidth, rowHeight);
             settingsDecreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth, rowY, valueAreaWidth * 0.5f, rowHeight);
             settingsIncreaseBounds[i].set(settingsRowX + settingsRowWidth - valueAreaWidth * 0.5f, rowY, valueAreaWidth * 0.5f, rowHeight);
@@ -1507,6 +1533,9 @@ public class HudRenderer {
     }
 
     private String settingsValueText(int index) {
+        if (index == SETTINGS_CONTROLS_INDEX) {
+            return "View";
+        }
         if (settingsService == null) {
             return "--";
         }
@@ -1525,8 +1554,19 @@ public class HudRenderer {
             case 1 -> "Adjust the volume for attacks, impacts, and other sound effects.";
             case 2 -> "Toggle fullscreen display immediately.";
             case 3 -> "Toggle vertical sync immediately.";
+            case SETTINGS_CONTROLS_INDEX -> "Movement: W / A / S / D or Arrow Keys\n"
+                    + "Attack: Left Click\n"
+                    + "Dash: Space\n"
+                    + "Interact / Dash Attack: E\n"
+                    + "Spatial Dash: Right Click";
             default -> "";
         };
+    }
+
+    private String controlsCenterPanelText() {
+        return "Pause Menu: Up / Down select, Left / Right adjust.\n"
+                + "Q / E / Tab switch tabs. Enter / Space confirms.\n"
+                + "M or Esc closes the menu.";
     }
 
     private String confirmationTitleText() {

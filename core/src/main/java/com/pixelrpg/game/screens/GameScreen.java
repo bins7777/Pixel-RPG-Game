@@ -50,6 +50,7 @@ import com.badlogic.gdx.utils.IntArray;
 import com.badlogic.gdx.utils.ShortArray;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
+import com.pixelrpg.game.GameDifficulty;
 import com.pixelrpg.game.PixelRpgGame;
 import com.pixelrpg.game.config.MapCatalog;
 import com.pixelrpg.game.config.MapDefinition;
@@ -70,6 +71,7 @@ import com.pixelrpg.game.world.WorldState;
 public class GameScreen extends ScreenAdapter {
     private static final String MAP_CATALOG_PATH = "config/maps.json";
     private static final String DEFAULT_CHARACTER_NAME = "Character";
+    private static final GameDifficulty DEFAULT_GAME_DIFFICULTY = GameDifficulty.EASY;
     private static final float AUTO_SAVE_INTERVAL_SECONDS = 10f;
     private static final float SCREEN_FADE_DURATION_SECONDS = 0.7f;
     private static final String PROJECT_ROOT_ABSOLUTE_PATH = resolveProjectRootAbsolutePath();
@@ -193,6 +195,8 @@ public class GameScreen extends ScreenAdapter {
     private static final int FIRST_QUEST_TITLE_FONT_SIZE = 22;
     private static final int FIRST_QUEST_BODY_FONT_SIZE = 16;
     private static final int FIRST_QUEST_HINT_FONT_SIZE = 13;
+    private static final float CONTINUE_HINT_OFFSET_X = -10f;
+    private static final float CONTINUE_HINT_OFFSET_Y = 20f;
     private static final float FIRST_QUEST_INTERACT_RANGE = 48f;
     private static final float FIRST_QUEST_CAFE_NPC_FRAME_DURATION = 0.18f;
     private static final float FIRST_QUEST_CAFE_NPC_DRAW_SCALE = 0.55f;
@@ -205,7 +209,12 @@ public class GameScreen extends ScreenAdapter {
     private static final float FIRST_QUEST_DIALOGUE_TYPEWRITER_CHARACTERS_PER_SECOND = 36f;
     private static final String QUEST_SEAL_MARKER_TEXT = "{seal}";
     private static final float QUEST_ARROW_MARKER_SCALE = 1.5f;
+    private static final float QUEST_DIRECTIONAL_ARROW_MARKER_SCALE = 2.1f;
+    private static final float QUEST_DIRECTIONAL_ARROW_PULSE_MAX_MULTIPLIER = 1.5f;
+    private static final float QUEST_DIRECTIONAL_ARROW_PULSE_SPEED = 4.2f;
     private static final float QUEST_ARROW_MARKER_OUTLINE_OFFSET = 2f;
+    private static final float QUEST_EXCLAMATION_MARKER_SCALE = 1.3f;
+    private static final float QUEST_EXCLAMATION_MARKER_OUTLINE_OFFSET = 2f;
     private static final float QUEST_SEAL_MARKER_SIZE = 30f;
     private static final float QUEST_SEAL_MARKER_CORE_SIZE = 13f;
     private static final float QUEST_SEAL_MARKER_RUNE_LENGTH = 12f;
@@ -1175,6 +1184,7 @@ public class GameScreen extends ScreenAdapter {
     private static final float MAP_TRANSITION_FADE_OUT_SECONDS = 1.2f;
     private static final float MAP_TRANSITION_FADE_IN_SECONDS = 1.2f;
     private static final float QUEST_BLUR_TRANSITION_SECONDS = 1.0f;
+    private static final float HARDCORE_GAME_OVER_FADE_IN_SECONDS = 3f;
     private static final String BAT_SLEEP_TEXTURE_PATH = "images/bat/Bat-Sleep.png";
     private static final String BAT_WAKEUP_TEXTURE_PATH = "images/bat/Bat-WakeUp.png";
     private static final String BAT_IDLE_FLY_TEXTURE_PATH = "images/bat/Bat-IdleFly.png";
@@ -1980,6 +1990,7 @@ public class GameScreen extends ScreenAdapter {
     private final String initialMapId;
     private final String initialSpawnLayer;
     private final String characterName;
+    private final GameDifficulty difficulty;
     private final String activeSaveSlotId;
     private final String activeSaveDisplayName;
     private int firstQuestStage;
@@ -2120,6 +2131,8 @@ public class GameScreen extends ScreenAdapter {
     private boolean fifthQuestDeathChoicePending = false;
     private boolean fifthQuestDeathChoiceVisible = false;
     private int fifthQuestDeathChoiceIndex = 1;
+    private boolean hardcoreGameOverVisible = false;
+    private float hardcoreGameOverFadeTimer = 0f;
     private final Vector2 sixthQuestPortalEffectStartPosition = new Vector2();
     private final Vector2 sixthQuestPortalEffectTargetPosition = new Vector2();
     private final Vector2 sixthQuestPortalEffectPosition = new Vector2();
@@ -2129,6 +2142,8 @@ public class GameScreen extends ScreenAdapter {
     private final Rectangle fifthQuestDeathChoiceQuestBounds = new Rectangle();
     private final Rectangle fifthQuestDeathChoiceFightBounds = new Rectangle();
     private final Vector3 fifthQuestDeathChoiceUiPoint = new Vector3();
+    private final Rectangle hardcoreGameOverButtonBounds = new Rectangle();
+    private final Vector3 hardcoreGameOverUiPoint = new Vector3();
     private boolean infiniteHealthEnabled = false;
     private final Vector3 questMarkerProjection = new Vector3();
     private final Vector2 dialogueCameraFocusPoint = new Vector2();
@@ -2294,40 +2309,50 @@ public class GameScreen extends ScreenAdapter {
     };
 
     public GameScreen() {
-        this(resolveGameInstance(), null, null, null, null);
+        this(resolveGameInstance(), null, null, null, null, null);
     }
 
     public GameScreen(SaveGameData initialSaveData) {
-        this(resolveGameInstance(), initialSaveData, null, null, null);
+        this(resolveGameInstance(), initialSaveData, null, null, null, null);
     }
 
     public GameScreen(PixelRpgGame game, SaveGameData initialSaveData) {
-        this(game, initialSaveData, null, null, null);
+        this(game, initialSaveData, null, null, null, null);
     }
 
     public GameScreen(String initialMapId, String initialSpawnLayer) {
-        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, null);
+        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, null, null);
     }
 
     public GameScreen(PixelRpgGame game, String initialMapId, String initialSpawnLayer) {
-        this(game, null, initialMapId, initialSpawnLayer, null);
+        this(game, null, initialMapId, initialSpawnLayer, null, null);
     }
 
     public GameScreen(String initialMapId, String initialSpawnLayer, String characterName) {
-        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, characterName);
+        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, characterName, null);
     }
 
     public GameScreen(PixelRpgGame game, String initialMapId, String initialSpawnLayer, String characterName) {
-        this(game, null, initialMapId, initialSpawnLayer, characterName);
+        this(game, null, initialMapId, initialSpawnLayer, characterName, null);
+    }
+
+    public GameScreen(String initialMapId, String initialSpawnLayer, String characterName, GameDifficulty difficulty) {
+        this(resolveGameInstance(), null, initialMapId, initialSpawnLayer, characterName, difficulty);
+    }
+
+    public GameScreen(PixelRpgGame game, String initialMapId, String initialSpawnLayer,
+                      String characterName, GameDifficulty difficulty) {
+        this(game, null, initialMapId, initialSpawnLayer, characterName, difficulty);
     }
 
     private GameScreen(PixelRpgGame game, SaveGameData initialSaveData, String initialMapId, String initialSpawnLayer,
-                       String initialCharacterName) {
+                       String initialCharacterName, GameDifficulty initialDifficulty) {
         this.game = game;
         this.initialSaveData = initialSaveData;
         this.initialMapId = initialMapId;
         this.initialSpawnLayer = initialSpawnLayer;
         this.characterName = resolveCharacterName(initialSaveData, initialCharacterName);
+        this.difficulty = resolveDifficulty(initialSaveData, initialDifficulty);
         this.activeSaveSlotId = resolveSaveSlotId(initialSaveData, this.characterName);
         this.activeSaveDisplayName = resolveSaveDisplayName(initialSaveData, this.characterName, this.activeSaveSlotId);
         this.firstQuestStage = resolveInitialFirstQuestStage(initialSaveData);
@@ -2452,6 +2477,7 @@ public class GameScreen extends ScreenAdapter {
         }
         updatePlayerHazardHitReaction(delta);
         updatePlayerDeath(delta);
+        updateHardcoreGameOverFade(delta);
         player.stateTime += delta;
         updateBats(delta);
         updateEvilWizards(delta);
@@ -2486,7 +2512,9 @@ public class GameScreen extends ScreenAdapter {
                 || isFifthQuestFirstEncounterIntroActive()
                 || isPlayerHazardHitReactionActive()
                 || isPlayerDead()) {
-            if (!isBoss1IntroStepDownActive() && !isBossArenaFinalIntroAutoWalkActive()) {
+            if (fifthQuestDeathChoiceVisible || hardcoreGameOverVisible) {
+                handleInput(delta);
+            } else if (!isBoss1IntroStepDownActive() && !isBossArenaFinalIntroAutoWalkActive()) {
                 player.moving = false;
             }
         } else {
@@ -3105,6 +3133,7 @@ public class GameScreen extends ScreenAdapter {
         saveData.slotId = activeSaveSlotId;
         saveData.displayName = activeSaveDisplayName;
         saveData.characterName = characterName;
+        saveData.difficulty = difficulty;
         saveData.mapId = world.activeMapId;
         saveData.playerBoundsX = player.bounds.x;
         saveData.playerBoundsY = player.bounds.y;
@@ -3151,6 +3180,13 @@ public class GameScreen extends ScreenAdapter {
                 && player.bounds.width > 0f
                 && player.bounds.height > 0f
                 && !isPlayerDead();
+    }
+
+    private GameDifficulty resolveDifficulty(SaveGameData saveData, GameDifficulty initialDifficulty) {
+        if (saveData != null && saveData.difficulty != null) {
+            return saveData.difficulty;
+        }
+        return initialDifficulty == null ? DEFAULT_GAME_DIFFICULTY : initialDifficulty;
     }
 
     private String resolveCharacterName(SaveGameData saveData, String initialCharacterName) {
@@ -3757,7 +3793,7 @@ public class GameScreen extends ScreenAdapter {
         if (!isPlayerDead()) {
             return;
         }
-        if (fifthQuestDeathChoiceVisible) {
+        if (fifthQuestDeathChoiceVisible || hardcoreGameOverVisible) {
             return;
         }
         if (!playerDead) {
@@ -3775,6 +3811,10 @@ public class GameScreen extends ScreenAdapter {
             playerDeathStateTime += delta;
         }
         if (playerDeathStateTime >= Math.max(0.1f, respawnDelay)) {
+            if (difficulty.isPermanentDeath()) {
+                showHardcoreGameOver();
+                return;
+            }
             if (fifthQuestDeathChoicePending) {
                 showFifthQuestDeathChoice();
                 return;
@@ -3803,7 +3843,11 @@ public class GameScreen extends ScreenAdapter {
         if (player.currentHealth <= 0f || infiniteHealthEnabled) {
             return;
         }
-        player.currentHealth = Math.max(0f, player.currentHealth - Math.max(0f, damage));
+        float scaledDamage = scaledIncomingDamageForPlayer(damage);
+        if (scaledDamage <= 0f) {
+            return;
+        }
+        player.currentHealth = Math.max(0f, player.currentHealth - scaledDamage);
         if (player.currentHealth <= 0f) {
             startPlayerDeath();
         } else {
@@ -3812,18 +3856,18 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void applyFifthQuestDemonDamageToPlayer(float damage) {
-        float safeDamage = Math.max(0f, damage);
+        float safeDamage = scaledIncomingDamageForPlayer(damage);
         if (player.currentHealth > 0f
                 && !infiniteHealthEnabled
                 && player.currentHealth - safeDamage <= 0f
                 && shouldOfferFifthQuestDeathChoice()) {
             fifthQuestDeathChoicePending = true;
         }
-        applyDamageToPlayer(safeDamage);
+        applyDamageToPlayer(damage);
     }
 
     private boolean shouldOfferFifthQuestDeathChoice() {
-        if (!MAP_ID_VILLAGE.equals(world.activeMapId) || gameCompleted) {
+        if (difficulty.isPermanentDeath() || !MAP_ID_VILLAGE.equals(world.activeMapId) || gameCompleted) {
             return false;
         }
         return switch (fifthQuestStage) {
@@ -3857,6 +3901,10 @@ public class GameScreen extends ScreenAdapter {
         cameraTeleportTargetActive = false;
         dashAttackPlannedPositionValid = false;
         clearDashAttackSweepState();
+        if (difficulty.isPermanentDeath()) {
+            clearFifthQuestDeathChoice();
+            deleteActiveSaveForHardcoreDeath();
+        }
     }
 
     private void resetPlayerDeathState() {
@@ -3868,6 +3916,10 @@ public class GameScreen extends ScreenAdapter {
     private void resetPlayerAbilityCooldowns() {
         dashAttackAbilityCooldownTimer = 0f;
         spatialDashAbilityCooldownTimer = 0f;
+    }
+
+    private float scaledIncomingDamageForPlayer(float damage) {
+        return Math.max(0f, damage) * difficulty.getIncomingDamageMultiplier();
     }
 
     private void respawnPlayerAfterDeath() {
@@ -3916,6 +3968,37 @@ public class GameScreen extends ScreenAdapter {
         fifthQuestDeathChoiceIndex = 1;
         fifthQuestDeathChoiceQuestBounds.set(0f, 0f, 0f, 0f);
         fifthQuestDeathChoiceFightBounds.set(0f, 0f, 0f, 0f);
+    }
+
+    private void showHardcoreGameOver() {
+        hardcoreGameOverVisible = true;
+        hardcoreGameOverFadeTimer = 0f;
+        questBlurProgress = 1f;
+    }
+
+    private void clearHardcoreGameOver() {
+        hardcoreGameOverVisible = false;
+        hardcoreGameOverFadeTimer = 0f;
+        hardcoreGameOverButtonBounds.set(0f, 0f, 0f, 0f);
+    }
+
+    private void confirmHardcoreGameOver() {
+        clearHardcoreGameOver();
+        if (game != null && Gdx.app != null) {
+            Gdx.app.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    game.showMainMenu();
+                }
+            });
+        }
+    }
+
+    private void deleteActiveSaveForHardcoreDeath() {
+        if (activeSaveSlotId == null || activeSaveSlotId.isBlank()) {
+            return;
+        }
+        SaveGameService.delete(activeSaveSlotId);
     }
 
     private void confirmFifthQuestDeathChoice(boolean redoEntireQuest) {
@@ -8259,6 +8342,7 @@ public class GameScreen extends ScreenAdapter {
         clearPlayerHazardHitReaction();
         resetPlayerDeathState();
         clearFifthQuestDeathChoice();
+        clearHardcoreGameOver();
         if (hudRenderer == null) {
             return;
         }
@@ -9860,7 +9944,11 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (!hasLivingEvilWizardInZone(sixthQuestThroneBounds)) {
-            beginSixthQuestFinalPhaseIntro();
+            sixthQuestStage = SIXTH_QUEST_BOSS_PHASE_1;
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_PHASE_1_TRANSITION,
+                    SIXTH_QUEST_PHASE_1_TRANSITION_SPEAKERS,
+                    SIXTH_QUEST_PHASE_1_TRANSITION_DIALOGUE_LINES);
         }
     }
 
@@ -10832,12 +10920,16 @@ public class GameScreen extends ScreenAdapter {
         return firstQuestDialogueActive
                 || firstQuestItemCardVisible
                 || sixthQuestPortalChoiceVisible
-                || fifthQuestDeathChoiceVisible;
+                || fifthQuestDeathChoiceVisible
+                || hardcoreGameOverVisible;
     }
 
     private boolean handleFirstQuestOverlayInput() {
         if (!isFirstQuestOverlayActive()) {
             return false;
+        }
+        if (hardcoreGameOverVisible) {
+            return handleHardcoreGameOverInput();
         }
         if (fifthQuestDeathChoiceVisible) {
             return handleFifthQuestDeathChoiceInput();
@@ -10918,6 +11010,23 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
                 || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             confirmFifthQuestDeathChoice(fifthQuestDeathChoiceIndex == 0);
+            return true;
+        }
+        return true;
+    }
+
+    private boolean handleHardcoreGameOverInput() {
+        if (!hardcoreGameOverVisible) {
+            return false;
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            confirmHardcoreGameOver();
+            return true;
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+                || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            confirmHardcoreGameOver();
             return true;
         }
         return true;
@@ -11884,7 +11993,7 @@ public class GameScreen extends ScreenAdapter {
                 refreshFirstQuestGuidance();
                 return true;
             }
-            case "quest4.0" -> {
+            case "quest5", "quest6.0" -> {
                 prepareQuestDebugState();
                 firstQuestStage = FIRST_QUEST_COMPLETE;
                 secondQuestStage = SECOND_QUEST_COMPLETE;
@@ -11903,11 +12012,11 @@ public class GameScreen extends ScreenAdapter {
                         QuestDialogueId.FIFTH_QUEST_LAB_ALARM,
                         FIFTH_QUEST_LAB_ALARM_SPEAKERS,
                         FIFTH_QUEST_LAB_ALARM_DIALOGUE_LINES);
-                notifyQuestDebugJump("Quest 4.0");
+                notifyQuestDebugJump("quest5".equals(destination) ? "Quest 5" : "Quest 6.0");
                 refreshFirstQuestGuidance();
                 return true;
             }
-            case "quest4.0.1" -> {
+            case "quest6.0.1" -> {
                 prepareQuestDebugState();
                 firstQuestStage = FIRST_QUEST_COMPLETE;
                 secondQuestStage = SECOND_QUEST_COMPLETE;
@@ -11925,11 +12034,11 @@ public class GameScreen extends ScreenAdapter {
                 teleportToMap(MAP_ID_VILLAGE, VILLAGE_PORTAL_ACTUAL_LAYER_NAME);
                 positionPlayerAtFifthQuestThirdAnchor();
                 centerCameraOnPlayer();
-                notifyQuestDebugJump("Quest 4.0.1");
+                notifyQuestDebugJump("Quest 6.0.1");
                 refreshFirstQuestGuidance();
                 return true;
             }
-            case "quest4.1" -> {
+            case "quest6.1" -> {
                 prepareQuestDebugState();
                 firstQuestStage = FIRST_QUEST_COMPLETE;
                 secondQuestStage = SECOND_QUEST_COMPLETE;
@@ -11943,7 +12052,7 @@ public class GameScreen extends ScreenAdapter {
                 gameCompleted = false;
                 restorePlayerForQuestDebug(QUEST_4_LEVEL_CAP);
                 teleportToMap(MAP_ID_BOSS_ARENA_PHASE_2, BOSS_ARENA_PHASE_2_PLAYER_SPAWN_LAYER_NAME);
-                notifyQuestDebugJump("Quest 4.1");
+                notifyQuestDebugJump("Quest 6.1");
                 refreshFirstQuestGuidance();
                 return true;
             }
@@ -11974,6 +12083,7 @@ public class GameScreen extends ScreenAdapter {
         questGuidanceSuppressTimer = 0f;
         resetPlayerAbilityCooldowns();
         clearFifthQuestDeathChoice();
+        clearHardcoreGameOver();
         fifthQuestFirstEncounterIntroPlayed = false;
         stopFifthQuestFirstEncounterIntro();
         fifthQuestZombieSfxCooldownTimer = 0f;
@@ -13178,7 +13288,10 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_ENTER_PORTAL && MAP_ID_DEMON_CASTLE.equals(world.activeMapId)) {
-            beginSixthQuestOuterAssault();
+            startQuestDialogue(
+                    QuestDialogueId.SIXTH_QUEST_CASTLE_ARRIVAL,
+                    SIXTH_QUEST_CASTLE_ARRIVAL_SPEAKERS,
+                    SIXTH_QUEST_CASTLE_ARRIVAL_DIALOGUE_LINES);
             return;
         }
         if (sixthQuestStage == SIXTH_QUEST_FINAL_PHASE_INTRO && MAP_ID_BOSS_ARENA_PHASE_2.equals(world.activeMapId)) {
@@ -14034,8 +14147,8 @@ public class GameScreen extends ScreenAdapter {
             case FOURTH_QUEST_ARRAY_SCAN_COMPLETE -> setVectorToFourthQuestArrayConsole(focusPoint);
             case FOURTH_QUEST_BREACH_INTRO, FOURTH_QUEST_BREACH_AFTER -> setVectorToFourthQuestVillageSite(focusPoint, fourthQuestBreachSiteBounds);
             case FIFTH_QUEST_PORTAL_AFTER, SIXTH_QUEST_PORTAL_BRIEFING -> setVectorToFifthQuestPortalDialogueScene(focusPoint);
-            case SIXTH_QUEST_CASTLE_ARRIVAL -> setVectorToRectCenter(focusPoint, player.bounds);
-            case SIXTH_QUEST_PHASE_1_INTRO, SIXTH_QUEST_PHASE_1_TRANSITION -> setVectorToSixthQuestBossPhase1(focusPoint);
+            case SIXTH_QUEST_CASTLE_ARRIVAL, SIXTH_QUEST_PHASE_1_TRANSITION -> setVectorToRectCenter(focusPoint, player.bounds);
+            case SIXTH_QUEST_PHASE_1_INTRO -> setVectorToSixthQuestBossPhase1(focusPoint);
             case SIXTH_QUEST_FINAL_PHASE_INTRO -> setVectorToFinalPhaseBoss(focusPoint);
             default -> false;
         };
@@ -16315,6 +16428,15 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    private void updateHardcoreGameOverFade(float delta) {
+        if (!hardcoreGameOverVisible || delta <= 0f) {
+            return;
+        }
+        hardcoreGameOverFadeTimer = Math.min(
+                HARDCORE_GAME_OVER_FADE_IN_SECONDS,
+                hardcoreGameOverFadeTimer + delta);
+    }
+
     private void drawFifthQuestPortalDialogueFather(SpriteBatch batch) {
         Rectangle fatherBounds = fifthQuestPortalDialogueFatherBounds();
         if (batch == null
@@ -16923,7 +17045,8 @@ public class GameScreen extends ScreenAdapter {
         batch.setShader(null);
         batch.setColor(1f, 1f, 1f, 1f);
         if (questOverlayActive || portalActivationOverlayActive || bossArenaIntroOverlayActive || fifthQuestEncounterOverlayActive) {
-            batch.setColor(0f, 0f, 0f, FIRST_QUEST_OVERLAY_DIM_ALPHA * clamp01(questBlurProgress));
+            float overlayAlpha = hardcoreGameOverVisible ? 0.82f : FIRST_QUEST_OVERLAY_DIM_ALPHA;
+            batch.setColor(0f, 0f, 0f, overlayAlpha * clamp01(questBlurProgress));
             batch.draw(dayNightOverlayTex, 0f, 0f, uiCamera.viewportWidth, uiCamera.viewportHeight);
             batch.setColor(1f, 1f, 1f, 1f);
             if (firstQuestDialogueActive) {
@@ -16961,6 +17084,8 @@ public class GameScreen extends ScreenAdapter {
             }
             if (firstQuestDialogueActive) {
                 drawFirstQuestDialogueOverlay(batch);
+            } else if (hardcoreGameOverVisible) {
+                drawHardcoreGameOverOverlay(batch);
             } else if (fifthQuestDeathChoiceVisible) {
                 drawFifthQuestDeathChoiceOverlay(batch);
             } else if (sixthQuestPortalChoiceVisible) {
@@ -18107,13 +18232,20 @@ public class GameScreen extends ScreenAdapter {
             screenY = clampedY;
         }
         boolean arrowMarker = isQuestArrowMarker(markerText);
+        boolean exclamationMarker = "!".equals(markerText);
         boolean sealMarker = isQuestSealMarker(markerText);
         float baseScaleX = firstQuestTitleFont.getData().scaleX;
         float baseScaleY = firstQuestTitleFont.getData().scaleY;
         if (arrowMarker) {
+            float arrowScale = QUEST_ARROW_MARKER_SCALE;
+            if (isQuestDirectionalArrowMarker(markerText)) {
+                float pulse = 0.5f + 0.5f * (float) Math.sin(firstQuestMarkerTimer * QUEST_DIRECTIONAL_ARROW_PULSE_SPEED);
+                float pulseMultiplier = 1f + (QUEST_DIRECTIONAL_ARROW_PULSE_MAX_MULTIPLIER - 1f) * pulse;
+                arrowScale = QUEST_DIRECTIONAL_ARROW_MARKER_SCALE * pulseMultiplier;
+            }
             firstQuestTitleFont.getData().setScale(
-                    baseScaleX * QUEST_ARROW_MARKER_SCALE,
-                    baseScaleY * QUEST_ARROW_MARKER_SCALE);
+                    baseScaleX * arrowScale,
+                    baseScaleY * arrowScale);
             drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
                     screenX - QUEST_ARROW_MARKER_OUTLINE_OFFSET, screenY,
                     0f, 0f, 0f, 0.95f);
@@ -18126,20 +18258,42 @@ public class GameScreen extends ScreenAdapter {
             drawCenteredQuestText(batch, firstQuestTitleFont, markerText,
                     screenX, screenY + QUEST_ARROW_MARKER_OUTLINE_OFFSET,
                     0f, 0f, 0f, 0.95f);
+        } else if (exclamationMarker) {
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * QUEST_EXCLAMATION_MARKER_SCALE,
+                    baseScaleY * QUEST_EXCLAMATION_MARKER_SCALE);
+            drawOutlinedCenteredQuestText(batch, firstQuestTitleFont, markerText,
+                    screenX, screenY,
+                    QUEST_EXCLAMATION_MARKER_OUTLINE_OFFSET,
+                    0f, 0f, 0f, 0.95f,
+                    r, g, b, 1f);
         }
         if (sealMarker) {
             drawSealQuestMarker(batch, screenX, screenY, r, g, b);
-        } else {
+        } else if (!exclamationMarker) {
             drawCenteredQuestText(batch, firstQuestTitleFont, markerText, screenX, screenY, r, g, b, 1f);
         }
-        if (arrowMarker) {
+        if (arrowMarker || exclamationMarker) {
             firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
         }
     }
 
     private void drawSealQuestMarker(SpriteBatch batch, float centerX, float centerY, float r, float g, float b) {
         if (batch == null || dayNightOverlayTex == null || abilityCooldownCircleTex == null) {
-            drawCenteredQuestText(batch, firstQuestTitleFont, "!", centerX, centerY, r, g, b, 1f);
+            if (firstQuestTitleFont == null) {
+                return;
+            }
+            float baseScaleX = firstQuestTitleFont.getData().scaleX;
+            float baseScaleY = firstQuestTitleFont.getData().scaleY;
+            firstQuestTitleFont.getData().setScale(
+                    baseScaleX * QUEST_EXCLAMATION_MARKER_SCALE,
+                    baseScaleY * QUEST_EXCLAMATION_MARKER_SCALE);
+            drawOutlinedCenteredQuestText(batch, firstQuestTitleFont, "!",
+                    centerX, centerY,
+                    QUEST_EXCLAMATION_MARKER_OUTLINE_OFFSET,
+                    0f, 0f, 0f, 0.95f,
+                    r, g, b, 1f);
+            firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
             return;
         }
 
@@ -18223,6 +18377,13 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private boolean isQuestArrowMarker(String markerText) {
+        return ">".equals(markerText)
+                || "<".equals(markerText)
+                || "^".equals(markerText)
+                || "v".equals(markerText);
+    }
+
+    private boolean isQuestDirectionalArrowMarker(String markerText) {
         return ">".equals(markerText)
                 || "<".equals(markerText)
                 || "^".equals(markerText)
@@ -18768,8 +18929,8 @@ public class GameScreen extends ScreenAdapter {
                 panelX + 60f, panelY + panelHeight - 90f, panelWidth - 120f,
                 0.92f, 0.90f, 0.86f, 1f);
         drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
-                uiCamera.viewportWidth * 0.5f,
-                panelY + 26f,
+                uiCamera.viewportWidth * 0.5f + CONTINUE_HINT_OFFSET_X,
+                panelY + 26f + CONTINUE_HINT_OFFSET_Y,
                 0.76f, 0.72f, 0.66f, 1f);
     }
 
@@ -18828,9 +18989,11 @@ public class GameScreen extends ScreenAdapter {
         }
         drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
                 drawX + drawWidth - FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_RIGHT_PADDING * scale
-                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_X,
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_X
+                        + CONTINUE_HINT_OFFSET_X,
                 drawY + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_BOTTOM_PADDING * scale
-                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y - 8f,
+                        + FIRST_QUEST_FATHER_DIALOGUE_BOX_HINT_OFFSET_Y - 8f
+                        + CONTINUE_HINT_OFFSET_Y,
                 0.44f, 0.33f, 0.20f, 1f);
     }
 
@@ -18995,6 +19158,31 @@ public class GameScreen extends ScreenAdapter {
                 0.44f, 0.33f, 0.20f, 1f);
     }
 
+    private void drawHardcoreGameOverOverlay(SpriteBatch batch) {
+        if (uiCamera == null || firstQuestTitleFont == null || firstQuestLayout == null) {
+            return;
+        }
+        float fadeAlpha = HARDCORE_GAME_OVER_FADE_IN_SECONDS <= 0f
+                ? 1f
+                : clamp01(hardcoreGameOverFadeTimer / HARDCORE_GAME_OVER_FADE_IN_SECONDS);
+        float baseScaleX = firstQuestTitleFont.getData().scaleX;
+        float baseScaleY = firstQuestTitleFont.getData().scaleY;
+        String title = "RUN ENDED";
+        firstQuestTitleFont.getData().setScale(
+                baseScaleX * FIRST_QUEST_OVERLAY_HEADER_SCALE * 3.2f,
+                baseScaleY * FIRST_QUEST_OVERLAY_HEADER_SCALE * 3.2f);
+        firstQuestLayout.setText(firstQuestTitleFont, title);
+        float centerX = uiCamera.viewportWidth * 0.5f;
+        float baselineY = uiCamera.viewportHeight * 0.5f + firstQuestLayout.height * 0.5f;
+        drawCenteredQuestText(batch, firstQuestTitleFont, title,
+                centerX + 4f, baselineY - 4f,
+                0f, 0f, 0f, 0.78f * fadeAlpha);
+        drawCenteredQuestText(batch, firstQuestTitleFont, title,
+                centerX, baselineY,
+                0.82f, 0.06f, 0.06f, fadeAlpha);
+        firstQuestTitleFont.getData().setScale(baseScaleX, baseScaleY);
+    }
+
     private void drawSixthQuestPortalChoiceButton(SpriteBatch batch,
                                                   Rectangle bounds,
                                                   String text,
@@ -19085,8 +19273,8 @@ public class GameScreen extends ScreenAdapter {
                 panelX + 52f, panelY + panelHeight * 0.36f + descriptionOffsetY, panelWidth - 104f,
                 0.92f, 0.90f, 0.86f, 1f);
         drawCenteredQuestText(batch, firstQuestHintFont, "Press E to continue",
-                uiCamera.viewportWidth * 0.5f,
-                panelY + 44f + hintOffsetY,
+                uiCamera.viewportWidth * 0.5f + CONTINUE_HINT_OFFSET_X,
+                panelY + 44f + hintOffsetY + CONTINUE_HINT_OFFSET_Y,
                 0.76f, 0.72f, 0.66f, 1f);
     }
 
@@ -19264,6 +19452,24 @@ public class GameScreen extends ScreenAdapter {
         firstQuestLayout.setText(font, text);
         font.draw(batch, firstQuestLayout, centerX - firstQuestLayout.width * 0.5f, baselineY);
         font.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawOutlinedCenteredQuestText(SpriteBatch batch, BitmapFont font, String text,
+                                               float centerX, float baselineY, float outlineOffset,
+                                               float outlineR, float outlineG, float outlineB, float outlineA,
+                                               float fillR, float fillG, float fillB, float fillA) {
+        if (font == null || text == null) {
+            return;
+        }
+        drawCenteredQuestText(batch, font, text, centerX - outlineOffset, baselineY, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX + outlineOffset, baselineY, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX, baselineY - outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX, baselineY + outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX - outlineOffset, baselineY - outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX - outlineOffset, baselineY + outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX + outlineOffset, baselineY - outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX + outlineOffset, baselineY + outlineOffset, outlineR, outlineG, outlineB, outlineA);
+        drawCenteredQuestText(batch, font, text, centerX, baselineY, fillR, fillG, fillB, fillA);
     }
 
     private void drawWrappedQuestText(SpriteBatch batch, BitmapFont font, String text,

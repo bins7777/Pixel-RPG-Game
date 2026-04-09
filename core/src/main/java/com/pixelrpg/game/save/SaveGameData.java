@@ -1,9 +1,12 @@
 package com.pixelrpg.game.save;
 
+import com.pixelrpg.game.GameDifficulty;
+
 public class SaveGameData {
     public String slotId;
     public String displayName;
     public String characterName;
+    public GameDifficulty difficulty;
     public String mapId;
     public float playerBoundsX;
     public float playerBoundsY;
