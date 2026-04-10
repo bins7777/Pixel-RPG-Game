@@ -81,8 +81,10 @@ public class HudRenderer {
     private static final float GAME_MENU_GROUP_X_OFFSET = -15f;
     private static final float MAIN_MENU_CHOICE_TEXT_SCALE = 0.7f;
     private static final float SETTINGS_ROW_COMPACT_GAP = 8f;
-    private static final float SETTINGS_CONTROLS_TEXT_SCALE = 0.79f;
-    private static final float SETTINGS_CONTROLS_CENTER_TEXT_SCALE = 0.71f;
+    private static final float SETTINGS_CONTROLS_TEXT_SCALE = 0.64f;
+    private static final float SETTINGS_CONTROLS_SECTION_TITLE_SCALE = 0.72f;
+    private static final float SETTINGS_CONTROLS_KEY_TEXT_SCALE = 0.58f;
+    private static final float SETTINGS_CONTROLS_INSET = 14f;
     private static final float SETTINGS_SLIDER_TRACK_HEIGHT_RATIO = 0.22f;
     private static final float SETTINGS_SLIDER_TRACK_MIN_WIDTH = 74f;
     private static final float SETTINGS_SLIDER_TRACK_WIDTH_RATIO = 0.30f;
@@ -1164,6 +1166,8 @@ public class HudRenderer {
                     mainMenuCloseBounds.height);
         }
 
+        boolean controlsSettingSelected = activePauseMenuTab == PauseMenuTab.SETTINGS
+                && selectedSettingsIndex == SETTINGS_CONTROLS_INDEX;
         if (uiMainMenuPanel3Tex != null) {
             batch.setColor(1f, 1f, 1f, 0.95f);
             batch.draw(uiMainMenuPanel3Tex,
@@ -1172,7 +1176,7 @@ public class HudRenderer {
                     mainMenuLeftCardBounds.width,
                     mainMenuLeftCardBounds.height);
         }
-        if (uiMainMenuPanel4Tex != null) {
+        if (uiMainMenuPanel4Tex != null && !controlsSettingSelected) {
             batch.setColor(1f, 1f, 1f, 0.95f);
             batch.draw(uiMainMenuPanel4Tex,
                     mainMenuRightCardBounds.x,
@@ -1180,9 +1184,7 @@ public class HudRenderer {
                     mainMenuRightCardBounds.width,
                     mainMenuRightCardBounds.height);
         }
-        boolean controlsSettingSelected = activePauseMenuTab == PauseMenuTab.SETTINGS
-                && selectedSettingsIndex == SETTINGS_CONTROLS_INDEX;
-        if (uiMainMenuPanel2Tex != null) {
+        if (uiMainMenuPanel2Tex != null && !controlsSettingSelected) {
             batch.setColor(1f, 1f, 1f, 0.82f);
             batch.draw(uiMainMenuPanel2Tex,
                     mainMenuCenterCardBounds.x,
@@ -1201,21 +1203,15 @@ public class HudRenderer {
             String safeRegion = currentRegionName == null || currentRegionName.isBlank() ? "Unknown" : currentRegionName;
 
             if (controlsSettingSelected) {
-                drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont, controlsCenterPanelText(),
-                        new Rectangle(mainMenuCenterCardBounds.x + 14f, mainMenuCenterCardBounds.y + 10f,
-                                mainMenuCenterCardBounds.width - 28f, mainMenuCenterCardBounds.height - 20f),
-                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height - 14f,
-                        Align.left,
-                        0.70f, 0.70f, 0.70f, 1f,
-                        SETTINGS_CONTROLS_CENTER_TEXT_SCALE);
+                drawControlsKeyboardPreview(batch, mainMenuCenterCardBounds);
             } else {
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Region: " + safeRegion,
                         mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
-                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.60f,
+                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.60f + 10f,
                         0.72f, 0.72f, 0.72f, 1f);
                 drawMenuCenteredText(batch, uiMainMenuBodyFont, "Esc or M closes this menu",
                         mainMenuCenterCardBounds.x + mainMenuCenterCardBounds.width * 0.5f,
-                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.35f,
+                        mainMenuCenterCardBounds.y + mainMenuCenterCardBounds.height * 0.35f + 10f,
                         0.66f, 0.66f, 0.66f, 1f);
             }
 
@@ -1261,7 +1257,7 @@ public class HudRenderer {
                         mainMenuLeftCardBounds.x + mainMenuLeftCardBounds.width * 0.5f + GAME_MENU_GROUP_X_OFFSET,
                         mainMenuLeftCardBounds.y + mainMenuLeftCardBounds.height - 26f,
                         0.78f, 0.78f, 0.78f, 1f);
-                drawMenuCenteredText(batch, uiMainMenuBodyFont, controlsSettingSelected ? "Controls" : "Selected",
+                drawMenuCenteredText(batch, uiMainMenuBodyFont, controlsSettingSelected ? "Mouse" : "Selected",
                         mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
                         mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 26f,
                         0.83f, 0.73f, 0.73f, 1f);
@@ -1271,24 +1267,21 @@ public class HudRenderer {
                             selectedSettingsIndex == i && confirmationAction == PauseMenuAction.NONE,
                             MAIN_MENU_CHOICE_TEXT_SCALE);
                 }
-                if (!controlsSettingSelected) {
+                if (controlsSettingSelected) {
+                    drawControlsMouseAndLegendPreview(batch, mainMenuRightCardBounds);
+                } else {
                     drawMenuCenteredText(batch, uiMainMenuBodyFont, SETTINGS_MENU_ITEMS[selectedSettingsIndex],
                             mainMenuRightCardBounds.x + mainMenuRightCardBounds.width * 0.5f,
                             mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 62f,
                             0.79f, 0.73f, 0.58f, 1f);
+                    drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont, settingsDescriptionText(selectedSettingsIndex),
+                            new Rectangle(mainMenuRightCardBounds.x + 16f, mainMenuRightCardBounds.y + 30f,
+                                    mainMenuRightCardBounds.width - 32f, mainMenuRightCardBounds.height - 96f),
+                            mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 94f,
+                            Align.left,
+                            0.72f, 0.72f, 0.72f, 1f,
+                            1f);
                 }
-                drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont, settingsDescriptionText(selectedSettingsIndex),
-                        controlsSettingSelected
-                                ? new Rectangle(mainMenuRightCardBounds.x + 14f, mainMenuRightCardBounds.y + 16f,
-                                mainMenuRightCardBounds.width - 28f, mainMenuRightCardBounds.height - 56f)
-                                : new Rectangle(mainMenuRightCardBounds.x + 16f, mainMenuRightCardBounds.y + 30f,
-                                mainMenuRightCardBounds.width - 32f, mainMenuRightCardBounds.height - 96f),
-                        controlsSettingSelected
-                                ? mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 48f
-                                : mainMenuRightCardBounds.y + mainMenuRightCardBounds.height - 94f,
-                        Align.left,
-                        0.72f, 0.72f, 0.72f, 1f,
-                        selectedSettingsIndex == SETTINGS_CONTROLS_INDEX ? SETTINGS_CONTROLS_TEXT_SCALE : 1f);
             }
         }
 
@@ -1345,9 +1338,18 @@ public class HudRenderer {
         float cardH = drawHeight * 0.40f;
         float leftCardX = drawX + drawWidth * 0.10f;
         float rightCardX = drawX + drawWidth * 0.65f;
+        boolean controlsSettingSelected = activePauseMenuTab == PauseMenuTab.SETTINGS
+                && selectedSettingsIndex == SETTINGS_CONTROLS_INDEX;
         mainMenuLeftCardBounds.set(leftCardX, cardY, cardW, cardH);
         mainMenuRightCardBounds.set(rightCardX, cardY, cardW, cardH);
-        mainMenuCenterCardBounds.set(menuCenterX - drawWidth * 0.17f, drawY + drawHeight * 0.40f, drawWidth * 0.34f, drawHeight * 0.14f);
+        if (controlsSettingSelected) {
+            float centerGap = 18f * scale;
+            float centerCardX = leftCardX + cardW + centerGap;
+            float centerCardW = Math.max(120f * scale, rightCardX - centerCardX - centerGap);
+            mainMenuCenterCardBounds.set(centerCardX, cardY, centerCardW, cardH);
+        } else {
+            mainMenuCenterCardBounds.set(menuCenterX - drawWidth * 0.17f, drawY + drawHeight * 0.40f, drawWidth * 0.34f, drawHeight * 0.14f);
+        }
 
         float rowHeight = 34f * scale;
         float rowGap = 12f * scale;
@@ -1563,10 +1565,232 @@ public class HudRenderer {
         };
     }
 
-    private String controlsCenterPanelText() {
-        return "Pause Menu: Up / Down select, Left / Right adjust.\n"
-                + "Q / E / Tab switch tabs. Enter / Space confirms.\n"
-                + "M or Esc closes the menu.";
+    private void drawControlsKeyboardPreview(SpriteBatch batch, Rectangle bounds) {
+        if (batch == null || bounds == null || uiBlackBarTex == null || uiMainMenuBodyFont == null) {
+            return;
+        }
+        float inset = SETTINGS_CONTROLS_INSET;
+        float titleY = bounds.y + bounds.height - 18f;
+        float centerX = bounds.x + bounds.width * 0.5f;
+        drawMenuCenteredTextScaled(batch, uiMainMenuBodyFont, "Keyboard",
+                centerX, titleY,
+                0.82f, 0.74f, 0.60f, 1f,
+                SETTINGS_CONTROLS_SECTION_TITLE_SCALE);
+        drawQuestDivider(batch,
+                bounds.x + inset,
+                titleY - 16f,
+                bounds.width - inset * 2f,
+                44f,
+                1.3f,
+                0.64f, 0.54f, 0.40f, 0.42f);
+
+        float previewX = bounds.x + inset;
+        float previewY = bounds.y + 96f;
+        float previewW = bounds.width - inset * 2f;
+        float previewH = bounds.height - 132f;
+        float keyHeight = Math.max(18f, Math.min(22f, previewH * 0.15f));
+        float gap = Math.max(3f, keyHeight * 0.18f);
+        float smallKeyWidth = keyHeight;
+        float mediumKeyWidth = keyHeight * 1.35f;
+        float enterKeyWidth = keyHeight * 1.9f;
+        float spaceKeyWidth = Math.min(previewW * 0.58f, keyHeight * 4.4f);
+        float row1Y = previewY + previewH - keyHeight;
+        float row2Y = row1Y - keyHeight - gap;
+        float row3Y = row2Y - keyHeight - gap;
+
+        float leftX = previewX + 2f;
+        drawControlsKey(batch, leftX, row1Y, mediumKeyWidth, keyHeight, "Esc", 0.88f, 0.42f, 0.35f);
+        leftX += mediumKeyWidth + gap;
+        drawControlsKey(batch, leftX, row1Y, mediumKeyWidth, keyHeight, "Tab", 0.68f, 0.54f, 0.88f);
+        leftX += mediumKeyWidth + gap * 1.5f;
+        drawControlsKey(batch, leftX, row1Y, smallKeyWidth, keyHeight, "Q", 0.68f, 0.54f, 0.88f);
+        leftX += smallKeyWidth + gap;
+        drawControlsKey(batch, leftX, row1Y, smallKeyWidth, keyHeight, "W", 0.36f, 0.72f, 0.96f);
+        leftX += smallKeyWidth + gap;
+        drawControlsKey(batch, leftX, row1Y, smallKeyWidth, keyHeight, "E", 0.96f, 0.78f, 0.38f);
+        leftX += smallKeyWidth + gap * 1.5f;
+        drawControlsKey(batch, leftX, row1Y, enterKeyWidth, keyHeight, "Enter", 0.76f, 0.78f, 0.82f);
+
+        float homeRowX = previewX + mediumKeyWidth * 2f + gap * 3.5f;
+        drawControlsKey(batch, homeRowX, row2Y, smallKeyWidth, keyHeight, "A", 0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, homeRowX + smallKeyWidth + gap, row2Y, smallKeyWidth, keyHeight, "S", 0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, homeRowX + (smallKeyWidth + gap) * 2f, row2Y, smallKeyWidth, keyHeight, "D", 0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, homeRowX + (smallKeyWidth + gap) * 3f + gap * 1.5f, row2Y, smallKeyWidth, keyHeight, "M", 0.88f, 0.42f, 0.35f);
+
+        float arrowClusterWidth = smallKeyWidth * 3f + gap * 2f;
+        float arrowClusterX = previewX + previewW - arrowClusterWidth;
+        drawControlsKey(batch, arrowClusterX + smallKeyWidth + gap, row1Y - keyHeight * 0.55f, smallKeyWidth, keyHeight, "^",
+                0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, arrowClusterX, row2Y - keyHeight * 0.15f, smallKeyWidth, keyHeight, "<",
+                0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, arrowClusterX + smallKeyWidth + gap, row2Y - keyHeight * 0.15f, smallKeyWidth, keyHeight, "v",
+                0.36f, 0.72f, 0.96f);
+        drawControlsKey(batch, arrowClusterX + (smallKeyWidth + gap) * 2f, row2Y - keyHeight * 0.15f, smallKeyWidth, keyHeight, ">",
+                0.36f, 0.72f, 0.96f);
+
+        drawControlsKey(batch, homeRowX + gap, row3Y, spaceKeyWidth, keyHeight, "Space", 0.92f, 0.62f, 0.28f);
+
+        float legendTitleY = bounds.y + 148f;
+        float columnGap = 22f;
+        float columnWidth = (previewW - columnGap) * 0.5f;
+        float gameplayX = previewX + 2f;
+        float menuX = gameplayX + columnWidth + columnGap;
+        float sectionScale = SETTINGS_CONTROLS_TEXT_SCALE * 1.05f;
+
+        drawMenuTextScaled(batch, uiMainMenuBodyFont, "Gameplay",
+                gameplayX,
+                legendTitleY,
+                0.82f, 0.74f, 0.60f, 1f,
+                sectionScale);
+        drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont,
+                "Move - W / A / S / D / Arrows\n"
+                        + "E - Interact / Dash Attack\n"
+                        + "Space - Dash",
+                new Rectangle(gameplayX, bounds.y + 82f, columnWidth, 58f),
+                legendTitleY - 14f,
+                Align.left,
+                0.74f, 0.74f, 0.78f, 1f,
+                SETTINGS_CONTROLS_TEXT_SCALE);
+
+        drawMenuTextScaled(batch, uiMainMenuBodyFont, "Menu",
+                menuX,
+                legendTitleY,
+                0.82f, 0.74f, 0.60f, 1f,
+                sectionScale);
+        drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont,
+                "M / Esc - Pause Menu\n"
+                        + "Q / E / Tab - Switch Tabs\n"
+                        + "Enter / Space - Confirm",
+                new Rectangle(menuX, bounds.y + 82f, columnWidth, 58f),
+                legendTitleY - 14f,
+                Align.left,
+                0.74f, 0.74f, 0.78f, 1f,
+                SETTINGS_CONTROLS_TEXT_SCALE);
+    }
+
+    private void drawControlsMouseAndLegendPreview(SpriteBatch batch, Rectangle bounds) {
+        if (batch == null || bounds == null || uiBlackBarTex == null || uiMainMenuBodyFont == null) {
+            return;
+        }
+        float inset = SETTINGS_CONTROLS_INSET + 2f;
+        float titleY = bounds.y + bounds.height - 54f;
+        drawWrappedMenuTextScaled(batch, uiMainMenuBodyFont,
+                "Left Click - Attack\n"
+                        + "Right Click - Spatial Dash",
+                new Rectangle(bounds.x + inset, bounds.y + 24f, bounds.width - inset * 2f, bounds.height - 52f),
+                titleY,
+                Align.left,
+                0.74f, 0.74f, 0.78f, 1f,
+                SETTINGS_CONTROLS_TEXT_SCALE);
+    }
+
+    private void drawControlsKey(SpriteBatch batch, float x, float y, float width, float height, String label,
+                                 float accentR, float accentG, float accentB) {
+        if (batch == null || uiBlackBarTex == null || uiMainMenuBodyFont == null || width <= 0f || height <= 0f) {
+            return;
+        }
+        batch.setColor(0f, 0f, 0f, 0.82f);
+        batch.draw(uiBlackBarTex, x - 1f, y - 1f, width + 2f, height + 2f);
+        batch.setColor(0.13f, 0.14f, 0.18f, 0.96f);
+        batch.draw(uiBlackBarTex, x, y, width, height);
+        batch.setColor(accentR * 0.25f, accentG * 0.25f, accentB * 0.25f, 0.74f);
+        batch.draw(uiBlackBarTex, x, y + height - 3f, width, 3f);
+        batch.setColor(accentR, accentG, accentB, 0.92f);
+        batch.draw(uiBlackBarTex, x, y, width, 2f);
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        float labelScale = SETTINGS_CONTROLS_KEY_TEXT_SCALE;
+        if (label != null && label.length() >= 5) {
+            labelScale *= 0.82f;
+        } else if (label != null && label.length() >= 3) {
+            labelScale *= 0.90f;
+        }
+        drawMenuCenteredTextScaled(batch, uiMainMenuBodyFont, label,
+                x + width * 0.5f,
+                y + height * 0.68f,
+                accentR, accentG, accentB, 1f,
+                labelScale);
+    }
+
+    private void drawControlsLegendRow(SpriteBatch batch, float x, float baselineY,
+                                       float accentR, float accentG, float accentB, String text) {
+        if (batch == null || uiBlackBarTex == null || uiMainMenuBodyFont == null || text == null) {
+            return;
+        }
+        batch.setColor(accentR, accentG, accentB, 0.96f);
+        batch.draw(uiBlackBarTex, x, baselineY - 9f, 3f, 12f);
+        batch.setColor(1f, 1f, 1f, 1f);
+        drawMenuTextScaled(batch, uiMainMenuBodyFont, text,
+                x + 9f,
+                baselineY,
+                0.74f, 0.74f, 0.78f, 1f,
+                SETTINGS_CONTROLS_TEXT_SCALE);
+    }
+
+    private void drawControlsMouseGraphic(SpriteBatch batch, Rectangle bounds) {
+        if (batch == null || bounds == null || uiBlackBarTex == null) {
+            return;
+        }
+        float centerX = bounds.x + bounds.width * 0.5f;
+        float sliceHeight = Math.max(6f, bounds.height / 10f);
+        float[] widths = {30f, 40f, 48f, 54f, 58f, 58f, 56f, 52f, 46f, 38f};
+        float topY = bounds.y + bounds.height - sliceHeight;
+
+        for (int i = 0; i < widths.length; i++) {
+            float y = topY - i * sliceHeight;
+            drawControlsMouseSliceOutline(batch, centerX, y, widths[i] + 4f, sliceHeight + 1f, 0f, 0f, 0f, 0.82f);
+        }
+        for (int i = 0; i < widths.length; i++) {
+            float y = topY - i * sliceHeight;
+            drawControlsMouseSliceOutline(batch, centerX, y, widths[i], sliceHeight, 0.17f, 0.18f, 0.22f, 0.98f);
+        }
+
+        float buttonHeight = sliceHeight * 3f - 2f;
+        float buttonTopY = bounds.y + bounds.height - buttonHeight;
+        float leftButtonX = centerX - 24f;
+        float rightButtonX = centerX + 2f;
+        float buttonWidth = 22f;
+
+        batch.setColor(0.23f, 0.25f, 0.31f, 0.98f);
+        batch.draw(uiBlackBarTex, leftButtonX, buttonTopY, buttonWidth, buttonHeight);
+        batch.draw(uiBlackBarTex, rightButtonX, buttonTopY, buttonWidth, buttonHeight);
+        batch.setColor(0.88f, 0.40f, 0.30f, 0.94f);
+        batch.draw(uiBlackBarTex, leftButtonX, buttonTopY + buttonHeight - 3f, buttonWidth, 3f);
+        batch.setColor(0.62f, 0.48f, 0.90f, 0.94f);
+        batch.draw(uiBlackBarTex, rightButtonX, buttonTopY + buttonHeight - 3f, buttonWidth, 3f);
+
+        float splitX = centerX - 1f;
+        batch.setColor(0f, 0f, 0f, 0.86f);
+        batch.draw(uiBlackBarTex, splitX, buttonTopY + 2f, 2f, bounds.height - 20f);
+
+        float wheelX = centerX - 3f;
+        float wheelY = buttonTopY + buttonHeight * 0.34f;
+        batch.draw(uiBlackBarTex, wheelX, wheelY, 6f, 16f);
+        batch.setColor(0.96f, 0.78f, 0.38f, 0.96f);
+        batch.draw(uiBlackBarTex, wheelX + 2f, wheelY + 3f, 2f, 10f);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawControlsMouseSliceOutline(SpriteBatch batch, float centerX, float y, float width, float height,
+                                               float r, float g, float b, float a) {
+        if (batch == null || uiBlackBarTex == null || width <= 0f || height <= 0f) {
+            return;
+        }
+        drawControlsOutlineRect(batch, centerX - width * 0.5f, y, width, height, 1f, r, g, b, a);
+    }
+
+    private void drawControlsOutlineRect(SpriteBatch batch, float x, float y, float width, float height,
+                                         float thickness, float r, float g, float b, float a) {
+        if (batch == null || uiBlackBarTex == null || width <= 0f || height <= 0f || thickness <= 0f) {
+            return;
+        }
+        float clampedThickness = Math.min(thickness, Math.min(width * 0.5f, height * 0.5f));
+        batch.setColor(r, g, b, a);
+        batch.draw(uiBlackBarTex, x, y, width, clampedThickness);
+        batch.draw(uiBlackBarTex, x, y + height - clampedThickness, width, clampedThickness);
+        batch.draw(uiBlackBarTex, x, y, clampedThickness, height);
+        batch.draw(uiBlackBarTex, x + width - clampedThickness, y, clampedThickness, height);
+        batch.setColor(1f, 1f, 1f, 1f);
     }
 
     private String confirmationTitleText() {
